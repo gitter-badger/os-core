@@ -14,7 +14,7 @@ VESAMODE = 0 # Don't activate VESA FB
 export KVERS    = 3.9.10
 
 # Define which packages we need to install after debootstrap
-export PACKAGES = vim-tiny dbus dbus-x11 udev ctorrent parted dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau firmware-linux xserver-xorg-video-all xserver-xorg-input-all libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel/experimental iceweasel-l10n-de/experimental libnspr4 network-manager network-manager-gnome network-manager-openvpn network-manager-openvpn-gnome network-manager-pptp network-manager-pptp-gnome network-manager-vpnc network-manager-vpnc-gnome libnm-glib4 libnm-gtk0 libnm-util2 hdparm console-tools console-data inetutils-syslogd sudo virtualbox virtualbox-dkms kexec-tools xterm x11-xserver-utils xinit metacity fonts-dejavu xfonts-base less openssh-client udpcast reiserfsprogs
+export PACKAGES = busybox locales firmware-linux vim-tiny dbus dbus-x11 udev parted dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-evtouch xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity fonts-dejavu xfonts-base less openssh-client
 
 # Define kernel architecture. Currently, we support intel/amd 32 and 64bit
 export ARCH     = i386
@@ -82,7 +82,7 @@ knoppify-stamp: ./Scripts/LINBO.chroot
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.mkfilesystem64-chroot
 	touch knoppify-stamp
 	
-update-stamp: filesystem-stamp knoppify-stamp
+update-stamp: filesystem-stamp
 	-rm -f clean-stamp
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -t unstable --no-install-recommends $(PACKAGES)"
 	touch update-stamp

@@ -1,0 +1,3 @@
+[submodule "Sources/aufs3-standalone"]
+	path = Sources/aufs3-standalone
+	url = git://git.code.sf.net/p/aufs/aufs3-standalone

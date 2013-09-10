@@ -9,12 +9,12 @@
 
 mkdir -p Kernel
 cd Kernel || exit 0
-
+echo $PWD
 TARFILE=linux-"$KVERS".tar.xz
 
 if ! [ -r "$TARFILE" ]; then
  echo -e "\033[1mFetching kernel $KVERS from kernel.org.\033[0m"
- wget http://www.kernel.org/pub/linux/kernel/v3.x/"$TARFILE" || { rm -f "$TARFILE"; exit 1; }
+ wget http://otc-dd-01/kernel/linux/"$TARFILE" || { rm -f "$TARFILE"; exit 1; }
 fi
 
 if ! [ -d linux-"$KVERS" ]; then
@@ -38,7 +38,7 @@ if ! grep -q ' cloop\.o' linux-"$KVERS"/drivers/block/Makefile; then
  sed -i 's/ loop\.o/ loop.o cloop.o/g' linux-"$KVERS"/drivers/block/Makefile
 fi
 
-AUFS_VERSION="$(awk '/AUFS_VERSION/{print $NF; exit 0}' ../Sources/aufs3-standalone.git/include/uapi/linux/aufs_type.h)"
+AUFS_VERSION="$(awk '/AUFS_VERSION/{print $NF; exit 0}' ../Sources/aufs3-standalone/include/uapi/linux/aufs_type.h)"
 AUFS_VERSION="${AUFS_VERSION#\"}"
 AUFS_VERSION="${AUFS_VERSION%\"}"
 
@@ -46,10 +46,10 @@ AUFS_VERSION="${AUFS_VERSION%\"}"
   AUFS_PATCHES=""
   cd linux-"$KVERS"
   for i in aufs3-kbuild.patch aufs3-base.patch aufs3-proc_map.patch aufs3-standalone.patch; do
-   if patch -f --dry-run -s -p1 < ../../Sources/aufs3-standalone.git/"$i" >/dev/null 2>&1; then
+   if patch -f --dry-run -s -p1 < ../../Sources/aufs3-standalone/"$i" >/dev/null 2>&1; then
     AUFS_PATCHES="$AUFS_PATCHES $i"
     echo -n -e "\r\033[1mPatching Kernel $KVERS with aufs $AUFS_VERSION:$AUFS_PATCHES.\033[0m"
-    patch -s -p1 < ../../Sources/aufs3-standalone.git/"$i" || { echo -e "\n\033[1mERROR, exiting.\033[0m"; exit 1; }
+    patch -s -p1 < ../../Sources/aufs3-standalone/"$i" || { echo -e "\n\033[1mERROR, exiting.\033[0m"; exit 1; }
    fi
    [ -n "$AUFS_PATCHES" ] && echo ""
   done
@@ -58,9 +58,9 @@ AUFS_VERSION="${AUFS_VERSION%\"}"
 
 [ "$?" = "0" ] || exit 1
 
-cp -auv ../Sources/aufs3-standalone.git/{Documentation,fs} linux-"$KVERS"/
-cp -auv ../Sources/aufs3-standalone.git/include/linux/*.h linux-"$KVERS"/include/linux/
-cp -auv ../Sources/aufs3-standalone.git/include/uapi/linux/*.h linux-"$KVERS"/include/uapi/linux/
+cp -auv ../Sources/aufs3-standalone/{Documentation,fs} linux-"$KVERS"/
+cp -auv ../Sources/aufs3-standalone/include/linux/*.h linux-"$KVERS"/include/linux/
+cp -auv ../Sources/aufs3-standalone/include/uapi/linux/*.h linux-"$KVERS"/include/uapi/linux/
 
 for arch in "$ARCH" "$ARCH64"; do
  [ -n "$arch" ] || continue
