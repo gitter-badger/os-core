@@ -1,0 +1,2 @@
+KERNEL=="ramzswap0", ACTION=="add", \
+  RUN+="/sbin/swapon -p 100 /dev/ramzswap0 2>/dev/null"

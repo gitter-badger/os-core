@@ -1,0 +1,1026 @@
+#!/bin/sh
+#
+# Microknopppix busybox-based initramfs bootscript
+# (C) 2012 by Klaus Knopper <knoppix@knopper.net>
+# LICENSE: GPL V2
+
+# Its purpose: 
+# 1. Mounting CD, DVD, Flashdisk or network drive,
+# 2. unifying read-only compressed file system and ramdisk or file overlay,
+# 3. give control to the real sysv init, which then continues to work like
+#    we booted from a single disk partition.
+
+# Preconditions:
+# - Kernel contains all drivers necessary to mount initial media
+# - cloop.ko and aufs.ko are either kernel builtins, or located as modules
+#   in /mnt-system/"$knoppix_dir"/modules
+
+DISTRO="LINBO V2"
+
+# Reset fb color mode
+RESET="]R"
+# ANSI COLORS
+# Erase to end of line
+CRE="[K"
+# Clear entire screen
+CLEAR="[H[J"
+# Normal color
+NORMAL="[0;39m"
+# RED: Failure or error message
+RED="[1;31m"
+# GREEN: Success message
+GREEN="[1;32m"
+# YELLOW: Descriptions
+YELLOW="[1;33m"
+# BLUE: System mesages
+BLUE="[1;34m"
+# MAGENTA: Found devices or drivers
+MAGENTA="[1;35m"
+# CYAN: Questions
+CYAN="[1;36m"
+# BOLD WHITE: Hint
+WHITE="[1;37m"
+
+# Directory where all Knoppix files are located (except for kernel and initrd)
+# This way, you can have multiple Knoppix versions on the same media, and
+# specify which one to load by "knoppix knoppix_dir=directory"
+[ -n "$knoppix_dir" ] || knoppix_dir="KNOPPIX"
+[ -z "$root" -a -n "$fromhd" ] && root="$fromhd"
+
+# This is set by findknoppix()
+ROOTDEV=""
+
+# Early Localization
+case "$lang" in
+ de*) 
+      export LANG="de_DE.UTF-8" LANGUAGE="de_DE.UTF-8" LC_MESSAGES="de_DE.UTF-8"
+      WELCOME="${WHITE}Willkommen zu $DISTRO basierend auf MICRO${CYAN}K${MAGENTA}N${YELLOW}O${BLUE}P${RED}P${GREEN}I${WHITE}X!${NORMAL}"
+      SEARCHINGFOR="Suche nach"
+      FOUNDAT="gefunden in"
+      WAITFORUSB="Warte (USB)..."
+      STARTLIVE=">>> Starte im Live-Modus.                                              <<<\n>>> Bitte den Datenträger bis zum Herunterfahren nicht mehr entfernen! <<<"
+      CREATEIMG1="Auf diesem Datenträger ist noch keine Datei zum Speichern der persönlichen Daten vorhanden. Wenn gewünscht, bitte Größe in MB angeben (mindestens 200, frei: "
+      CREATEIMG2=").
+
+Bitte das Feld einfach leer lassen, wenn keine Datei zum Speichern angelegt werden soll."
+      NOTFOUND="Konnte Disk nicht nach /mnt-system mounten. Starte debugging Shell."
+      NOKNOPPIX="Konnte /mnt-system/$knoppix_dir/KNOPPIX nicht mounten. Starte debugging Shell..."
+      COPYING="Kopiere Daten, ${WHITE}Leertaste${CYAN} zum Überspringen."
+      CHECKING="Prüfe"
+      FAILED="Fehler!"
+      CANCELLED="Abbruch"
+      NOSPACE="Nicht genügend freier Platz vorhanden."
+      ASKREBOOT="Start fehlgeschlagen, Eingabetaste zum Neustart."
+      CONTINUE="Trotzdem weitermachen? [j/N] "
+      BROKENIMAGE="Komprimiertes KNOPPIX Image ist kaputt"
+      ALLOK="Alle Dateien in Ordnung."
+      ON="auf"
+      QUESTION_ENCRYPT="Soll das Image mit AES256 (=Advanced Encryption Standard 256bit, s.a. http://csrc.nist.gov/encryption/aes/) verschlüsselt werden?\n\nHierzu ist die Eingabe eines Passwortes beim Einrichten sowie beim Einbinden des Image beim Systemstart erforderlich.\n\nOhne Kenntnis des korrekten Passwortes ist der Zugriff auf die Daten nicht möglich, dadurch sind die möglicherweise sensiblen Daten einerseits bei Verlust des Datenträgers vor unbefugtem Zugriff geschützt, andererseits sind sie bei vergessenem Passwort auch nicht mehr vefügbar."
+      ENCRYPT="Verschlüsseln"
+      NO_ENCRYPT="Nicht verschlüsseln"
+      QUESTION_PASSWORD1="AES256 Verschlüsselungs Passwort (mindestens 8 Zeichen):"
+      QUESTION_PASSWORD2="Bitte Passwort zur Sicherheit noch einmal eingeben:"
+      PASSWORDS_NOMATCH="Die beiden Passwörter stimmen nicht überein oder sind zu kurz.\nBitte noch einmal versuchen."
+      CREATING="Lege Datenbereich an, dies kann sehr lange dauern..."
+      USING="Verwende"
+      UPDATING="Installiere Update"
+      ASPERSISTENT="als persistentes Image."
+      ;;
+   *) WELCOME="${WHITE}Welcome to $DISTRO based on MICRO${CYAN}K${MAGENTA}N${YELLOW}O${BLUE}P${RED}P${GREEN}I${WHITE}X!${NORMAL}"
+      SEARCHINGFOR="Searching for"
+      FOUNDAT="found at"
+      WAITFORUSB="Waiting (USB)..."
+      STARTLIVE=">>> Starting in Live-Mode.                                             <<<\n>>> Please do not remove medium until shutdown!                        <<<"
+      CREATEIMG1="No file for saving personal data has been created on this device yet. If you wish to do so now, please enter desired size in MB (minimum 200, free: "
+      CREATEIMG2=").
+
+If you don't want to create a file for saving right now, just leave the field empty."
+      NOTFOUND="Could not mount disk to /mnt-system. Starting debugging Shell..."
+      NOKNOPPIX="Could not mount /mnt-system/$knoppix_dir/KNOPPIX. Starting debugging Shell..."
+      COPYING="Copying data, press ${WHITE}space${CYAN} to skip."
+      CHECKING="Checking"
+      FAILED="Failed!"
+      CANCELLED="Cancelled"
+      NOSPACE="Not enough free space available."
+      ASKREBOOT="Start failed, press enter to reboot."
+      CONTINUE="Continue anyways? [y/N] "
+      BROKENIMAGE="Compressed KNOPPIX image is broken"
+      ALLOK="All files OK."
+      ON="on"
+      QUESTION_ENCRYPT="Would you like to encrypt the image using AES256 (=Advanced Encryption Standard 256bit, http://csrc.nist.gov/encryption/aes/)?\n\nFor this type of encryption, entering a password when creating as well as mounting the image at system start is necessary.\n\nWithout knowing this password, reading saved data is not possible. Because of that, encrypted data is still still safe against unauthorized access in case the storage device containig the data gets lost or stolen. On the other hand, all saved data is inaccessible if you forget the password, there is no way to recover."
+      ENCRYPT="Encrypt"
+      NO_ENCRYPT="Don't encrypt"
+      QUESTION_PASSWORD1="AES256 Encryption Key (minimum 8 chars):"
+      QUESTION_PASSWORD2="Please enter the same password again, just to be sure:"
+      PASSWORDS_NOMATCH="Passwords are not identical, or just too short.\nPlease try again."
+      CREATING="Creating space for data, this can take a very long time..."
+      USING="Using"
+      UPDATING="Installing update"
+      ASPERSISTENT="as persistent image."
+      export LANG="C" LANGUAGE="C" LC_MESSAGES="C"
+      ;;
+esac
+
+bailout(){
+ [ "$1" = "0" ] && return 0
+ reboot -f
+ sleep 1337
+}
+
+# Check boot commandline for specified option
+checkbootparam(){
+ local i
+ for i in $CMDLINE; do
+  case "$i" in $1|$1=*) return 0;; esac
+ done
+ return 1
+}
+
+# like echo, but only if no "splash" boot option is present
+message(){
+ [ -n "$SPLASH" ] || echo "$@"
+}
+
+debugshell(){
+ [ -n "$1" ] && echo "$1"
+ /bin/busybox sh
+ bailout $?
+}
+
+trymount(){
+ local rc="1"
+ # Try to be quick, and probe the "most likely" file systems first
+ mount -t vfat -o "$RW",umask=000,shortname=winnt "$1" "$2" || \
+  mount -t iso9660 -o ro "$1" "$2" || \
+   ntfs-3g -o "$RW",umask=000,force "$1" "$2" || \
+    mount -t reiserfs -o "$RW" "$1" "$2" || \
+     mount -t ext4 -o "$RW" "$1" "$2" || \
+      mount -t ext3 -o "$RW" "$1" "$2" || \
+       mount -t ext2 -o "$RW" "$1" "$2"
+ rc="$?"
+ # Still no luck? Try everything else that the (static) kernel supports
+ if [ "$rc" != 0 ]; then
+  local fs
+  for fs in `awk '!/^nodev/{print $1}' /proc/filesystems 2>&1`; do
+   case "$fs" in
+    ext[234]|reiserfs|ntfs|fuse*|*fat|iso9660) ;; # Already did that
+    *) mount -t "$fs" -o "$RW" "$1" "$2"; rc="$?";;
+   esac
+   [ "$rc" = "0" ] && break
+  done
+ fi
+ return "$rc"
+}
+
+# findknoppix devices...
+findknoppix(){
+ local dev
+ for dev in "$@"; do
+  [ -b "$dev" ] || continue
+  message -n -e "\r${CRE}${BLUE}${SEARCHINGFOR} $DISTRO in: ${MAGENTA}$dev${NORMAL}   "
+  trymount "$dev" /mnt-system >/dev/null 2>&1 || continue
+  if [ -r /mnt-system/"$knoppix_dir"/KNOPPIX ]; then
+   message -e "\r${CRE}${GREEN}$DISTRO ${FOUNDAT}: ${MAGENTA}$dev${NORMAL}       "
+   ROOTDEV="$dev"
+   return 0
+  fi
+  umount /mnt-system
+  ROOTDEV=""
+ done
+ return 1
+}
+
+
+fork_copy(){
+ local RC=0
+ rm -f /tmp/log.txt /tmp/copy.done /tmp/copy.pid
+ cp -rL /mnt-system/"$knoppix_dir"  /mnt-user/ >/tmp/log.txt 2>&1 &
+ echo "$!" > /tmp/copy.pid
+ wait
+ RC="$?"
+ if [ ! -r /tmp/copy.done ]; then
+  [ "$RC" = "0" ] && echo "OK" >/tmp/copy.done || echo "ERROR" >/tmp/copy.done
+ fi
+}
+
+printlive(){
+ message -n -e "\r\033[J${WHITE}${STARTLIVE}${NORMAL}"
+}
+
+# print needed space in MB for copying KNOPPIX
+getsize(){
+ du -sm /mnt-system/"$knoppix_dir" 2>/dev/null | awk '{size+=$1}END{print size + 10}'
+ return $?
+}
+
+# print free space on given mounted device
+freespace(){
+ df -m "$1" | awk '{size=$4}END{print size}'
+ return $?
+}
+
+# copyto target_device
+copyto(){
+ local RC="0"
+ local REQUIRED="$(getsize)"
+ if [ "$1" = "tmpfs" ]; then
+  mount -t tmpfs -o size="$REQUIRED"M,mode=0755,dev,suid,exec tmpfs /mnt-user
+ else
+  trymount "$1" /mnt-user >/dev/null 2>&1
+ fi
+ RC="$?"
+ [ "$RC" = "0" ] || return "$RC"
+ local FREE="$(freespace /mnt-user)"
+ if [ "$REQUIRED" -gt "$FREE" ]; then
+  echo "${RED}$NOSPACE${NORMAL}"
+  umount -l /mnt-user
+  return 1
+ fi
+ fork_copy &
+ PID="$!"
+ echo "${CYAN}$COPYING${NORMAL}"
+ while [ ! -r /tmp/copy.done ]; do
+  echo -n -e "\033[42;32m \033[0m"
+  IFS= read -t 2 -n 1 key
+  if [ "$?" = "0" -a "$key" = " " ]; then
+   echo -n "${RED}$CANCELLED.${NORMAL}"
+   read PID < /tmp/copy.pid 2>/dev/null
+   [ -n "$PID" ] && kill "$PID"
+   echo "ERROR" >"/tmp/copy.done"
+   sleep 1
+   printlive
+  fi
+ done
+ echo ""
+ [ -s /tmp/log.txt ] && cat /tmp/log.txt >&2
+ rm -f /tmp/log.txt
+ case "$(cat /tmp/copy.done; rm -f /tmp/copy.done)" in
+  ERROR) rm -rf /mnt-user/"$knoppix_dir" 2>/dev/null; umount -l /mnt-user; touch /configmode-interrupted; return 1 ;;
+  OK) umount /mnt-system; mount --move /mnt-user /mnt-system; return 0 ;;
+ esac
+}
+
+ask_reboot(){
+ local dummy
+ read -p "${RED}$ASKREBOOT${NORMAL}" dummy
+ bailout 1
+}
+
+# Check files in KNOPPIX/sha1sums
+check_sha1sums(){
+ local RC="0"
+ local sum currentsum file relax
+ [ -r /mnt-system/"$knoppix_dir"/sha1sums ] || return 0
+ while read sum file; do
+  file="$(echo "${file#\*}" | sed "s,KNOPPIX/,$knoppix_dir/,g")"
+  [ -r /mnt-system/"$file" ] || continue
+  echo -n "${CRE}${YELLOW}$CHECKING ${CYAN}$file...${NORMAL}"
+  read currentsum relax <<EOT
+$(sha1sum /mnt-system/"$file")
+EOT
+  [ "$currentsum" = "$sum" ] || { echo -e "${RED}$FAILED${NORMAL}"; RC="1"; }
+ done </mnt-system/"$knoppix_dir"/sha1sums
+ echo ""
+ return "$RC"
+}
+
+# Turbo check: seek to compressed Knoppix file end and read 1k of data
+# This function is purely informative and therefore void
+check_knoppix(){
+ ls -lL "$@" | awk '{print int($5 / 1024) " " $NF}' | while read size file; do
+  if ! dd if="$file" bs=1024 skip="$(($size - 1))" count=1 2>/dev/null | wc -c | grep -q 1024; then
+   echo "${RED}-------------------------------------------------------------------${NORMAL}"
+   case "$LANG" in
+    de*)
+         echo "${RED}Die Datei $file (Größe ${size}kB) ist kaputt.${NORMAL}"
+         echo "${RED}Vielleicht ein Brenn- oder Download-Fehler?${NORMAL}"
+         echo "${RED}Bitte überprüfen Sie ggf. den Datenträger mit \"knoppix testcd\".${NORMAL}"
+         echo "${RED}Warte 30 Sekunden vor dem Versuch, weiterzumachen...${NORMAL}"
+	 ;;
+    *)
+         echo "${RED}The file $file (size ${size}kB) is broken.${NORMAL}"
+         echo "${RED}Maybe a problem during download or burning?${NORMAL}"
+         echo "${RED}You may want to check deeper using \"knoppix testcd\".${NORMAL}"
+         echo "${RED}Waiting for 30 seconds before attempting to continue...${NORMAL}"
+	 ;;
+   esac
+   echo "${RED}-------------------------------------------------------------------${NORMAL}"
+   sleep 30
+  fi
+ done
+}
+
+load_modules(){
+ local mod
+ for mod in /modules/*.ko /modules/scsi/*.ko; do
+  [ -r "$mod" -a ! -d /sys/module/"${mod%.ko}" ] && insmod "$mod" >/dev/null 2>&1
+ done
+}
+
+setkeyboard(){
+ [ -n "$keyboard" ] || keyboard="$lang"
+ [ -n "$keyboard" ] && runknoppixchroot /bin/loadkeys -q "$keyboard" >/dev/null 2>&1
+}
+
+# Main
+
+# Clean input/output
+exec >/dev/console </dev/console 2>&1
+
+mount -t proc proc /proc
+echo "0" >/proc/sys/kernel/printk
+
+[ -r /etc/mtab ] && ln -snf /proc/mounts /etc/mtab
+
+read CMDLINE </proc/cmdline
+
+RW="rw"
+checkbootparam "forensic" && RW="ro"
+
+if checkbootparam "splash" && ! checkbootparam "debug"; then
+ SPLASH="true"
+fi
+
+mount -t sysfs sysfs /sys
+
+# Since we now have to deal with kernel mode settings, opposed to vesafb,
+# we need to clear the screen on our own, eventually...
+
+# Clear from line 5 (so there is space for the penguins)
+case "$CMDLINE" in
+ *\ vga=[0-9]*|*debug*|*\ splash*) true;; *) echo -n "[0;0H[J";;
+esac
+
+message \
+'       _       __  __    __  ____     _____ 
+      / /     / / /  |  / / / __ \   / ___ \
+     / /     / / /   | / / / /_/ /  / /  / /
+    / /     / / / /| |/ / / __ _/  / /  / /
+   / /___  / / / / |   / / /_/ \  / /__/ /
+  /_____/ /_/ /_/  |__/ /______/  \_____/'
+message "${WELCOME}"
+
+if [ -n "$SPLASH" ] && [ -r /splash.ppm ] && type -p fbi >/dev/null 2>&1; then
+ ( fbi -T 6 -1 -noedit -noverbose -t 45 /splash.ppm >/dev/null 2>&1 & )
+fi
+
+load_modules
+
+# Terminalserver Section start
+# check whether we are a terminal server client
+TSCLIENT=""
+checkbootparam "nfsdir" && TSCLIENT="yes"
+
+# Check for "secure" option
+SECURE=""
+checkbootparam "secure" &&  SECURE="yes"
+
+if [ -n "$TSCLIENT" ]; then
+ # Split cmdline, find NFSDIR variable
+ for i in $CMDLINE; do case "$i" in [Ii][Pp]=*|[Nn][Mm]=*|[Gg][Ww]=*|[Nn][Ff][Ss][Dd][Ii][Rr]=*) eval $i;; esac; done
+ [ -n "$ip" ] && IP="$ip"
+ [ -n "$nm" ] && NM="$nm"
+ [ -n "$gw" ] && GW="$gw"
+ [ -n "$nfsdir" ] && NFSDIR="$nfsdir"
+
+ message ""
+ sleep 5
+
+ # Load nfs modules
+ NFSMODULES="$(cd /modules/net; echo af_packet.*o sunrpc.*o lockd.*o nfs_acl.*o nfs.*o)"
+ for i in $NFSMODULES; do
+   insmod /modules/net/"$i" >/dev/null 2>&1
+ done
+
+ FOUND_NETWORK=""
+ message "Loading network device module(s)"
+ for i in $(cd /modules/net; echo *.*o); do
+  case "$NFSMODULES" in
+   *$i*) continue ;;
+      *)
+         case "$i" in
+           00*) ;;
+             *) message -n "${CRE} ${BLUE}Probing network device(s) handled by ${MAGENTA}$i${BLUE}.${NORMAL}"
+                FOUND_NETWORK="$i" ;;
+         esac
+         insmod /modules/net/"$i" >/dev/null 2>&1 ;;
+  esac
+ done
+
+ # Enable kernel messages again
+ echo "6" > /proc/sys/kernel/printk
+ ifconfig lo 127.0.0.1 up
+
+ [ -n "FOUND_NETWORK" ] || debugshell
+
+ if [ -n "$hostname" ]; then # hostname= bootparm
+  HOSTNAME="$hostname"
+  case "$HOSTNAME" in
+   auto-clock) HOSTNAME="Knoppix-$(date +%F-%R | sed s/://g | sed s/-//g)";;
+   auto-mac)   HOSTNAME="Knoppix-$(ifconfig eth0 | grep HWaddr | awk '{print $5}' | sed s/://g)";;
+  esac
+  message " ${BLUE}Hostname is ${MAGENTA}${HOSTNAME}${NORMAL}"
+ fi
+
+ DHCP=""
+ # How many network cards should we probe for?
+ for i in 0 1 2 3; do
+  ifconfig "eth$i" up >/dev/null 2>&1 || continue
+  message "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
+  if [ -n "$HOSTNAME" ]; then
+   udhcpc -i eth$i -H $HOSTNAME && DHCP="eth$i"
+  else
+   udhcpc -i eth$i && DHCP="eth$i"
+  fi
+  [ -n "$DHCP" ] && break
+  message "${RED}No answer from network.${NORMAL}"
+ done
+ [ -n "$DHCP" ] && message "${GREEN}OK.${NORMAL}" || debugshell
+
+ message "${CRE} ${GREEN}Network card configuration: ${NORMAL}"
+ ifconfig "$DHCP"
+
+ # for the upcoming NFS mount
+ MOUNTED=""
+ SECUREOPTIONS=""
+ [ -n "$SECURE" ] && SECUREOPTIONS=",nosuid"
+
+ touch /etc/fstab
+
+ # if we have an NFSDIR, try mounting it
+ if [ -n "$NFSDIR" ]; then
+  message "nfsdir non-empty"
+case $NFSDIR in //*) message "samba mount ==> skip nfs mount"; ;; *) #@@@GvR
+  message -n "${CRE}${BLUE}Trying to mount CD on" \
+          "${MAGENTA}$NFSDIR${BLUE}...${NORMAL}"
+#@@@GvR message mount "${NFSDIR}" /mnt-system -o \
+#@@@GvR       ro,rsize=8192,wsize=8192,hard,nolock,intr$SECUREOPTIONS 
+  mount "${NFSDIR}" /mnt-system -o \
+        ro,rsize=8192,wsize=8192,hard,nolock,intr$SECUREOPTIONS \
+         > /dev/null 2>&1  && MOUNTED="yes"
+#@@@GvR
+  if [ "_$MOUNTED" != "_yes" ]; then
+    message mount "${NFSDIR}" /mnt-system -o \
+          ro,rsize=8192,wsize=8192,hard,nolock,intr$SECUREOPTIONS 
+  fi
+  KNXDIR="${NFSDIR%%:*}:/mnt-system"
+  if [ "_$MOUNTED" == "_yes" ]; then
+    if [ ! -h /mnt-system/$knoppix_dir/KNOPPIX ]; then message -n "${CRE}${MAGENTA}$NFSDIR/$knoppix_dir/KNOPPIX ${RED}does not exist${NORMAL} "
+    else
+      message -n "${CRE}${BLUE}Trying to nfs mount Knoppix on ${MAGENTA}$KNXDIR${BLUE}...${NORMAL}"
+#     message mount "${KNXDIR}" /nfs-system -o ro,rsize=8192,wsize=8192,hard,nolock,intr$SECUREOPTIONS
+              mount "${KNXDIR}" /nfs-system -o ro,rsize=8192,wsize=8192,hard,nolock,intr$SECUREOPTIONS > /dev/null 2>&1
+    fi
+  fi
+;; esac
+	# Try using other (SMB) mounts
+	[ -z "$MOUNTED" ] && [ -x /static/mount.cifs ] && { if [ -n "$NFSDIR" ]; then
+	    message -n "${CRE}${BLUE}Trying to SMB mount Knoppix on ${MAGENTA}$NFSDIR${BLUE}...${NORMAL}"
+#	    message   /static/mount.cifs "${NFSDIR}" /mnt-system -r -n -o guest,noserverino,nounix
+	              /static/mount.cifs "${NFSDIR}" /mnt-system -r -n -o guest,noserverino,nounix > /dev/null 2>&1  && MOUNTED="yes"
+	    [ -z "$MOUNTED" ] && umount /mnt-system > /dev/null 2>&1
+	fi; }
+#@@GvR
+        # unsuccessful? Blank out NFSDIR and see if pump does better
+        [ -z "$MOUNTED" ] && message "${RED}Failed.${NORMAL}" && NFSDIR=
+ fi
+
+#@@@GvR message "this should have succeeded"
+ message -n "this should have succeeded "
+
+ # STILL nothing? ask the user
+ [ -z "$MOUNTED" ] && {
+    for i in 2 1 0; do
+        message "${RED}Failed.${NORMAL}"
+        message -n "${CYAN}Please enter NFS directory path" \
+            "(aka \"192.168.0.1:/mnt-system\"): ${NORMAL}"
+        read NFSDIR
+        mount "$NFSDIR" /mnt-system \
+        -o ro,rsize=8192,wsize=8192,hard,nolock,intr$SECUREOPTIONS \
+        > /dev/null 2>&1  && MOUNTED="true"
+        [ -n "$MOUNTED" ] && break
+    done
+ }
+
+ [ -n "$MOUNTED" ] && message "${GREEN}OK.${NORMAL}"
+ [ -z "$MOUNTED" ] && debugshell
+ if test -r /mnt-system/$KNOPPIX_DIR/$KNOPPIX_NAME; then
+  message -n "${CRE} ${GREEN}Accessing KNOPPIX NFS directory at ${MAGENTA}$NFSDIR${GREEN}...${NORMAL}"
+  FOUND_KNOPPIX="true"
+ else
+  checkbootparam "bootfrom" || debugshell
+ fi
+
+fi
+# TS Section end
+
+# Return existing device names listed as regular expressions
+listpartitions(){
+ local pattern file
+ for pattern in "$@"; do
+  for file in $(find /sys/class/block -maxdepth 2 -name "$pattern"); do
+   read size < "${file}"/size
+   [ "$size" -lt 64 ] 2>/dev/null && continue
+   file="${file##*/}"
+   [ -b "/dev/$file" ] && echo "/dev/$file"
+  done
+ done
+# awk 'BEGIN{old="__start"}/'"$1"'/{if($0==old){exit}else{old=$0;if($4&&$4!="name"){print "/dev/"$4}}}' /proc/partitions # Insufficient, does not find CD-Roms
+}
+
+#@@@GvR Bootfrom Section start
+BOOTSYS="/mnt-system"   
+if [ ! -r "$BOOTSYS/$knoppix_dir/KNOPPIX" ]; then
+ # find BOOTFROM variable (/dev/sda1/boot/k620/*.iso)
+ BOOTFROM=""; bootfrom="";
+ for i in $CMDLINE; do case "$i" in [Bb][Oo][Oo][Tt][Ff][Rr][Oo][Mm]=*) eval $i;; esac; done
+ [ -n "$bootfrom" ] && BOOTFROM="$bootfrom"
+ if [ -n "$BOOTFROM" ]; then
+  # we may have an ISO file, try mounting it
+  BOOTISO="/mnt-iso"; BOOTDEV=""; BOOTFILE=""
+  mkdir -p $BOOTISO $BOOTSYS
+  [ -b /dev/loop1 ] || mknod -m 755 /dev/loop1 b 7 1
+  if [ -n "$NFSDIR" ]; then
+   umount $BOOTSYS; MOUNTED=""
+#@@@GvR   message nfs remount "${NFSDIR}" "${BOOTISO}" -o ro,rsize=8192,wsize=8192,hard,nolock,intr$SECUREOPTIONS 
+   case $NFSDIR in //*) message "samba mount ==> skip nfs mount"; ;; *)
+    mount "${NFSDIR}" "${BOOTISO}" -o ro,rsize=8192,wsize=8192,hard,nolock,intr$SECUREOPTIONS > /dev/null 2>&1 && MOUNTED="yes" ;;
+   esac
+   if [ -z "$MOUNTED" ]; then
+    message failed nfs mount "${NFSDIR}" "${BOOTISO}" -o ro,rsize=8192,wsize=8192,hard,nolock,intr$SECUREOPTIONS
+    umount $BOOTISO >/dev/null 2>&1
+    if [ -x /static/mount.cifs ]; then
+#@@@GvR     message cifs remount "${NFSDIR}" "${BOOTISO}" -r -n -o guest,noserverino,nounix
+     /static/mount.cifs   "${NFSDIR}" "${BOOTISO}" -r -n -o guest,noserverino,nounix > /dev/null 2>&1  && MOUNTED="yes"
+#@@@GvR     [ -z "$MOUNTED" ] && umount $BOOTISO > /dev/null 2>&1
+     if [ -z "$MOUNTED" ]; then
+      message failed cifs mount "${NFSDIR}" "${BOOTISO}" -r -n -o guest,noserverino,nounix
+      umount $BOOTISO > /dev/null 2>&1
+     fi
+    fi
+   fi
+   BOOTFILE=$BOOTFROM
+  else
+   BOOTDEV=$(echo "$BOOTFROM" | awk -F/ '{print $1"/"$2"/"$3}')
+   BOOTFILE="${BOOTFROM#*/}"; BOOTFILE="${BOOTFILE#*/}"; BOOTFILE="${BOOTFILE#*/}"
+   message -n "${CRE}${BLUE}Trying to mount the ISO partition ${MAGENTA}$BOOTDEV${BLUE}...${NORMAL}"
+   trymount "$BOOTDEV" "$BOOTISO" >/dev/null 2>&1
+  fi
+#@@@GvR  if [ ! -r "$BOOTISO/$BOOTFILE" ]; then umount $BOOTISO >/dev/null 2>&1
+#@@@GvR   message "${CRE}${RED}Cannot mount the partition ${MAGENTA}$BOOTDEV${NORMAL} (cannot find: ${RED}${BOOTISO}/${BOOTFILE}${NORMAL})"
+#@@@GvR   ls -al "$BOOTISO"
+  ISOFILE=""
+  [ -z "$ISOFILE" ] && [ -r "$BOOTISO/$BOOTFILE" ] && ISOFILE=$(ls -1 "$BOOTISO/$BOOTFILE" 2>/dev/null)
+  [ -z "$ISOFILE" ] && [ -r  $BOOTISO/$BOOTFILE  ] && ISOFILE=$(ls -1  $BOOTISO/$BOOTFILE  2>/dev/null)
+  FIRSTFILE=$(ls -1 $BOOTISO/$BOOTFILE 2>/dev/null | head -n1)
+  if [ -z "$ISOFILE" ] && [ -n "$FIRSTFILE" ] && [ -r "$FIRSTFILE" ]; then ISOFILE="$FIRSTFILE"
+   message -n "${RED}More than one ISO file !${YELLOW}"; ls -1 $BOOTISO/$BOOTFILE 2>/dev/null
+   message    "${NORMAL}Try to use: ${MAGENTA}@${ISOFILE}#${NORMAL}"
+  fi
+  if [ -n "$ISOFILE" ] && [ ! -r "$ISOFILE" ]; then
+   message "${CRE}${RED}Cannot mount the partition ${MAGENTA}$BOOTDEV${NORMAL} (cannot find: ${RED}${ISOFILE}${NORMAL})"
+   ls -al "$BOOTISO"; umount $BOOTISO >/dev/null 2>&1
+  else
+#@@@GvR   message -n "${CRE}${BLUE}Trying to mount CD image on ${MAGENTA}${BOOTFILE}${BLUE}...${NORMAL}"
+#@@@GvR   losetup /dev/loop1 "$BOOTISO/$BOOTFILE" && mount -r /dev/loop1 $BOOTSYS >/dev/null 2>&1
+#@@@GvR   if [ ! -r "$BOOTSYS/$knoppix_dir/KNOPPIX" ]; then umount $BOOTSYS >/dev/null 2>&1
+#@@@GvR    message -n "${CRE}${RED}Cannot mount CD image on ${MAGENTA}${BOOTFILE}${NORMAL}"
+   message -n "${CRE}${BLUE}Trying to mount ISO image on ${MAGENTA}${ISOFILE}${BLUE} (${NORMAL}from: ${MAGENTA}${BOOTDEV}${NORMAL}) ...${NORMAL}"
+   losetup /dev/loop1 $ISOFILE 2>/dev/null && mount -r /dev/loop1 $BOOTSYS >/dev/null 2>&1
+   if [ ! -r "$BOOTSYS/$knoppix_dir/KNOPPIX" ]; then
+    message  "${CRE}${RED}Cannot find $knoppix_dir dir in ISO image ${MAGENTA}${BOOTDEV}${YELLOW}/${BOOTFILE}${NORMAL} "
+    umount "$BOOTSYS" >/dev/null 2>&1
+    losetup -d /dev/loop1 >/dev/null 2>&1
+   else
+#@@@GvR    message -e "\r${CRE}${GREEN}$DISTRO ${FOUNDAT}: ${MAGENTA}${BOOTDEV}/$(cd $BOOTISO; ls -a $BOOTFILE)${NORMAL}       "
+    message -e "\r${CRE}${GREEN}$DISTRO ${FOUNDAT}: ${MAGENTA}${BOOTDEV}${YELLOW}${ISOFILE}${NORMAL}       "
+   fi
+  fi
+  # try to find ISO in an alternate location using the same path
+  if [ ! -r "$BOOTSYS/$knoppix_dir/KNOPPIX" ]; then
+   message -n "${CRE}${MAGENTA}Trying to find the ISO image in an other partition...${NORMAL}"
+   # If USB storage device, wait for USB...
+   if [ -d /sys/bus/usb/drivers/usb-storage ]; then WUSB="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20"; else WUSB="1"; fi
+   for i in $WUSB ; do
+    for BOOTDEV in $(listpartitions 'hd[a-z]' 'hd[a-z][0-9]*' 'scd[0-9]*' 'sr[0-9]*' 'sd[a-z]' 'sd[a-z][0-9]*'); do
+     if [ -b "$BOOTDEV" ]; then
+      message -n -e "\r${CRE}${BLUE}Searching for ISO in: ${MAGENTA}${BOOTDEV}${NORMAL}   "
+      trymount "$BOOTDEV" "$BOOTISO" > /dev/null 2>&1
+#@@@GvR      if [ ! -r "$BOOTISO/$BOOTFILE" ]; then umount $BOOTISO >/dev/null 2>&1; else
+#@@@GvR       message -n "${CRE}${BLUE}Trying to mount CD image on ${MAGENTA}${BOOTFILE}${BLUE}...${NORMAL}"
+#@@@GvR       losetup /dev/loop1 "$BOOTISO/$BOOTFILE" && mount -r /dev/loop1 $BOOTSYS >/dev/null 2>&1
+      ISOFILE=""
+      [ -z "$ISOFILE" ] && [ -r "$BOOTISO/$BOOTFILE" ] && ISOFILE=$(ls -1 "$BOOTISO/$BOOTFILE" 2>/dev/null)
+      [ -z "$ISOFILE" ] && [ -r  $BOOTISO/$BOOTFILE  ] && ISOFILE=$(ls -1  $BOOTISO/$BOOTFILE  2>/dev/null)
+      FIRSTFILE=$(ls -1 $BOOTISO/$BOOTFILE 2>/dev/null | head -n1)
+      if [ -z "$ISOFILE" ] && [ -n "$FIRSTFILE" ] && [ -r "$FIRSTFILE" ]; then ISOFILE="$FIRSTFILE"
+       message -n "${RED}More than one ISO file !${YELLOW}"; ls -1 $BOOTISO/$BOOTFILE 2>/dev/null
+       message    "${NORMAL}Try to use: ${MAGENTA}${ISOFILE}${NORMAL}"
+      fi
+      if [ -n "$ISOFILE" ] && [ ! -r "$ISOFILE" ]; then
+       umount $BOOTISO >/dev/null 2>&1
+      else
+       message -n "${CRE}${BLUE}Trying to mount ISO image on ${MAGENTA}${ISOFILE}${BLUE} (${NORMAL}from: ${MAGENTA}${BOOTDEV}${NORMAL}) ...${NORMAL}"
+       losetup /dev/loop1 $ISOFILE 2>/dev/null && mount -r /dev/loop1 $BOOTSYS >/dev/null 2>&1
+       if [ ! -r "$BOOTSYS/$knoppix_dir/KNOPPIX" ]; then
+        umount $BOOTSYS >/dev/null 2>&1
+        losetup -d /dev/loop1 >/dev/null 2>&1
+        umount $BOOTISO >/dev/null 2>&1 ; #@@@GvR
+       else
+#@@@GvR        message -e "\r${CRE}${GREEN}$DISTRO ${FOUNDAT}: ${MAGENTA}${BOOTDEV}/$(cd $BOOTISO; ls -a $BOOTFILE)${NORMAL}       "
+        message -e "\r${CRE}${GREEN}$DISTRO ${FOUNDAT}: ${MAGENTA}${BOOTDEV}${YELLOW}${ISOFILE}${NORMAL}       "
+        break
+       fi
+      fi
+     fi
+    done
+    if [ -r "$BOOTSYS/$knoppix_dir/KNOPPIX" ]; then
+     break
+    else
+     message -n -e "\r${CRE}${BLUE}${WAITFORUSB}${NORMAL} $i ";
+     sleep 1
+    fi
+   done
+  fi
+ fi
+fi
+if [ -r "$BOOTSYS/$knoppix_dir/KNOPPIX" ]; then MOUNTED="yes"; FOUND_KNOPPIX="true"; fi
+#@@@GvR Bootfrom Section end
+
+
+TOTALMEM=0
+amount=$(awk -F: '/^MemTotal/{printf "%d",int($2); exit 0}' /proc/meminfo 2>/dev/null); #'
+test "$amount" -gt "0" >/dev/null 2>&1 && let TOTALMEM=$amount/1024
+read a b KERNEL relax >/dev/null 2>&1 </proc/version
+
+# Print kernel info
+message "${GREEN}Linux Kernel ${YELLOW}$KERNEL${GREEN}, ${MAGENTA}$TOTALMEM${GREEN} MB RAM.${NORMAL}"
+# Print CPU info
+message -n "${GREEN}"
+[ -n "$SPLASH" ] || awk -F: '/^processor/{printf "CPU"$2": \t"};/^model name/{printf $2};/^vendor_id/{printf vendor};/^cpu MHz/{printf " @ %dMHz",int($2)};/^cache size/{printf ","$2" Cache"};/^$/{print ""}' /proc/cpuinfo 2>/dev/null | sed 's| \+| |g'
+message -n "${NORMAL}"
+
+#@@@GvR add "ramdisk" parameter to allow specifying ramdisk size, otherwise just use max(ram*4/5,2000)M
+for i in $CMDLINE; do case "$i" in [Rr][Aa][Mm][Dd][Ii][Ss][Kk]=*) eval $i;; esac; done
+case "$ramdisk" in
+ [0-9]*[KMG]) RAMDISK="$ramdisk" ;;
+esac
+if [ -z "$RAMDISK" ]; then
+ if [ "$TOTALMEM" -ge 2000 ] >/dev/null 2>&1; then
+   RAMDISK="$(expr $TOTALMEM / 5)"; RAMDISK="$(expr $RAMDISK \* 4)M"
+ else
+   # Too large, but we can still use swapspace
+   RAMDISK="2G"
+ fi
+fi
+#@@@GvR
+
+if [ -z "$FOUND_KNOPPIX" -a -z "$TSCLIENT" ]; then
+ if [ -n "$root" ]; then
+  if ! findknoppix $root; then
+   if [ -d /sys/bus/usb/drivers/usb-storage ]; then
+    for i in 1 2 3 4 5 6 7 8 9 10; do
+     message -n -e "\r${CRE}${BLUE}${WAITFORUSB}${NORMAL}"
+     sleep 2
+     findknoppix $root && break
+    done
+    [ "$?" = "0" ] || debugshell "${CRE}${RED}${NOTFOUND}${NORMAL}"
+   else
+    debugshell "${CRE}${RED}${NOTFOUND}${NORMAL}"
+   fi
+  fi
+ elif ! findknoppix $(listpartitions 'hd[a-z]' 'hd[a-z][0-9]*' 'scd[0-9]*' 'sr[0-9]*' 'sd[a-z]' 'sd[a-z][0-9]*'); then
+  if [ -d /sys/bus/usb/drivers/usb-storage ]; then
+   for i in 1 2 3 4 5 6 7 8 9 10; do
+    message -n -e "\r${CRE}${BLUE}${WAITFORUSB}${NORMAL}"
+    sleep 2
+    findknoppix $root $(listpartitions 'scd[0-9]*' 'sr[0-9]*' 'sd[a-z]' 'sd[a-z][0-9]*') && break
+   done
+   [ "$?" = "0" ] || debugshell "${CRE}${RED}${NOTFOUND}${NORMAL}"
+  fi
+ fi
+fi
+
+checkbootparam "debug" && debugshell "Past mounting /mnt-system."
+
+if checkbootparam "testcd" || checkbootparam "testdvd"; then
+ if check_sha1sums; then
+  message "${CRE}${GREEN}${ALLOK}${NORMAL}"; sleep 2
+ else
+  read -p "$CONTINUE" answer
+  case "$answer" in
+   [YyJjSs]*) true;;
+   *) ask_reboot ;;
+  esac
+ fi
+fi
+
+# mount additional ramdisk for overlay
+mount -t tmpfs -o size="$RAMDISK",mode=0755,dev,suid,exec tmpfs /ramdisk
+
+# Check if we need to copy KNOPPIX-directory to ram or hd,
+# contents will be available at /mnt-system later, in any case.
+if checkbootparam toram; then
+ copyto tmpfs
+elif checkbootparam tohd; then
+ copyto "$tohd"
+else
+ printlive; message ""
+fi
+
+# Run command from /KNOPPIX directory
+runknoppixchroot(){
+ local cmd="$1"; shift
+ chroot /KNOPPIX "$cmd" "$@"
+ return "$?"
+}
+
+runknoppixlib(){
+ local cmd="$1"; shift
+ [ -r /KNOPPIX/lib/ld-linux.so.2 -a -x /KNOPPIX/"$cmd" ] && /KNOPPIX/lib/ld-linux.so.2 --library-path "/KNOPPIX/lib:/KNOPPIX/usr/lib:/KNOPPIX/lib/i386-linux-gnu" /KNOPPIX/"$cmd" "$@"
+ return "$?"
+}
+
+# Createfile name size
+createfile(){
+ local src=/dev/zero rc=0
+ echo -n "${CLEAR}${CREATING}"
+ touch /tmp/progress.run
+ while [ -r /tmp/progress.run ]; do
+  echo -n "."
+  sleep 2
+ done &
+ case "$1" in *.aes) src=/dev/urandom; esac
+ # I thought that creating a sparse file would be quicker than writing
+ # all data completely, but unfortunately, it has bad side effects if
+ # the underlying FAT file system is fragmented. -KK
+ #  dd if="$src" of="$1" bs=1M seek="$(($2 - 1))" count=1
+ dd if="$src" of="$1" bs=1M count="$2"
+ rc="$?"
+ rm -f /tmp/progress.run; wait
+ echo ""
+ return "$rc"
+}
+
+createdata(){
+ local rc size avail
+ avail="$(df -m /mnt-system | awk '{size=$4}END{print size - 1}')"
+ [ "$avail" -ge 200 ] 2>/dev/null || return 2
+ runknoppixchroot /usr/bin/dialog --timeout 10 --inputbox "\n${CREATEIMG1}${avail}${CREATEIMG2}\n" 16 75 2>/tmp/knoppix.size; rc="$?"
+ echo -n "${CLEAR}"
+ read size </tmp/knoppix.size; rm -f /tmp/knoppix.size
+ [ "$rc" = "0" -a "$size" -ge 200  -a "$size" -le "$avail" ] 2>/dev/null || return 3
+ runknoppixchroot /usr/bin/dialog --yes-label "${ENCRYPT}" --no-label "${NO_ENCRYPT}" --defaultno --yesno "${QUESTION_ENCRYPT}" 16 75 2>/dev/null; rc="$?"
+ echo -n "${CLEAR}"
+ [ -b /dev/loop0 ]    || mknod -m 755 /dev/loop0 b 7 0
+ [ -d /KNOPPIX-DATA ] || mkdir -m 755 /KNOPPIX-DATA
+ if [ "$rc" = 0 ]; then # Encrypted
+  local pw1="" pw2="" len=0 mods="" m
+  setkeyboard
+  while [ -z "$pw1" -o -z "$pw2" -o x"$pw1" != x"$pw2" -o "$len" -lt 4 ]; do
+   [ -n "$pw1" ] && runknoppixchroot /usr/bin/dialog --msgbox "\n${PASSWORDS_NOMATCH}\n" 16 75 2>/dev/null
+   runknoppixchroot /usr/bin/dialog --timeout 30 --insecure --passwordbox "\n${QUESTION_PASSWORD1}\n" 16 75 2>/tmp/knoppix.pw; rc="$?"
+   read pw1 </tmp/knoppix.pw; rm -f /tmp/knoppix.pw
+   [ "$rc" = 0 ] || return 4
+   runknoppixchroot /usr/bin/dialog --insecure --passwordbox "\n${QUESTION_PASSWORD2}\n" 16 75 2>/tmp/knoppix.pw; rc="$?"
+   read pw2 </tmp/knoppix.pw; len="$(wc -c /tmp/knoppix.pw | awk '{print $1}')"
+   [ "$rc" = 0 ] || { rm -f /tmp/knoppix.pw; return 4; }
+  done
+  echo -n "${CLEAR}"
+  for m in loop cryptoloop aes_generic aes_i586 cbc; do
+   [ -d /sys/module/"$m" ] || mods="$mods $m"
+  done
+  [ -n "$mods" ] && runknoppixchroot /sbin/modprobe -a $mods >/dev/null 2>&1
+  createfile /mnt-system/"$knoppix_dir"/knoppix-data.aes "$size"
+  losetup -d /dev/loop0 2>/dev/null
+  runknoppixlib /sbin/losetup -p 0 -e aes -k 256 /dev/loop0 /mnt-system/"$knoppix_dir"/knoppix-data.aes </tmp/knoppix.pw; rc="$?"; rm -f /tmp/knoppix.pw
+  runknoppixlib /sbin/mke2fs -F -m 0 /dev/loop0
+  sleep 2; echo -n "$CLEAR"
+  mount -t ext2 -o rw /dev/loop0 /KNOPPIX-DATA && return 0
+ else # Unencrypted
+  createfile /mnt-system/"$knoppix_dir"/knoppix-data.img "$size"
+  runknoppixlib /sbin/mke2fs -F -m 0 /mnt-system/"$knoppix_dir"/knoppix-data.img
+  sleep 2; echo -n "$CLEAR"
+  mount -t ext2 -o loop,rw /mnt-system/"$knoppix_dir"/knoppix-data.img /KNOPPIX-DATA && return 0
+ fi
+ return 1
+}
+
+# checkfs partition filesystem
+checkfs(){
+local p="$1" fs="${2:-ext2}"
+message -n -e "\r${CRE}${YELLOW}$CHECKING ${CYAN}$p...${NORMAL} "
+case "$fs" in
+ ext*) runknoppixlib /sbin/e2fsck -y "$h" >/dev/null 2>&1 ;;
+esac
+message -n -e "\r${CRE}"
+}
+
+# mountaes partition mountpoint filesystem
+mountaes(){
+ local p="$1" mp="${2:-/KNOPPIX-DATA}" fs="${3:-ext2}" mods="" m="" try="" h=""
+ for m in loop cryptoloop dm_crypt aes_generic aes_i586 cbc; do
+  [ -d /sys/module/"$m" ] || mods="$mods $m"
+ done
+ [ -n "$mods" ] && runknoppixchroot /sbin/modprobe -a $mods >/dev/null 2>&1
+ setkeyboard
+ echo -n "${CYAN}$p "
+ let try=1
+ while [ "$try" -le 3 ]; do
+  [ "$try" -gt 1 ] && echo -n "${CYAN}(#$try/3) "
+  local h="" mapdev="${mp##*/}"
+  if runknoppixlib /sbin/cryptsetup create --key-size 256 --cipher aes "$mapdev" "$p"; then # Use dm-crypt
+   h=/dev/mapper/"$mapdev"
+  elif runknoppixlib /sbin/losetup -e aes -k 256 /dev/loop0 "$p"; then
+   h=/dev/loop0
+  fi </dev/console
+  echo -n "$NORMAL"
+  if [ -b "$h" ]; then
+   checkfs "$h"
+   message -e "\r${CRE}${GREEN}${USING} ${YELLOW}$p${NORMAL}"
+   mount -t "$fs" -o rw "$h" "$mp" && return 0
+  fi
+  losetup -d /dev/loop0 >/dev/null 2>&1
+  runknoppixlib /sbin/cryptsetup remove "$mapdev" >/dev/null 2>&1
+  let try++
+ done
+}
+
+mountdata(){
+ local img base ext m mods found=""
+ for base in $home /mnt-system/"$knoppix_dir"/knoppix-data /mnt-system/knoppix; do
+  for ext in aes img inf; do
+   img="$base.$ext"
+   [ -r "$img" ]        || continue
+   [ -b /dev/loop0 ]    || mknod -m 755 /dev/loop0 b 7 0
+   [ -d /KNOPPIX-DATA ] || mkdir -m 755 /KNOPPIX-DATA
+   [ -d /dev/mapper ]   || mkdir -m 755 /dev/mapper
+   found="true"
+   case "$ext" in
+    aes)
+     mountaes "$img" /KNOPPIX-DATA ext2 && return 0
+    ;;
+    img)
+     checkfs "$img" ext2
+     message -e "\r${CRE}${GREEN}${USING} ${YELLOW}$img${NORMAL}"
+     mount -t ext2 -o loop,rw "$img" /KNOPPIX-DATA && return 0
+     losetup -d /dev/loop0 >/dev/null 2>&1
+    ;;
+    inf) # Contains partition information in fstab format
+     local part="" mp="" fs="" opts=""
+     while read part mp fs opts; do
+      [ -n "$part" ] || continue
+      case "$mp" in *[Hh][Oo][Mm][Ee]) mp="/KNOPPIX-DATA" ;; esac
+      case "$opts" in
+       *aes*) mountaes "${ROOTDEV%[0-9]*}${part#/dev/}" "${mp:-/KNOPPIX-DATA}" "${fs:-ext2}" && return 0 ;;
+       *)     checkfs "${ROOTDEV%[0-9]*}${part#/dev/}" "$fs"
+              message -e "\r${CRE}${GREEN}${USING} ${YELLOW}${ROOTDEV%[0-9]*}${part#/dev/}${NORMAL}"
+              mount -t "${fs:-ext2}" "${ROOTDEV%[0-9]*}${part#/dev/}" "${mp:-/KNOPPIX-DATA}" && return 0 ;;
+      esac
+     done <"$img"
+    ;;
+   esac
+  done
+ done
+ [ -z "$found" -a "$RW" = "rw" ] && createdata && return 0
+ [ -d /KNOPPIX-DATA ] && rmdir /KNOPPIX-DATA
+ return 1
+}
+
+mountknoppix(){
+ local k dev dir count=0 RC=0
+ [ -b /dev/cloop ] || mknod -m 644 /dev/cloop b 240 0
+ grep -q cloop /proc/devices     || insmod /mnt-system/"$knoppix_dir"/modules/cloop.ko preload=32 || return 2
+ grep -q aufs  /proc/filesystems || insmod /mnt-system/"$knoppix_dir"/modules/aufs.ko || return 3
+ for k in /mnt-system/"$knoppix_dir"/[Kk][Nn][Oo][Pp][Pp][Ii][Xx] \
+          /mnt-system/"$knoppix_dir"/[Kk][Nn][Oo][Pp][Pp][Ii][Xx][0-9]; do
+  [ -r "$k" ] || continue
+  check_knoppix "$k"
+  if [ $count = 0 ]; then
+   dev=/dev/cloop ; dir=/KNOPPIX
+  else
+   dev=/dev/cloop$count ; dir=/KNOPPIX$count
+   [ -b $dev ] || mknod -m 644 $dev b 240 $count
+   [ -d $dir ] || mkdir -m 755 $dir
+  fi
+  if ! losetup $dev $k >/dev/null 2>&1 || ! mount -r -t iso9660 $dev $dir >/dev/null 2>&1; then
+   # Verbose error message
+   echo -n -e "\n\r${RED}${BROKENIMAGE}: $k ${ON} "; mount | grep /mnt-system; dmesg | tail | grep cloop; echo -n "${NORMAL}"
+   # Clean up for next retry
+   for dev in /dev/cloop*; do
+    umount -f "$dev" >/dev/null 2>&1
+    losetup -d "$dev" >/dev/null 2>&1
+   done
+   return 4
+  fi
+  let count++
+ done
+ return 0
+}
+
+mountunion(){
+ local dir tree=""
+ for dir in /KNOPPIX /KNOPPIX[0-9]; do
+  [ -d "$dir" ] && tree="$dir=ro${tree:+:$tree}"
+ done
+ mount -t aufs -o "br:$1=rw:$tree,noplink" unionfs /UNIONFS
+ return $?
+}
+
+if mountknoppix; then # compressed
+ checkbootparam "debug" && debugshell "Past mounting /KNOPPIX."
+ if ! checkbootparam "noimage" && test -z "$TSCLIENT" && mountdata; then
+  checkbootparam "debug" && debugshell "Past mounting /KNOPPIX-DATA."
+  mountunion /KNOPPIX-DATA
+ else
+  mountunion /ramdisk
+ fi
+else
+ debugshell "${RED}${NOKNOPPIX}${NORMAL}"
+fi
+
+checkbootparam "debug" && debugshell "Past mounting /UNIONFS."
+
+[ -n "$HOSTNAME" ] && echo "$HOSTNAME" > /UNIONFS/etc/hostname
+grep -q ^nameserver /etc/resolv.conf 2>/dev/null && cat /etc/resolv.conf > /UNIONFS/etc/resolv.conf
+
+# Link directories in order to create a writable system
+PATH="$PATH:/bin.old:/UNIONFS/bin:/UNIONFS/sbin"
+export PATH
+
+# Create symlinks to /UNIONFS
+for i in boot etc sbin var lib lib64 opt root bin 64; do
+ if test -d /$i; then
+  mv /$i /$i.old && \
+   ln -s /UNIONFS/$i /$i && \
+   rm -rf /$i.old
+ elif [ -d /UNIONFS/$i ]; then
+  ln -snf /UNIONFS/$i /$i
+ fi
+done
+
+# Unfortunately, virtualbox fails to work with symlinks in
+# the library paths, so we switch /usr to bind mounts for now.
+# /home should ALWAYS be a mountpoint, not a link (or you get an ugly prompt)
+for i in usr home; do # Move directories to union
+ if [ -d /UNIONFS/$i ]; then
+  test -L /$i && rm -f /$i
+  test -d /$i || mkdir -m 755 /$i
+  mount -o bind /UNIONFS/$i /$i
+ fi
+done
+
+checkbootparam "debug" && debugshell "Past symlinks to /UNIONFS."
+
+# Check for updates on-disk, install them if necessary.
+ls /mnt-system/KNOPPIX/update*.zip /mnt-system/KNOPPIX/update*.tar.gz /mnt-system/KNOPPIX/update*.taz 2>/dev/null | while read update; do
+ if [ -r "$update" ]; then
+  message -e "\r${CRE}${GREEN}${UPDATING} ${YELLOW}$update${NORMAL}"
+  case "$update" in
+   *.zip) ( cd / ; unzip -o "$update" >/dev/null 2>&1 ) ;;
+   *.tar.gz|*.taz) ( cd / ; tar -zxf "$update" >/dev/null 2>&1 ) ;;
+  esac
+ fi
+done
+
+# Before starting init: check for "adriane" or "secure" bootoption
+CONFS="/etc/inittab /etc/sudoers /etc/PolicyKit/PolicyKit.conf"
+if checkbootparam "adriane" && type -p adriane >/dev/null 2>&1; then
+ for i in $CONFS; do
+  s="$i.adriane"; o="$i.orig"
+  if [ -r "$s" ]; then
+   [ -r "$o" ] || mv -f "$i" "$o" >/dev/null 2>&1
+   cp -f "$s" "$i"
+  fi
+ done
+elif checkbootparam "secure"; then
+ for i in $CONFS; do
+  s="$i.secure"; o="$i.orig"
+  if [ -r "$s" ]; then
+   [ -r "$o" ] || mv -f "$i" "$o" >/dev/null 2>&1
+   cp -f "$s" "$i"
+  fi
+ done
+else
+ for i in $CONFS; do
+  o="$i.orig"
+  [ -r "$o" ] && mv -f "$o" "$i" >/dev/null 2>&1
+ done
+fi
+
+export SELINUX_INIT=NO
+# echo 0x0100 >/proc/sys/kernel/real-root-dev # unnecessary, since we never leave
+
+# Run a shell in debug mode before starting init
+checkbootparam "debug" && debugshell "Final DEBUG Shell before starting init."
+
+# Create trace=open for mkisofs sortlist optimization
+# We store the result in /open.trace because /tmp gets mounted over.
+checkbootparam "trace" && strace -q -f -o /open.trace -e "trace=open" -p 1 &
+
+# Start init
+exec /sbin/init "$@" </dev/console >/dev/console 2>&1
+
+message 
+
+ask_reboot

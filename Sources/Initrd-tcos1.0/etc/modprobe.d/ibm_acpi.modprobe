@@ -1,0 +1,1 @@
+options ibm_acpi hotkey=enable,0xff9f experimental=1

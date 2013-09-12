@@ -14,7 +14,7 @@ VESAMODE = 0 # Don't activate VESA FB
 export KVERS    = 3.9.10
 
 # Define which packages we need to install after debootstrap
-export PACKAGES = busybox locales firmware-linux vim-tiny dbus dbus-x11 udev parted dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-evtouch xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity fonts-dejavu xfonts-base less openssh-client
+export PACKAGES = busybox locales firmware-linux vim-tiny dbus dbus-x11 udev parted dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity ttf-dejavu xfonts-base less openssh-client
 
 # Define kernel architecture. Currently, we support intel/amd 32 and 64bit
 export ARCH     = i386
@@ -54,6 +54,8 @@ help:
 	@echo "Have a lot of fun. ;-)"
 	@echo "[0m"
 
+# Meta-Targets
+
 all-new:
 	-rm -f Image.iso
 #	-rm -f clean-stamp
@@ -63,13 +65,19 @@ all-new:
 distclean:
 	sudo rm -rf Filesystem/* Image/boot/isolinux/linux* Image/boot/isolinux/minirt.gz Kernel/* *-stamp
 
+chroot: Filesystem ./Scripts/LINBO.chroot
+	rm -f clean-stamp
+	sudo Scripts/LINBO.chroot ./Filesystem
+
+# Build-Targets
+
+filesystem: 
+	make filesystem-stamp
+
 filesystem-stamp: ./Scripts/LINBO.mkfilesystem
 	-rm -f update-stamp clean-stamp
 	./Scripts/LINBO.mkfilesystem
-	touch filesystem-stamp
-
-filesystem:
-	make filesystem-stamp
+	touch $@
 
 knoppify: filesystem-stamp
 	make knoppify-stamp
@@ -82,25 +90,38 @@ knoppify-stamp: ./Scripts/LINBO.chroot
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.mkfilesystem64-chroot
 	touch knoppify-stamp
 	
-update-stamp: filesystem-stamp
+otcify: filesystem-stamp
+	make otcify-stamp
+
+otcify-stamp: ./Scripts/LINBO.chroot
 	-rm -f clean-stamp
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -t unstable --no-install-recommends $(PACKAGES)"
-	touch update-stamp
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "ln -snf /bin/bash /bin/sh; apt-get update; apt-get install locales busybox"
+	Scripts/LINBO.apply-configs Sources/tcos Filesystem
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.otcify-chroot
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.mkfilesystem64-chroot
+	touch $@ 
 
-update:
+update: filesystem-stamp otcify-stamp
 	make update-stamp
-		
-chroot: Filesystem ./Scripts/LINBO.chroot
-	rm -f clean-stamp
-	sudo Scripts/LINBO.chroot Filesystem
 
-clean-stamp: Filesystem ./Scripts/LINBO.clean
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.clean
+update-stamp: 	
+	-rm -f clean-stamp
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -y --no-install-recommends $(PACKAGES)"
+	touch $@
+
+		
+
+clean-stamp: filesystem-stamp ./Scripts/LINBO.otcify-clean
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.otcify-clean
 	touch $@
 
 compressed: Filesystem clean-stamp Scripts/LINBO.mkcompressed Bin/create_compressed_fs
 	-mkdir -p Image/KNOPPIX
 	nice -10 ionice -c 3 sudo ./Scripts/LINBO.mkcompressed Filesystem Image/KNOPPIX/KNOPPIX
+
+compressed-squashfs: filesystem-stamp otcify-stamp update-stamp clean-stamp
+	-mkdir -p Image/TCOS
+	nice -10 ionice -c 3 sudo mksquashfs Filesystem Image/TCOS/BASE.sfs -noappend -always-use-fragments
 
 addons: Addons
 	cd $< ; sudo mkisofs -l -R -U -v . | ../Bin/create_compressed_fs -L -2 -B 131072 -m - ../Image/KNOPPIX/KNOPPIX1
