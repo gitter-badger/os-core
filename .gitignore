@@ -1,6 +1,6 @@
 /Filesystem/*
-/Initrd/*
 /Kernel/*
 *~
 .~*
 git-export-daemon-ok
+/Image/*

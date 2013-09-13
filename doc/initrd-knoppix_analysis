@@ -59,10 +59,18 @@ checkbootparam(){
 }
 #only for parameters with values, use checkbootparam() otherwise
 
-getbootparams(){
+bashify(){
+ 
+ #replaces . * + * and whitespace with underscore`
+ 
+ local v=`echo $1 | cut -d "=" -f1 | sed 's/[.?+* ]/\_/g'`
+ return "$v"=`echo $1 | cut -d "=" -f2`
+}
+
+getbootparams(){ 
  local p
  for p in $CMDLINE; do
-  case "$p" in *=*) eval "$p"
+  case "$p" in *=*) eval `bashify "$p"`;; esac
  done
  return 0
 }
