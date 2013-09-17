@@ -1,0 +1,72 @@
+[1mHow the old stuff works
+#############################
+
+NFS
+###
+[m
+- currently the initial nfs-mount is done in funktion "mountroot ()" in script INITRD/scripts/nfs *)
+- this function is called from INITRD/init
+- the resulting mount inside a running client on base 1.0.0-36 looks like this
+
+
+root@DD-Buero-1697:~# cat /proc/mounts  | grep nfs 
+10.224.129.2:/openthinclient /var/tcos nfs ro,vers=2,rsize=8192,wsize=8192,namlen=255,hard,nointr,nolock,proto=udp,timeo=7,retrans=10,sec=sys,addr=10.224.129.2 0 0
+
+* Keep in mind, that there is a second function called "mountroot ()" in script INITRD/scripts/local, but this funtion seems to be used in case of localboot
+
+[1m
+SFS and AUFS
+#############
+[m
+
+- the base.sfs and all other sfs-files are mounted in the script INITRD/scripts/init-bottom/tcos_aufs 
+- so far nothing special: "mount -t squashfs -o loop,ro "$BASE_FILE" /base" 
+
+root@DD-Buero-1697:~# cat /proc/mounts  | grep base
+/dev/loop0 /var/sfs/base squashfs ro 0 0
+
+- then the aufs comes into game
+
+# mount union
+mount -t aufs -o nowarn_perm,br:/rw=rw:$BRANCHES aufs ${rootmnt}
+
+- the package sfs-files are mounted on top of the aufs --> each to /opt/packagename
+- example: /dev/loop1 /var/sfs/module/desktop-module squashfs ro 0 0
+
+[1m
+CONSIDERATION
+##############
+[m
+
+- let's use (adapt) some code of INITRD/scripts/init-bottom/tcos_aufs 
+- we do not need to move the mounts like tcos_aufs does as long as we go Klaus' way (softlinking folders back to /)
+- merged the old an the new way it might look as follows
+
+[1m
+/ (rootfs)
+/bin   ->         /union/bin
+/etc   ->         /union/etc
+/home  ->         /union/home
+/lib   ->         /union/lib
+/media
+	/to/local      (flashdrive, nfs-to-local-copy, hdd)
+/root  ->         /union/root
+/union            aufs rw,si=502d7e5b,xino=/var/aufs/.aufs.xino,nowarn_perm,br:/var/aufs=rw:/var/sfs/base=rr:/var/sfs/packages/packagename1=rr:/var/sfs/packages/packagename2=rr  0 0
+/usr   ->         /union/usr
+/sbin  ->         /union/sbin
+
+# the underlaying stuff
+/var/tcos 	  nfs		OTC-Server:/openthinclient # the initial one!
+/var/aufs	  		# for aufs to write this is just a folder inside the /
+/var/sfs/base     squashfs 	# via loopback sfs-file: /var/tcos/sfs/base.sfs
+
+# the packages
+/var/sfs/packages/packagename1  squashfs 	# via loopback sfs-file: /var/tcos/sfs/package/packagename1.sfs
+/var/sfs/packages/packagename2  squashfs 	# via loopback sfs-file: /var/tcos/sfs/package/packagename2.sfs
+
+"->" are links to be set
+
+[m
+
+- the old way to have module-sfs could be obsolete
+- do we really want do mount packages-content directly to /union without /opt ?

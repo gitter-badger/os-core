@@ -1,7 +1,8 @@
 #!/bin/bash
 # LINBO.kernel
-# download, configure and prepare Linux kernel with cloop+aufs for Knoppix
-# (C) Klaus Knopper 2013
+# download, configure and prepare Linux kernel 
+# origin by (C) Klaus Knopper 2013
+# adapted to tcos by openthinclient developers
 # License: GPL V2
 
 
@@ -25,18 +26,6 @@ fi
 # KERNEL="$(ls -1d linux-*/. | tail -1)"
 # KVERS="$(awk '{if($1~/^VERSION$/){version=$NF}if($1~/^PATCHLEVEL$/){patchlevel=$NF}if($1~/^SUBLEVEL$/){sublevel=$NF}if($1~/^EXTRAVERSION$/){if($NF != "="){extraversion=$NF}}}END{print version"."patchlevel"."sublevel extraversion}' $KERNEL/Makefile)"
 
-CLOOP_VERSION="$(awk '/CLOOP_VERSION/{print $NF; exit 0}' ../Sources/Cloop/cloop.c)"
-CLOOP_VERSION="${CLOOP_VERSION#\"}"
-CLOOP_VERSION="${CLOOP_VERSION%\"}"
-
-for cloop in cloop.c cloop.h; do
- [ -r linux-"$KVERS"/drivers/block/"$cloop" ] || cp ../Sources/Cloop/"$cloop" linux-"$KVERS"/drivers/block/ 
-done
-
-if ! grep -q ' cloop\.o' linux-"$KVERS"/drivers/block/Makefile; then
- echo -e "\033[1mPatching Kernel $KVERS with cloop $CLOOP_VERSION.\033[0m"
- sed -i 's/ loop\.o/ loop.o cloop.o/g' linux-"$KVERS"/drivers/block/Makefile
-fi
 
 AUFS_VERSION="$(awk '/AUFS_VERSION/{print $NF; exit 0}' ../Sources/aufs3-standalone/include/uapi/linux/aufs_type.h)"
 AUFS_VERSION="${AUFS_VERSION#\"}"
@@ -69,7 +58,12 @@ for arch in "$ARCH" "$ARCH64"; do
   echo -e "\033[1m(Re-)building kernel $KVERS for $arch\033[0m"
   cp ../Sources/kernel-"$arch".conf linux-"$KVERS"/.config
   read -p "Update/modify kernel configuration? [Y/n] " a
-  case "$a" in N*|n*) ;; *) ( cd linux-"$KVERS" make ARCH="$arch" oldconfig menuconfig ) && cp -au linux-"$KVERS"/.config ../Sources/kernel-"$arch".conf;; esac
+
+  case "$a" in 
+      N*|n*) ;; 
+      *) ( cd linux-"$KVERS" make ARCH="$arch" oldconfig menuconfig ) && cp -au linux-"$KVERS"/.config ../Sources/kernel-"$arch".conf;; 
+  esac
+
   ( cd linux-"$KVERS" && make -j8 ARCH="$arch" bzImage modules && \
  	 rm -rf debian; CONCURRENCY_LEVEL=8 ARCH="$arch" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$arch" $CROSS --us --uc kernel_image modules_image kernel_headers kernel_source )
  fi
