@@ -5,6 +5,7 @@
 # adapted to tcos by openthinclient developers
 # License: GPL V2
 
+# set -x 
 
 [ -n "$KVERS" ] || { echo "Please export KVERS=kernelversion before running $0." >&2; exit 1; }
 
@@ -51,20 +52,58 @@ cp -auv ../Sources/aufs3-standalone/{Documentation,fs} linux-"$KVERS"/
 cp -auv ../Sources/aufs3-standalone/include/linux/*.h linux-"$KVERS"/include/linux/
 cp -auv ../Sources/aufs3-standalone/include/uapi/linux/*.h linux-"$KVERS"/include/uapi/linux/
 
-for arch in "$ARCH" "$ARCH64"; do
- [ -n "$arch" ] || continue
- case "$arch" in $ARCH64) CROSS="--cross-compile=- --append-to-version=-64";; *) CROSS="";; esac
- if ! [ -r linux-"$KVERS"/arch/"$arch"/boot/bzImage -a linux-"$KVERS"/.config -nt ../Sources/kernel.conf ]; then
-  echo -e "\033[1m(Re-)building kernel $KVERS for $arch\033[0m"
-  cp ../Sources/kernel-"$arch".conf linux-"$KVERS"/.config
-  read -p "Update/modify kernel configuration? [Y/n] " a
+#if [ "$MULTIARCH" = "true" ]; then 
+#    ARCHS="x86_64 i386"
+#    echo "We're going to build more than one Kernel. Be patient or edit the MULTIARCH flag."
+#else
+#    ARCHS=$(arch)
+#    [ "$ARCHS" != "x86_64" -a "$ARCHS" != "i386" ] && echo "The architecture of your buildsystem is not supported by this script. Feel free to adjust it." && exit 1
+#fi
 
-  case "$a" in 
-      N*|n*) ;; 
-      *) ( cd linux-"$KVERS" make ARCH="$arch" oldconfig menuconfig ) && cp -au linux-"$KVERS"/.config ../Sources/kernel-"$arch".conf;; 
-  esac
+#case "$arch" in 
+#     $ARCH64) 
+#         CROSS="--cross-compile=- --append-to-version=-64";; 
+#     *) 
+#	 CROSS="";; 
+# esac
 
-  ( cd linux-"$KVERS" && make -j8 ARCH="$arch" bzImage modules && \
- 	 rm -rf debian; CONCURRENCY_LEVEL=8 ARCH="$arch" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$arch" $CROSS --us --uc kernel_image modules_image kernel_headers kernel_source )
- fi
-done
+
+myARCH=$(arch)
+[ "$myARCH" != "x86_64" -a "$myARCH" != "i386" ] && echo "The architecture of your buildsystem is not supported by this script. Feel free to adjust it." && exit 1
+#
+# flip if CROSS
+if [ "$CROSS" = "true" ]; then 
+    case "$myARCH" in 
+    x86_64)
+	    arch="i386";;
+    i386)
+            arch="x86_64";;
+    esac
+else 
+    arch="$myARCH"
+fi
+
+# set parm
+if [ "$arch" = "i386" ]; then 
+    mkpkgParms="--append-to-version=-32"
+else
+    mkpkgParms="--append-to-version=-64"
+fi
+
+[ -n "$arch" ] || continue
+if ! [ -r linux-"$KVERS"/arch/"$arch"/boot/bzImage -a linux-"$KVERS"/.config -nt ../Sources/kernel.conf ]; then
+    echo -e "\033[1m(Re-)building kernel $KVERS for $arch\033[0m"
+    cp ../Sources/kernel-"$arch".conf linux-"$KVERS"/.config
+    read -p "Update/modify kernel configuration? [Y/n] " a
+    case "$a" in 
+	N*|n*) 
+	    ;; 
+	*) 
+	    (cd linux-"$KVERS" make ARCH="$arch" oldconfig menuconfig) \
+	    && cp -au linux-"$KVERS"/.config ../Sources/kernel-"$arch".conf
+	    ;; 
+    esac
+    (cd linux-"$KVERS" && make -j8 ARCH="$arch" bzImage modules && \
+     rm -rf debian; CONCURRENCY_LEVEL=8 ARCH="$arch" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$arch" --cross-compile=- $mkpkgParms --us --uc kernel_image modules_image kernel_headers kernel_source )
+fi
+
