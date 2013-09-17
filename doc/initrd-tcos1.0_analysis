@@ -51,9 +51,10 @@ CONSIDERATION
 /media
 	/to/local      (flashdrive, nfs-to-local-copy, hdd)
 /root  ->         /union/root
-/union            aufs rw,si=502d7e5b,xino=/var/aufs/.aufs.xino,nowarn_perm,br:/var/aufs=rw:/var/sfs/base=rr:/var/sfs/packages/packagename1=rr:/var/sfs/packages/packagename2=rr  0 0
+/union            aufs rw,si=502d7e5b,xino=/var/aufs/.aufs.xino,nowarn_perm,br:/var/aufs=rw:/var/sfs/base=rr:/var/sfs/packages=rr  0 0
 /usr   ->         /union/usr
 /sbin  ->         /union/sbin
+/opt  ->          /union/opt
 
 # the underlaying stuff
 /var/tcos 	  nfs		OTC-Server:/openthinclient # the initial one!
@@ -61,12 +62,12 @@ CONSIDERATION
 /var/sfs/base     squashfs 	# via loopback sfs-file: /var/tcos/sfs/base.sfs
 
 # the packages
-/var/sfs/packages/packagename1  squashfs 	# via loopback sfs-file: /var/tcos/sfs/package/packagename1.sfs
-/var/sfs/packages/packagename2  squashfs 	# via loopback sfs-file: /var/tcos/sfs/package/packagename2.sfs
+/var/sfs/packages/opt/packagename1  squashfs 	# via loopback sfs-file: /var/tcos/sfs/package/packagename1.sfs
+/var/sfs/packages/opt/packagename2  squashfs 	# via loopback sfs-file: /var/tcos/sfs/package/packagename2.sfs
 
 "->" are links to be set
 
 [m
 
-- the old way to have module-sfs could be obsolete
-- do we really want do mount packages-content directly to /union without /opt ?
+- the old way to have module-sfs is actually not covered
+
