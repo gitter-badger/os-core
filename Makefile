@@ -17,7 +17,7 @@ export KVERS    = 3.9.10
 export PACKAGES = busybox locales firmware-linux vim-tiny dbus dbus-x11 udev parted dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity ttf-dejavu xfonts-base less openssh-client
 
 # Define kernel architecture. Currently, we support intel/amd 32 and 64bit
-export ARCH     = i386
+# export ARCH     = i386
 export ARCH64   = x86_64
 
 # Define the CPU architecture for testing LINBO in kvm
@@ -89,7 +89,7 @@ knoppify-stamp: ./Scripts/LINBO.chroot
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.knoppify-chroot
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.mkfilesystem64-chroot
 	touch knoppify-stamp
-	
+
 otcify: filesystem-stamp
 	make otcify-stamp
 
@@ -109,7 +109,7 @@ update-stamp:
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -y --no-install-recommends $(PACKAGES)"
 	touch $@
 
-		
+
 
 clean-stamp: filesystem-stamp ./Scripts/LINBO.otcify-clean
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.otcify-clean
@@ -136,7 +136,7 @@ extra-packages-stamp: filesystem-stamp Scripts/LINBO.chroot
 	sudo ./Scripts/LINBO.chroot Filesystem bash -c "apt-get update; apt-get install -t unstable libpopt0 pciutils"
 	sudo ./Scripts/LINBO.chroot Filesystem bash -c "cd /tmp; dpkg -i $(notdir $(EXTRA_PACKAGES))"
 	touch extra-packages-stamp
-	
+
 extra-scripts:
 	make extra-scripts-stamp
 
