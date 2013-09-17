@@ -60,6 +60,10 @@ checkbootparam(){
 #only for parameters with values, use checkbootparam() otherwise
 
 bashify(){
+ # create valid bash identifier
+ echo $1 | cut -d "=" | sed 's|[.?+* ]|\_|g'
+ 
+}
  
  #replaces . * + * and whitespace with underscore`
  

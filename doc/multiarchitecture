@@ -16,6 +16,15 @@ compiling software for a amd64 installation:
 
 CFLAGS="-m32" LDFLAGS="-m32" make
 
+
+gcc "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32" ...
+	
+CFLAGS=-m32 -Wl,-m32
+CXXFLAGS=-m32 -Wl,-m32
+LDFLAGS=-m32
+	
+LDFLAGS=-m elf_i386
+
 kernel compilation:
 
 make -j16 ARCH=x86_64 bzImage modules
