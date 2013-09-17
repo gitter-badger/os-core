@@ -1,0 +1,12 @@
+/bin/grep
+/bin/egrep
+/bin/fgrep
+/sbin/lsmod
+/bin/ash
+/bin/sh
+/bin/bash
+/usr/bin/cut
+/bin/ls
+/bin/mount
+/bin/sed
+/sbin/udhcpc

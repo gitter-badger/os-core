@@ -1,0 +1,67 @@
+#!/bin/bash
+#
+# LINBO busybox-based initramfs bootscript
+# (C) 2013 by Steffen Hoenig <s.hoenig@openthinclient.com>
+#	      Joern Frenzel <j.frenzel@openthinclient.com>
+# LICENSE: GPL V3
+
+# Its purpose:
+# 1. Mounting a squashfs container over nfs
+# 2. Unifying this ro conainter with ramdisk and file overlay
+# 3. Hand over control to "real" sysv init.
+
+# Preconditions:
+# - Kernel contains all _needed_ nfs, ethernet, aufs modules
+
+DISTRO="TCOS"
+
+. /init_functions
+
+## MAIN ####################################################
+
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+
+mkdir -p /tcos/{base,link,packages,write}
+mkdir -p /shadow
+
+export PATH=/bin:/usr/bin:/sbin
+
+read CMDLINE < /proc/cmdline
+
+getbootparams
+
+
+#to override the dhcpd setting set up a HOSTNAME here
+HOSTNAME="" 
+
+ip addr add 127.0.0.1/8 dev lo
+ip link set dev lo up
+
+
+DHCP=""
+
+for i in 0; do
+	echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
+	if [ -n "$HOSTNAME" ]; then
+   	 udhcpc -i eth$i -H $HOSTNAME && DHCP="eth$i"
+  	else
+   	 udhcpc -i eth$i && DHCP="eth$i"
+  	fi
+	[ -n "$DHCP" ] && break
+	echo "${RED}No answer from network.${NORMAL}"
+	debugshell
+done
+
+
+# NFS
+
+MOUNTED=""
+NFSDIR=""
+
+touch /etc/fstab
+
+mount "${NFSDIR}" /var/tcos/ -o ro
+
+debugshell
+
