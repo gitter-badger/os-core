@@ -17,8 +17,8 @@ export KVERS    = 3.9.10
 export PACKAGES = busybox locales firmware-linux vim-tiny dbus dbus-x11 udev parted dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity ttf-dejavu xfonts-base less openssh-client
 
 # Define kernel architecture. Currently, we support intel/amd 32 and 64bit
-# export ARCH     = i386
-export ARCH64   = x86_64
+# 	If CROSS is true, we'll build for the other architecture than the buildsystem runs on 
+# export CROSS = false
 
 # Define the CPU architecture for testing LINBO in kvm
 # export CPU = kvm64

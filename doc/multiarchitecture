@@ -22,15 +22,17 @@ gcc "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32" ...
 CFLAGS=-m32 -Wl,-m32
 CXXFLAGS=-m32 -Wl,-m32
 LDFLAGS=-m32
-	
 LDFLAGS=-m elf_i386
 
+
+#############################################
 kernel compilation:
 
+# build a 64Bit kernel 
 make -j16 ARCH=x86_64 bzImage modules
 fakeroot make-kpkg --arch=x86_64 --cross-compile=- --append-to-version=-64 --us --uc kernel_image modules_image kernel_headers kernel_source
 
-
+# build a 32Bit kernel
 make -j16 ARCH=i386 bzImage modules
 fakeroot make-kpkg --arch=i386 --cross-compile=- --append-to-version=-32 --us --uc kernel_image modules_image kernel_headers kernel_source
 
