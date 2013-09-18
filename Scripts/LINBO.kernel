@@ -91,7 +91,7 @@ fi
 [ -n "$arch" ] || continue
 if ! [ -r linux-"$KVERS"/arch/"$arch"/boot/bzImage -a linux-"$KVERS"/.config -nt ../Sources/kernel.conf ]; then
     echo -e "\033[1m(Re-)building kernel $KVERS for $arch\033[0m"
-    cp ../Sources/kernel-"$arch".conf linux-"$KVERS"/.config
+    [ -n $NOCOPY ] || cp ../Sources/kernel-"$arch".conf linux-"$KVERS"/.config
     read -p "Update/modify kernel configuration? [Y/n] " a
     case "$a" in 
 	N*|n*) 

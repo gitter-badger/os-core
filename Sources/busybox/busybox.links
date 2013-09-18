@@ -6,6 +6,10 @@
 /bin/sh
 /bin/bash
 /usr/bin/cut
+/sbin/ip
+/sbin/ipaddr
+/sbin/iplink
+/sbin/iproute
 /bin/ls
 /bin/mount
 /bin/sed

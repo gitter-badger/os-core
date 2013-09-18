@@ -1,0 +1,24 @@
+#!/bin/bash
+
+. ./Scripts/LINBO.common
+
+check_commands sudo mount umount rsync
+
+[ -n "$1" -a -d "$1" ] || { echo "Directory does not exists." >&2; exit 1; }
+
+echo -e "\033[1m Creating the Image…\033[0m"
+
+BLOCKS=$(((1024*$(du -m -s ./"$1" | awk '{print $1}')*12)/10))
+let "COUNT=$BLOCKS/512"
+IMG=tcos.img
+
+dd if=/dev/zero of=$IMG count=$COUNT
+[ -e $IMG ] && sudo mkfs.ext4 -F $IMG
+sudo mkdir -p /tmp/"$1"
+sudo mount $IMG /tmp/"$1"
+sudo rsync -vaP "$1"/* /tmp/"$1"
+
+#sudo umount /tmp/"$1"
+
+
+

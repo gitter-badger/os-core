@@ -1,0 +1,39 @@
+#!/usr/bin/make -f
+
+_busybox: Sources/busybox.config
+	cp Sources/busybox.config Sources/busybox/.config
+	cd Sources/busybox && \
+	CONFIG_PREFIX="../../rootfs" CFLAGS="-m32" LDFLAGS="-m32" make install
+
+_rootfs: rootfs/bin/busybox
+	-mkdir -p Image-new/boot/syslinux
+	( cd rootfs && find . | sudo cpio -H newc -ov | gzip -9v ) > Image-new/boot/syslinux/initrd.gz
+
+# CROSS = false
+export KVERS = 3.9.10
+
+_kernel: Sources/kernel.config
+	 cp Sources/kernel.config Kernel/linux-$(KVERS)/.config
+	 #CROSS=true NOCOPY=true ./Scripts/LINBO.kernel
+	 cd Kernel/linux-$(KVERS) && \
+	 CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386" make -j8 && \
+	 cp arch/x86/boot/bzImage ../../Image-new/boot/syslinux/linux
+
+_kernel64: Sources/kernel64.config
+	 cp Sources/kernel64.config Kernel/linux-$(KVERS)/.config
+	 #CROSS=true NOCOPY=true ./Scripts/LINBO.kernel
+	 cd Kernel/linux-$(KVERS) && \
+	 make -j8 && \
+	 cp arch/x86/boot/bzImage Image-new/boot/syslinux/linux
+#PHONY
+
+_clean:
+	-rm -rf ./Image-new
+
+_image: 
+	Scripts/OTC.mkimage Image-new
+
+_otc-dd-dev2: _busybox _rootfs _kernel
+		scp Image-new/boot/syslinux/linux root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/
+		scp Image-new/boot/syslinux/initrd.gz root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/
+
