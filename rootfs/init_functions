@@ -64,4 +64,4 @@ debugshell(){
  [ -n "$1" ] && echo "$1"
  /bin/busybox sh
  bailout $?
-}<F2>
+}
