@@ -66,10 +66,10 @@ cp -auv ../Sources/aufs3-standalone/include/uapi/linux/*.h linux-"$KVERS"/includ
 #	 CROSS="";; 
 # esac
 
-myARCH=$(uname -p)
+myARCH=`uname -m`
 [ "$myARCH" != "x86_64" -a "$myARCH" != "i386" ] && echo "The architecture of your buildsystem is not supported by this script. Feel free to adjust it." && exit 1
 #
-# flip if CROSS
+# flip on CROSS
 if [ "$CROSS" = "true" ]; then 
     case "$myARCH" in 
     x86_64)
