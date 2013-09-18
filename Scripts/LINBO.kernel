@@ -27,7 +27,6 @@ fi
 # KERNEL="$(ls -1d linux-*/. | tail -1)"
 # KVERS="$(awk '{if($1~/^VERSION$/){version=$NF}if($1~/^PATCHLEVEL$/){patchlevel=$NF}if($1~/^SUBLEVEL$/){sublevel=$NF}if($1~/^EXTRAVERSION$/){if($NF != "="){extraversion=$NF}}}END{print version"."patchlevel"."sublevel extraversion}' $KERNEL/Makefile)"
 
-
 AUFS_VERSION="$(awk '/AUFS_VERSION/{print $NF; exit 0}' ../Sources/aufs3-standalone/include/uapi/linux/aufs_type.h)"
 AUFS_VERSION="${AUFS_VERSION#\"}"
 AUFS_VERSION="${AUFS_VERSION%\"}"
@@ -67,8 +66,7 @@ cp -auv ../Sources/aufs3-standalone/include/uapi/linux/*.h linux-"$KVERS"/includ
 #	 CROSS="";; 
 # esac
 
-
-myARCH=$(arch)
+myARCH=$(uname -p)
 [ "$myARCH" != "x86_64" -a "$myARCH" != "i386" ] && echo "The architecture of your buildsystem is not supported by this script. Feel free to adjust it." && exit 1
 #
 # flip if CROSS
@@ -106,4 +104,3 @@ if ! [ -r linux-"$KVERS"/arch/"$arch"/boot/bzImage -a linux-"$KVERS"/.config -nt
     (cd linux-"$KVERS" && make -j8 ARCH="$arch" bzImage modules && \
      rm -rf debian; CONCURRENCY_LEVEL=8 ARCH="$arch" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$arch" --cross-compile=- $mkpkgParms --us --uc kernel_image modules_image kernel_headers kernel_source )
 fi
-
