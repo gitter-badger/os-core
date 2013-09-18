@@ -14,7 +14,6 @@ export KVERS = 3.9.10
 
 _kernel: Sources/kernel.config
 	 cp Sources/kernel.config Kernel/linux-$(KVERS)/.config
-	 #CROSS=true NOCOPY=true ./Scripts/LINBO.kernel
 	 cd Kernel/linux-$(KVERS) && \
 	 CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386" make -j8 && \
 	 cp arch/x86/boot/bzImage ../../Image-new/boot/syslinux/linux
