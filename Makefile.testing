@@ -32,7 +32,11 @@ _clean:
 _image: 
 	Scripts/OTC.mkimage Image-new
 
-_otc-dd-dev2: _busybox _rootfs _kernel
-		scp Image-new/boot/syslinux/linux root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/
-		scp Image-new/boot/syslinux/initrd.gz root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/
+_dev2: _busybox _rootfs _kernel
+		scp Image-new/boot/syslinux/linux root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/vmlinuz
+		scp Image-new/boot/syslinux/initrd.gz root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/initrd.img
+
+_dev2-nobuild: 
+		scp Image-new/boot/syslinux/linux root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/vmlinuz
+		scp Image-new/boot/syslinux/initrd.gz root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/initrd.img
 

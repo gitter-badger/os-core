@@ -4,3 +4,5 @@
 .~*
 git-export-daemon-ok
 /Image/*
+/rootfs/usr/bin/*
+/rootfs/bin/*
