@@ -14,7 +14,6 @@ export KVERS = 3.9.10
 
 _kernel: Sources/kernel.config
 	 cp Sources/kernel.config Kernel/linux-$(KVERS)/.config
-	 #CROSS=true NOCOPY=true ./Scripts/LINBO.kernel
 	 cd Kernel/linux-$(KVERS) && \
 	 CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386" make -j8 && \
 	 cp arch/x86/boot/bzImage ../../Image-new/boot/syslinux/linux
@@ -33,7 +32,11 @@ _clean:
 _image: 
 	Scripts/OTC.mkimage Image-new
 
-_otc-dd-dev2: _busybox _rootfs _kernel
-		scp Image-new/boot/syslinux/linux root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/
-		scp Image-new/boot/syslinux/initrd.gz root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/
+_dev2: _busybox _rootfs _kernel
+		scp Image-new/boot/syslinux/linux root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/vmlinuz
+		scp Image-new/boot/syslinux/initrd.gz root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/initrd.img
+
+_dev2-nobuild: 
+		scp Image-new/boot/syslinux/linux root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/vmlinuz
+		scp Image-new/boot/syslinux/initrd.gz root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/tftp/initrd.img
 

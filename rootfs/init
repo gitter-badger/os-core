@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # LINBO busybox-based initramfs bootscript
 # (C) 2013 by Steffen Hoenig <s.hoenig@openthinclient.com>
@@ -22,6 +22,9 @@ DISTRO="TCOS"
 mount -t proc proc /proc
 mount -t sysfs sys /sys
 
+mdev -s && echo "/dev...set up by ${BLUE}mdev${NORMAL}"
+
+
 mkdir -p /tcos/{base,link,packages,write}
 mkdir -p /shadow
 
@@ -44,9 +47,9 @@ DHCP=""
 for i in 0; do
 	echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
 	if [ -n "$HOSTNAME" ]; then
-   	 udhcpc -i eth$i -H $HOSTNAME && DHCP="eth$i"
+   	 udhcpc -i eth$i -H $HOSTNAME -s /etc/udhcpc/default.script && DHCP="eth$i"
   	else
-   	 udhcpc -i eth$i && DHCP="eth$i"
+   	 udhcpc -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
   	fi
 	[ -n "$DHCP" ] && break
 	echo "${RED}No answer from network.${NORMAL}"
@@ -61,7 +64,7 @@ NFSDIR=""
 
 touch /etc/fstab
 
-mount "${NFSDIR}" /var/tcos/ -o ro
+#mount "${NFSDIR}" /var/tcos/ -o ro
 
 debugshell
 
