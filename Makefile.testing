@@ -12,18 +12,25 @@ _rootfs: rootfs/bin/busybox
 # CROSS = false
 export KVERS = 3.9.10
 
+x86 = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
+x86_64 = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
+
+
+
 _kernel: Sources/kernel.config
 	 cp Sources/kernel.config Kernel/linux-$(KVERS)/.config
 	 cd Kernel/linux-$(KVERS) && \
-	 CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386" make -j8 && \
+	 $(x86) make oldconfig && \
+	 $(x86) make -j8 && \
 	 cp arch/x86/boot/bzImage ../../Image-new/boot/syslinux/linux
 
-_kernel64: Sources/kernel64.config
-	 cp Sources/kernel64.config Kernel/linux-$(KVERS)/.config
-	 #CROSS=true NOCOPY=true ./Scripts/LINBO.kernel
+_kernel64: Sources/kernel.config
+	 cp Sources/kernel.config Kernel/linux-$(KVERS)/.config
 	 cd Kernel/linux-$(KVERS) && \
-	 make -j8 && \
-	 cp arch/x86/boot/bzImage Image-new/boot/syslinux/linux
+	 $(x86_64) make oldconfig && \
+	 $(x86_64) make -j8 && \
+	 cp arch/x86/boot/bzImage ../../Image-new/boot/syslinux/linux
+
 #PHONY
 
 _clean:

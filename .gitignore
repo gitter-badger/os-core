@@ -6,3 +6,5 @@ git-export-daemon-ok
 /Image/*
 /rootfs/usr/bin/*
 /rootfs/bin/*
+Sources/busybox/.config
+Sources/busybox/.config

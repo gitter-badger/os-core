@@ -25,7 +25,7 @@ mount -t sysfs sys /sys
 mdev -s && echo "/dev...set up by ${BLUE}mdev${NORMAL}"
 
 
-mkdir -p /tcos/{base,link,packages,write}
+mkdir -p /tcos/\{base,link,packages,write\}
 mkdir -p /shadow
 
 export PATH=/bin:/usr/bin:/sbin
@@ -41,11 +41,11 @@ HOSTNAME=""
 ip addr add 127.0.0.1/8 dev lo
 ip link set dev lo up
 
-
 DHCP=""
 
 for i in 0; do
 	echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
+	ip link set dev eth$i up
 	if [ -n "$HOSTNAME" ]; then
    	 udhcpc -i eth$i -H $HOSTNAME -s /etc/udhcpc/default.script && DHCP="eth$i"
   	else
@@ -60,8 +60,12 @@ done
 # NFS
 
 MOUNTED=""
-NFSDIR=""
 
+[ -n $nfsroot ] && NFSD=$nfsroot
+NFSOPTIONS="ro,vers=2,rsize=8192,wsize=8192,namlen=255,hard,nointr,nolock,proto=udp,timeo=7,retrans=10,sec=sys"
+
+mount -t nfs "$NFSD" /tcos/link -o "$NFSOPTIONS"
+	
 touch /etc/fstab
 
 #mount "${NFSDIR}" /var/tcos/ -o ro
