@@ -81,7 +81,6 @@ fi
 [ -f "$TCOSLINK/sfs/base.sfs" ] || (echo "${RED} could not find $TCOSLINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1)
 mount -t squashfs -o loop,ro "$TCOSLINK/sfs/base.sfs" $TCOSBASE || (echo "${RED} could not mount $TCOSLINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1)
 
-debugshell
 
 # exit 0
 #########
@@ -89,18 +88,17 @@ debugshell
 # other SFS
 # mount module sfs and packages sfs
 
-BRANCHES="$TCOSBASE"
-MODULE_FILES=`ls $TCOSLINK/sfs/module/*.sfs 2>/dev/null | sort` # just to have it ordered
-for i in $MODULE_FILES; do
-    TARGET="$TCOSPACKAGEBASE/$(echo $(basename $i) | sed 's/\.sfs$//g')"
-    mkdir -p "$TARGET"
-    mount -t squashfs -o loop,ro "$i" "$TARGET"
-    BRANCHES="$TARGET $BRANCHES"
+TCOSMODULES="/tcos/modules"
+[ -d $TCOSMODULES ] || mkdir $TCOSMODULES
+
+for s in `ls $TCOSLINK/sfs/module/*.sfs 2> /dev/null`; do
+	TARGET="$(echo $(basename $s) | sed 's/\.sfs$//g')"
+	[ -d $TCOSMODULES/$TARGET ] || mkdir "$TCOSMODULES/$TARGET"
+	mount -t squashfs -o loop,ro "$s" "$TCOSMODULES/$TARGET"
+	TREE="${TREE}:${TCOSMODULES}/${TARGET}=ro"
 done
 
-BRANCHES=`echo $BRANCHES | sed "s/ /=rr:/g"`=rr
-
-echo "------>     $BRANCHES"
+echo "-------> br=/tcos/write$TREE"
 
 debugshell
 
