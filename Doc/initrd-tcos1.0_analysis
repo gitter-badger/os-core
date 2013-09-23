@@ -51,19 +51,20 @@ CONSIDERATION
 /media
 	/to/local      (flashdrive, nfs-to-local-copy, hdd)
 /root  ->         /union/root
-/union            aufs rw,si=502d7e5b,xino=/var/aufs/.aufs.xino,nowarn_perm,br:/var/aufs=rw:/var/sfs/base=rr:/var/sfs/packages=rr  0 0
+/union            aufs rw,si=502d7e5b,...............
 /usr   ->         /union/usr
 /sbin  ->         /union/sbin
-/opt  ->          /union/opt
+/opt   ->         /union/opt
 
 # the underlaying stuff
-/var/tcos 	  nfs		OTC-Server:/openthinclient # the initial one!
-/var/aufs	  		# for aufs to write this is just a folder inside the /
-/var/sfs/base     squashfs 	# via loopback sfs-file: /var/tcos/sfs/base.sfs
+/tcos/link 	nfs		OTC-Server:/openthinclient # the initial one!
+/tcos/write	 		# for aufs to write this is just a folder inside the /
+/tcos/base     	squashfs 	# via loopback sfs-file: /tcos/link/sfs/base.sfs
 
 # the packages
-/var/sfs/packages/opt/packagename1  squashfs 	# via loopback sfs-file: /var/tcos/sfs/package/packagename1.sfs
-/var/sfs/packages/opt/packagename2  squashfs 	# via loopback sfs-file: /var/tcos/sfs/package/packagename2.sfs
+/tcos/packages/opt/packagename1  squashfs 	# via loopback sfs-file: /tcos/link/sfs/package/packagename1.sfs
+/tcos/packages/opt/packagename2  squashfs 	# via loopback sfs-file: /tcos/link/sfs/package/packagename2.sfs
+
 
 "->" are links to be set
 

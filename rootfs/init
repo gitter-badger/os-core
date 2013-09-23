@@ -63,12 +63,43 @@ MOUNTED=""
 
 [ -n $nfsroot ] && NFSD=$nfsroot
 NFSOPTIONS="ro,vers=2,rsize=8192,wsize=8192,namlen=255,hard,nointr,nolock,proto=udp,timeo=7,retrans=10,sec=sys"
-
 mount -t nfs "$NFSD" /tcos/link -o "$NFSOPTIONS"
-	
-touch /etc/fstab
 
-#mount "${NFSDIR}" /var/tcos/ -o ro
+touch /etc/fstab
 
 debugshell
 
+
+exit 0
+#########
+
+
+BRANCHES=/
+
+# mount base and module sfs files
+if [ -d "$rootmnt/sfs" ]; then
+        BASE_FILE=`ls $rootmnt/sfs/base.sfs 2>/dev/null`
+        MODULE_FILES=`ls $rootmnt/sfs/module/*.sfs 2>/dev/null | sort`
+
+        # mount base file
+        if [ "$BASE_FILE" ]; then
+                mount -t squashfs -o loop,ro "$BASE_FILE" /base
+                MOVEMOUNTS="/base"
+                BRANCHES="/base"
+        fi
+
+        # mount modules
+        for i in $MODULE_FILES; do
+                TARGET="/module/$(echo $(basename $i) | sed 's/\.sfs$//g')"
+                mkdir -p "$TARGET"
+                mount -t squashfs -o loop,ro "$i" "$TARGET"
+                MOVEMOUNTS="$MOVEMOUNTS $TARGET"
+                if [ "$BRANCHES" ]; then
+                        BRANCHES="$TARGET $BRANCHES"
+                else
+                        BRANCHES="$TARGET"
+                fi
+        done
+
+        BRANCHES=`echo $BRANCHES | sed "s/ /=rr:/g"`=rr
+fi
