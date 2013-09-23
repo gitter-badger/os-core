@@ -6,6 +6,7 @@
 /rootfs/*
 !/rootfs/init*
 
+.SyncID
 
 *~
 .~*
