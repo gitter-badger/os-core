@@ -17,17 +17,19 @@ DISTRO="TCOS"
 
 . /init_functions
 
+TCOSLINK="/tcos/link"       # nfs             OTC-Server:/openthinclient # the initial one!
+TCOSWRITE="/tcos/write"     # for aufs to write this is just a folder inside the /
+TCOSBASE="/tcos/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.sfs
+TCOSPACKAGEBASE="/tcos/packages/opt"
+
 ## MAIN ####################################################
+
+for folder in $TCOSLINK $TCOSWRITE $TCOSBASE $TCOSPACKAGEBASE /proc /sys; do mkdir -p $folder ; done 
 
 mount -t proc proc /proc
 mount -t sysfs sys /sys
 
 mdev -s && echo "/dev...set up by ${BLUE}mdev${NORMAL}"
-
-for d in base link packages write; do
-	mkdir -p /tcos/"$d"
-done
-mkdir -p /shadow
 
 export PATH=/bin:/usr/bin:/sbin
 
@@ -61,12 +63,10 @@ done
 # NFS
 MOUNTED=""
 
-TCOSLINK="/tcos/link"       # nfs             OTC-Server:/openthinclient # the initial one!
-TCOSWRITE="/tcos/write"     # for aufs to write this is just a folder inside the /
-TCOSBASE="/tcos/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.sfs
-TCOSPACKAGEBASE="/tcos/packages/opt"
-
 [ -n $nfsroot ] && NFSD=$nfsroot
+
+debugshell
+
 mount -o nolock -o ro -o retrans=10 -o vers=2 "$NFSD" $TCOSLINK 
 if [ $? -eq 0 ]; then 
   MOUNTED="true" 
@@ -87,7 +87,6 @@ debugshell
 
 # exit 0
 #########
-
 
 # other SFS
 # mount module sfs and packages sfs
