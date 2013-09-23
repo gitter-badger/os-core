@@ -65,8 +65,6 @@ MOUNTED=""
 
 [ -n $nfsroot ] && NFSD=$nfsroot
 
-debugshell
-
 touch /etc/fstab
 mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$NFSD" $TCOSLINK 
 
@@ -78,10 +76,12 @@ else
   exit 1
 fi
 
-# mount base and module sfs files
-[ -f "$TCOSLINK/sfs/base.sfs" ] ||  echo "${RED} could not find $TCOSLINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1
-mount -t squashfs -o loop,ro "$TCOSLINK/sfs/base.sfs" $TCOSBASE || echo "${RED} could not mount $TCOSLINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1
 
+# mount base and module sfs files
+[ -f "$TCOSLINK/sfs/base.sfs" ] || (echo "${RED} could not find $TCOSLINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1)
+mount -t squashfs -o loop,ro "$TCOSLINK/sfs/base.sfs" $TCOSBASE || (echo "${RED} could not mount $TCOSLINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1)
+
+debugshell
 
 # exit 0
 #########
