@@ -24,8 +24,9 @@ mount -t sysfs sys /sys
 
 mdev -s && echo "/dev...set up by ${BLUE}mdev${NORMAL}"
 
-
-mkdir -p /tcos/\{base,link,packages,write\}
+for d in base link packages write; do
+	mkdir -p /tcos/"$d"
+done
 mkdir -p /shadow
 
 export PATH=/bin:/usr/bin:/sbin
@@ -62,8 +63,7 @@ done
 MOUNTED=""
 
 [ -n $nfsroot ] && NFSD=$nfsroot
-NFSOPTIONS="ro,vers=2,rsize=8192,wsize=8192,namlen=255,hard,nointr,nolock,proto=udp,timeo=7,retrans=10,sec=sys"
-mount -t nfs "$NFSD" /tcos/link -o "$NFSOPTIONS"
+mount -o nolock -o ro -o retrans=10 "$NFSD" /tcos/link && MOUNTED="true" && echo "$NFSD mounted ${GREEN} successfully...${NORMAL}"
 
 touch /etc/fstab
 
