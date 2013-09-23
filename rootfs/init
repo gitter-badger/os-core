@@ -77,6 +77,8 @@ else
 fi
 touch /etc/fstab
 
+debugshell
+
 # mount base and module sfs files
 [ -f "$TCOSLINK/sfs/base.sfs" ] ||  echo "${RED} could not find $TCOSLINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1
 mount -t squashfs -o loop,ro "$TCOSLINK/sfs/base.sfs" $TCOSBASE || echo "${RED} could not mount $TCOSLINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1
