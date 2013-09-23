@@ -59,47 +59,51 @@ done
 
 
 # NFS
-
 MOUNTED=""
 
-[ -n $nfsroot ] && NFSD=$nfsroot
-mount -o nolock -o ro -o retrans=10 "$NFSD" /tcos/link && MOUNTED="true" && echo "$NFSD mounted ${GREEN} successfully...${NORMAL}"
+TCOSLINK="/tcos/link"       # nfs             OTC-Server:/openthinclient # the initial one!
+TCOSWRITE="/tcos/write"     # for aufs to write this is just a folder inside the /
+TCOSBASE="/tcos/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.sfs
+TCOSPACKAGEBASE="/tcos/packages/opt"
 
+[ -n $nfsroot ] && NFSD=$nfsroot
+mount -o nolock -o ro -o retrans=10 -o vers=2 "$NFSD" $TCOSLINK 
+if [ $? -eq 0 ]; then 
+  MOUNTED="true" 
+  echo "$NFSD mounted ${GREEN} successfully...${NORMAL}"
+else 
+  echo "${RED} could not mount $NFSD - exiting. ${NORMAL}"
+  exit 1
+fi
 touch /etc/fstab
 
-debugshell
+# mount base and module sfs files
+[ -d "$TCOSLINK/sfs" ] ||  echo "${RED} could not find  - exiting. ${NORMAL}"
+mount -t squashfs -o loop,ro "$TCOSLINK/sfs/base.sfs" $TCOSBASE
 
+# debugshell
 
-exit 0
+# exit 0
 #########
 
 
-BRANCHES=/
+BRANCHES=/tcos/base
+# MOUNT MODUL SFS
+MODULE_FILES=`ls $TCOSLINK/sfs/module/*.sfs 2>/dev/null | sort` # just to have it ordered
+for i in $MODULE_FILES; do
+    TARGET="$TCOSPACKAGEBASE/$(echo $(basename $i) | sed 's/\.sfs$//g')"
+    mkdir -p "$TARGET"
+    mount -t squashfs -o loop,ro "$i" "$TARGET"
+#    MOVEMOUNTS="$MOVEMOUNTS $TARGET"
+#    if [ "$BRANCHES" ]; then
+        BRANCHES="$TARGET $BRANCHES"
+#    else
+#        BRANCHES="$TARGET"
+#    fi
+done
 
-# mount base and module sfs files
-if [ -d "$rootmnt/sfs" ]; then
-        BASE_FILE=`ls $rootmnt/sfs/base.sfs 2>/dev/null`
-        MODULE_FILES=`ls $rootmnt/sfs/module/*.sfs 2>/dev/null | sort`
+BRANCHES=`echo $BRANCHES | sed "s/ /=rr:/g"`=rr
 
-        # mount base file
-        if [ "$BASE_FILE" ]; then
-                mount -t squashfs -o loop,ro "$BASE_FILE" /base
-                MOVEMOUNTS="/base"
-                BRANCHES="/base"
-        fi
+echo "------>     $BRANCHES"
 
-        # mount modules
-        for i in $MODULE_FILES; do
-                TARGET="/module/$(echo $(basename $i) | sed 's/\.sfs$//g')"
-                mkdir -p "$TARGET"
-                mount -t squashfs -o loop,ro "$i" "$TARGET"
-                MOVEMOUNTS="$MOVEMOUNTS $TARGET"
-                if [ "$BRANCHES" ]; then
-                        BRANCHES="$TARGET $BRANCHES"
-                else
-                        BRANCHES="$TARGET"
-                fi
-        done
-
-        BRANCHES=`echo $BRANCHES | sed "s/ /=rr:/g"`=rr
-fi
+debugshell
