@@ -3,6 +3,9 @@
 /Sources/busybox/*
 /Image/*
 /Image-new/*
+/rootfs/*
+!/rootfs/init*
+
 
 *~
 .~*
