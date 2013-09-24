@@ -20,13 +20,13 @@ TCOS="/tcos"
 LINK="$TCOS/link"       # nfs             OTC-Server:/openthinclient # the initial one!
 WRITE="$TCOS/write"     # for aufs to write this is just a folder inside the /
 BASE="$TCOS/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.sfs
-PACKAGE="$TCOS/package/opt"
+PACKAGE="$TCOS/package"
 MODULE="$TCOS/module"
 SHADOW="$TCOS/shadow"
 
 ## MAIN ####################################################
 
-for folder in $LINK $WRITE $BASE $PACKAGE $MODULE $SHADOW /proc /sys; do mkdir -p $folder ; done
+for folder in home root media mnt run $LINK $WRITE $BASE $PACKAGE $MODULE $SHADOW /proc /sys; do mkdir -p $folder ; done
 
 mount -t proc proc /proc
 mount -t sysfs sys /sys
@@ -62,7 +62,7 @@ for i in 0; do
 done
 
 
-# NFS
+# NFS (or local link #future)
 MOUNTED=""
 
 [ -n $nfsroot ] && NFSD=$nfsroot
@@ -78,6 +78,11 @@ else
   exit 1
 fi
 
+
+# SFS
+# base.sfs
+#
+
 TREE=""
 
 # mount base and module sfs files
@@ -89,9 +94,6 @@ else
 	echo "base.sfs mounted...${RED}no${NORMAL}"
 fi
 
-# exit 0
-#########
-
 # other SFS
 # mount module sfs and packages sfs
 
@@ -102,11 +104,41 @@ mountsfs package
 
 echo "-------> br=${WRITE}=rw${TREE}"
 
-# mount union
+# AUFS
 #
-mount -t aufs -o nowarn_perm,br=${WRITE}=rw${TREE} none $SHADOW #TREE has a leading colon ":" !
+AUFS=""
 
-debugshell
+#TREE has a leading colon ":" !
+mount -t aufs -o nowarn_perm,br=${WRITE}=rw${TREE} none $SHADOW  && \
+	AUFS="true"
+
+# LINKS
+
+PATH="$PATH:/bin.old:${SHADOW}/bin:${SHADOW}/sbin"
+export PATH
+echo $PATH
+
+# dirs that have symlinks to $SHADOW
+for l in boot etc lib bin usr var opt sbin; do 
+	if [ -d /$l ]; then
+		mv /$l /$l.old
+		ln -s ${SHADOW}/$l /$l
+		rm -rf /$l.old
+	elif [ -d ${SHADOW}/$l ]; then
+		ln -snf ${SHADOW}/$l /$l
+	fi
+done
+
+# dirs that have bind mounts to $SHADOW (e.G. /home has to be a mountpoint )
+
+for l in home root; do
+	if [ -d "${SHADOW}/$l" ]; then
+		rm -rf /$l && mkdir -m 755 /$l
+		mount -o bind "${SHADOW}/$l" $l
+	fi
+done
+
+bash
 
 exit 0
 

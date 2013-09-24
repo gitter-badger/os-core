@@ -5,7 +5,7 @@
 /Image-new/*
 /rootfs/*
 !/rootfs/init*
-
+!/rootfs/bin/mask2cidr
 .SyncID
 
 *~
