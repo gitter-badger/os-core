@@ -13,10 +13,7 @@ VESAMODE = 0 # Don't activate VESA FB
 # Define which kernel to download and compile for LINBO
 export KVERS    = 3.9.10
 
-# Define which packages we need to install after debootstrap
-# export PACKAGES = busybox locales firmware-linux vim-tiny dbus dbus-x11 udev parted dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity ttf-dejavu xfonts-base less openssh-client
-
-export PACKAGES = busybox locales firmware-linux vim-tiny dbus dbus-x11 udev dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity ttf-dejavu xfonts-base less openssh-client coreutils rsync openssh-server libmotif4  python python-gtk2 zenity dialog 
+export PACKAGES = kmod vim iproute busybox locales firmware-linux vim-tiny dbus dbus-x11 udev dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity ttf-dejavu xfonts-base less openssh-client coreutils rsync openssh-server libmotif4  python python-gtk2 zenity dialog 
 
 # Define kernel architecture. Currently, we support intel/amd 32 and 64bit
 # 	If CROSS is true, we'll build for the other architecture than the buildsystem runs on 
@@ -28,7 +25,9 @@ export CPU = qemu64
 export MEM = 2040
 
 # My packages
-EXTRA_PACKAGES = Sources/libntfs-3g31_2009.4.4AC.14_i386.deb Sources/ntfs-3g-ng_2009.4.4AC.14_i386.deb Sources/rsync_3.0.6-1_i386.deb Sources/cloop-utils_2.0-1_i386.deb Sources/hwsetup_1.4-21_all.deb Sources/usleep-knoppix_0.5-2_i386.deb
+#EXTRA_PACKAGES = Sources/libntfs-3g31_2009.4.4AC.14_i386.deb Sources/ntfs-3g-ng_2009.4.4AC.14_i386.deb Sources/rsync_3.0.6-1_i386.deb Sources/cloop-utils_2.0-1_i386.deb Sources/hwsetup_1.4-21_all.deb Sources/usleep-knoppix_0.5-2_i386.deb
+
+EXTRA_PACKAGES = Sources/hwsetup_1.4-19_all.deb Sources/usleep-knoppix_0.5-1_i386.deb
 
 # My scripts
 EXTRA_SCRIPTS = Sources/Linbo/linbo_cmd
@@ -122,8 +121,9 @@ compressed: Filesystem clean-stamp Scripts/LINBO.mkcompressed Bin/create_compres
 	nice -10 ionice -c 3 sudo ./Scripts/LINBO.mkcompressed Filesystem Image/KNOPPIX/KNOPPIX
 
 compressed-squashfs: filesystem-stamp otcify-stamp update-stamp clean-stamp
-	-mkdir -p Image/TCOS
-	nice -10 ionice -c 3 sudo mksquashfs Filesystem Image/TCOS/BASE.sfs -noappend -always-use-fragments
+	-mkdir -p Image-new
+	nice -10 ionice -c 3 sudo mksquashfs Filesystem Image-new/base.sfs -noappend -always-use-fragments
+	sudo scp Image-new/base.sfs root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/sfs/base.sfs
 
 addons: Addons
 	cd $< ; sudo mkisofs -l -R -U -v . | ../Bin/create_compressed_fs -L -2 -B 131072 -m - ../Image/KNOPPIX/KNOPPIX1
@@ -135,7 +135,7 @@ extra-packages-stamp: filesystem-stamp Scripts/LINBO.chroot
 	-rm -f clean-stamp
 	@for i in $(EXTRA_PACKAGES); do [ -r "$$i" ] || { echo "Please build package $$i first." >&2; exit 1; } ; done
 	ln -nf $(EXTRA_PACKAGES) Filesystem/tmp/
-	sudo ./Scripts/LINBO.chroot Filesystem bash -c "apt-get update; apt-get install -t unstable libpopt0 pciutils"
+	sudo ./Scripts/LINBO.chroot Filesystem bash -c "apt-get update; apt-get install libpopt0 pciutils"
 	sudo ./Scripts/LINBO.chroot Filesystem bash -c "cd /tmp; dpkg -i $(notdir $(EXTRA_PACKAGES))"
 	touch extra-packages-stamp
 

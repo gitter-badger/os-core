@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.22.0.git
-# Tue Sep 24 14:55:51 2013
+# Tue Sep 24 18:13:27 2013
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -203,8 +203,8 @@ CONFIG_TOUCH=y
 # CONFIG_CHROOT is not set
 # CONFIG_CKSUM is not set
 # CONFIG_COMM is not set
-# CONFIG_CP is not set
-# CONFIG_FEATURE_CP_LONG_OPTIONS is not set
+CONFIG_CP=y
+CONFIG_FEATURE_CP_LONG_OPTIONS=y
 CONFIG_CUT=y
 # CONFIG_DD is not set
 # CONFIG_FEATURE_DD_SIGNAL_HANDLING is not set

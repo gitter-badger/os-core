@@ -26,10 +26,11 @@ SHADOW="$TCOS/shadow"
 
 ## MAIN ####################################################
 
-for folder in home root media mnt run $LINK $WRITE $BASE $PACKAGE $MODULE $SHADOW /proc /sys; do mkdir -p $folder ; done
+for folder in home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $MODULE $SHADOW /proc /sys; do mkdir -p $folder ; done
 
 mount -t proc proc /proc
 mount -t sysfs sys /sys
+mount -t tmpfs none /tmp
 
 mdev -s && echo "/dev...set up by ${BLUE}mdev${NORMAL}"
 
@@ -102,21 +103,25 @@ echo "0" >/proc/sys/kernel/printk
 mountsfs module
 mountsfs package
 
-echo "-------> br=${WRITE}=rw${TREE}"
-
 # AUFS
 #
+
 AUFS=""
+mount -t tmpfs none $WRITE # links writing branch to ram!
 
 #TREE has a leading colon ":" !
-mount -t aufs -o nowarn_perm,br=${WRITE}=rw${TREE} none $SHADOW  && \
+mount -t aufs -o noplink,br=${WRITE}=rw${TREE} unionfs $SHADOW  && \
 	AUFS="true"
+[ $? -eq 0 ] && AUFS="true"
 
 # LINKS
+#
 
 PATH="$PATH:/bin.old:${SHADOW}/bin:${SHADOW}/sbin"
 export PATH
-echo $PATH
+
+# save resolv.conf
+cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
 
 # dirs that have symlinks to $SHADOW
 for l in boot etc lib bin usr var opt sbin; do 
@@ -138,7 +143,7 @@ for l in home root; do
 	fi
 done
 
-bash
+# INIT
+#
 
-exit 0
-
+exec /sbin/init "$@" </dev/console >/dev/console 2>&1

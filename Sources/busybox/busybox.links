@@ -13,6 +13,7 @@
 /usr/bin/awk
 /usr/bin/basename
 /bin/cat
+/bin/cp
 /usr/bin/cut
 /bin/dmesg
 /bin/echo
