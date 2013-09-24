@@ -1,4 +1,3 @@
-
 ## CONSTANTS ###############################################
 
 # Reset fb color mode
@@ -64,4 +63,21 @@ debugshell(){
  [ -n "$1" ] && echo "$1"
  /bin/busybox sh
  bailout $?
+}
+
+mountsfs(){
+ [ -n "$1" ] && [ -d "$LINK/sfs/$1" ] || return 1
+ for s in `ls $LINK/sfs/$1/*.sfs 2> /dev/null`; do
+	target="`basename $s | sed 's/\.sfs$//g'`"
+	[ -d "$TCOS/$1/$target" ] || mkdir "$TCOS/$1/$target"
+	if mount -t squashfs -o loop,ro "$s" "$TCOS/$1/$target" >/dev/null 2>&1; then
+	   echo "$target mounted...${GREEN}yes${NORMAL}"
+	else
+	   echo "$target mounted...${RED}no${NORMAL}"
+	   continue
+	fi
+	#create a tree for later aufs-mounts, beware of the leading colon!
+	TREE="${TREE}:$TCOS/$1/${target}=ro"
+ done
+ return 0
 }

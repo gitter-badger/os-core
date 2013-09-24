@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.22.0.git
-# Wed Sep 18 19:26:08 2013
+# Tue Sep 24 11:30:43 2013
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -174,7 +174,7 @@ CONFIG_GZIP_FAST=0
 #
 # Coreutils
 #
-# CONFIG_BASENAME is not set
+CONFIG_BASENAME=y
 CONFIG_CAT=y
 # CONFIG_DATE is not set
 # CONFIG_FEATURE_DATE_ISOFMT is not set

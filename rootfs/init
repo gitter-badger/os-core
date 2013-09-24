@@ -13,18 +13,20 @@
 # Preconditions:
 # - Kernel contains all _needed_ nfs, ethernet, aufs modules
 
-DISTRO="TCOS"
 
 . /init_functions
 
-TCOSLINK="/tcos/link"       # nfs             OTC-Server:/openthinclient # the initial one!
-TCOSWRITE="/tcos/write"     # for aufs to write this is just a folder inside the /
-TCOSBASE="/tcos/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.sfs
-TCOSPACKAGEBASE="/tcos/packages/opt"
+TCOS="/tcos"
+LINK="$TCOS/link"       # nfs             OTC-Server:/openthinclient # the initial one!
+WRITE="$TCOS/write"     # for aufs to write this is just a folder inside the /
+BASE="$TCOS/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.sfs
+PACKAGE="$TCOS/package/opt"
+MODULE="$TCOS/module"
+SHADOW="$TCOS/shadow"
 
 ## MAIN ####################################################
 
-for folder in $TCOSLINK $TCOSWRITE $TCOSBASE $TCOSPACKAGEBASE /proc /sys; do mkdir -p $folder ; done 
+for folder in $LINK $WRITE $BASE $PACKAGE $MODULE $SHADOW /proc /sys; do mkdir -p $folder ; done
 
 mount -t proc proc /proc
 mount -t sysfs sys /sys
@@ -66,7 +68,7 @@ MOUNTED=""
 [ -n $nfsroot ] && NFSD=$nfsroot
 
 touch /etc/fstab
-mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$NFSD" $TCOSLINK 
+mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$NFSD" $LINK 
 
 if [ $? -eq 0 ]; then 
   MOUNTED="true" 
@@ -76,11 +78,16 @@ else
   exit 1
 fi
 
+TREE=""
 
 # mount base and module sfs files
-[ -f "$TCOSLINK/sfs/base.sfs" ] || (echo "${RED} could not find $TCOSLINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1)
-mount -t squashfs -o loop,ro "$TCOSLINK/sfs/base.sfs" $TCOSBASE || (echo "${RED} could not mount $TCOSLINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1)
-
+[ -f "$LINK/sfs/base.sfs" ] || (echo "${RED} could not find $LINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1)
+if mount -t squashfs -o loop,ro "$LINK/sfs/base.sfs" $BASE 2>/dev/null; then
+	echo "base.sfs mounted...${GREEN}yes${NORMAL}"
+	TREE=":$BASE"
+else
+	echo "base.sfs mounted...${RED}no${NORMAL}"
+fi
 
 # exit 0
 #########
@@ -88,28 +95,18 @@ mount -t squashfs -o loop,ro "$TCOSLINK/sfs/base.sfs" $TCOSBASE || (echo "${RED}
 # other SFS
 # mount module sfs and packages sfs
 
-TCOSMODULES="/tcos/modules"
-[ -d $TCOSMODULES ] || mkdir $TCOSMODULES
+echo "0" >/proc/sys/kernel/printk
 
-for s in `ls $TCOSLINK/sfs/module/*.sfs 2> /dev/null`; do
-	TARGET="$(echo $(basename $s) | sed 's/\.sfs$//g')"
-	[ -d $TCOSMODULES/$TARGET ] || mkdir "$TCOSMODULES/$TARGET"
-	mount -t squashfs -o loop,ro "$s" "$TCOSMODULES/$TARGET"
-	TREE="${TREE}:${TCOSMODULES}/${TARGET}=ro"
-done
+mountsfs module
+mountsfs package
 
-echo "-------> br=/tcos/write$TREE"
+echo "-------> br=${WRITE}=rw${TREE}"
+
+# mount union
+#
+mount -t aufs -o nowarn_perm,br=${WRITE}=rw${TREE} none $SHADOW #TREE has a leading colon ":" !
 
 debugshell
 
 exit 0
-
-# mount union
-# 
-mount -t aufs -o nowarn_perm,br:$TCOSWRITE=rw:$BRANCHES aufs /SHADOW
-
-
-
-
-
 

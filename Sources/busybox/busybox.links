@@ -11,6 +11,7 @@
 /bin/bash
 /sbin/mdev
 /usr/bin/awk
+/usr/bin/basename
 /bin/cat
 /usr/bin/cut
 /bin/dmesg
