@@ -65,6 +65,13 @@ debugshell(){
  bailout $?
 }
 
+load_modules(){
+ for m in `ls $1 2> /dev/null`; do
+ 	insmod $m
+ 	[ $? -eq 0 ] || return 1
+ done
+}
+
 mountsfs(){
  [ -n "$1" ] && [ -d "$LINK/sfs/$1" ] || return 1
  for s in `ls $LINK/sfs/$1/*.sfs 2> /dev/null`; do

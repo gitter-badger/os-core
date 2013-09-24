@@ -39,7 +39,7 @@ export PATH=/bin:/usr/bin:/sbin
 read CMDLINE < /proc/cmdline
 
 getbootparams
-
+load_modules "/modules"
 
 #to override the dhcpd setting set up a HOSTNAME here
 HOSTNAME="" 
