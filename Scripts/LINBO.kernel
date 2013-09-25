@@ -82,9 +82,9 @@ fi
 
 # set parm
 if [ "$arch" = "i386" ]; then 
-    mkpkgParms="--append-to-version=-tcos"
+    mkpkgParms="--append-to-version=-tcos32+1"
 else
-    mkpkgParms="--append-to-version=-tcos-64"
+    mkpkgParms="--append-to-version=-tcos64+1"
 fi
 
 [ -n "$arch" ] || continue
