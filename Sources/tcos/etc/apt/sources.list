@@ -2,6 +2,10 @@
 deb http://otc-dd-01/debian stable main contrib non-free
 deb http://security.debian.org stable/updates main contrib non-free
 
+
+# MATE-Desktop repository for Debian
+deb http://otc-dd-01/mate wheezy main
+
 # Knoppix repository
 #deb http://debian-knoppix.alioth.debian.org ./
 
