@@ -5,7 +5,6 @@
 # adapted to tcos by openthinclient developers
 # License: GPL V2
 
-# set -x 
 
 [ -n "$KVERS" ] || { echo "Please export KVERS=kernelversion before running $0." >&2; exit 1; }
 
@@ -83,13 +82,13 @@ fi
 
 # set parm
 if [ "$arch" = "i386" ]; then 
-    mkpkgParms="--append-to-version=-32"
+    mkpkgParms="--append-to-version=-tcos32+1"
 else
-    mkpkgParms="--append-to-version=-64"
+    mkpkgParms="--append-to-version=-tcos64+1"
 fi
 
 [ -n "$arch" ] || continue
-if ! [ -r linux-"$KVERS"/arch/"$arch"/boot/bzImage -a linux-"$KVERS"/.config -nt ../Sources/kernel.conf ]; then
+if ! [ -r linux-"$KVERS"/arch/"$arch"/boot/bzImage -a linux-"$KVERS"/.config -nt ../Sources/kernel.config ]; then
     echo -e "\033[1m(Re-)building kernel $KVERS for $arch\033[0m"
     [ -n $NOCOPY ] || cp ../Sources/kernel-"$arch".conf linux-"$KVERS"/.config
     read -p "Update/modify kernel configuration? [Y/n] " a
