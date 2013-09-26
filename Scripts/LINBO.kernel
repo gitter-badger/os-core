@@ -4,7 +4,7 @@
 # origin by (C) Klaus Knopper 2013
 # adapted to tcos by openthinclient developers
 # License: GPL V2
-
+set -x
 
 [ -n "$KVERS" ] || { echo "Please export KVERS=kernelversion before running $0." >&2; exit 1; }
 
@@ -85,17 +85,16 @@ else
     arch="$myARCH"
 fi
 
-# set parm
 if [ "$arch" = "i386" ]; then 
-    mkpkgParms="--append-to-version=-tcos32+1"
+    mkpkgParms="--revision=1 --append-to-version=+tcos"
 else
-    mkpkgParms="--append-to-version=-tcos64+1"
+    mkpkgParms="--revision=1 --append-to-version=+tcos64"
 fi
 
 [ -n "$arch" ] || continue
 if ! [ -r linux-"$KVERS"/arch/"$arch"/boot/bzImage -a linux-"$KVERS"/.config -nt ../Sources/kernel.config ]; then
     echo -e "\033[1m(Re-)building kernel $KVERS for $arch\033[0m"
-    [ -n $NOCOPY ] || cp ../Sources/kernel-"$arch".conf linux-"$KVERS"/.config
+    cp ../Sources/kernel-"$arch".config linux-"$KVERS"/.config
     read -p "Update/modify kernel configuration? [Y/n] " a
     case "$a" in 
 	N*|n*) 
