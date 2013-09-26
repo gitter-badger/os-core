@@ -85,6 +85,9 @@ else
     arch="$myARCH"
 fi
 
+# make-kpkg needs DEB_HOST_ARCH, otherwise it will use the build hosts arch
+export DEB_HOST_ARCH=$arch
+
 if [ "$arch" = "i386" ]; then 
     mkpkgParms="--revision=1 --append-to-version=+tcos"
 else

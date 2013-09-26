@@ -90,7 +90,7 @@ TREE=""
 [ -f "$LINK/sfs/base.sfs" ] || (echo "${RED} could not find $LINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1)
 if mount -t squashfs -o loop,ro "$LINK/sfs/base.sfs" $BASE 2>/dev/null; then
 	echo "base.sfs mounted...${GREEN}yes${NORMAL}"
-	TREE=":$BASE"
+	TREE=":$BASE=ro"
 else
 	echo "base.sfs mounted...${RED}no${NORMAL}"
 fi
@@ -109,10 +109,15 @@ mountsfs package
 AUFS=""
 mount -t tmpfs none $WRITE # links writing branch to ram!
 
+
+echo "mount -t aufs -o noplink,br=${WRITE}=rw${TREE} unionfs $SHADOW"
+
 #TREE has a leading colon ":" !
 mount -t aufs -o noplink,br=${WRITE}=rw${TREE} unionfs $SHADOW  && \
 	AUFS="true"
 [ $? -eq 0 ] && AUFS="true"
+
+# read NULL
 
 # LINKS
 #
