@@ -13,7 +13,7 @@ VESAMODE = 0 # Don't activate VESA FB
 # Define which kernel to download and compile for LINBO
 export KVERS    = 3.9.10
 
-export PACKAGES = dkms mate-core kmod vim iproute busybox locales firmware-linux vim-tiny dbus dbus-x11 udev dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity ttf-dejavu xfonts-base less openssh-client coreutils rsync openssh-server libmotif4  python python-gtk2 zenity dialog 
+export PACKAGES = dkms mate-core kmod vim iproute busybox locales firmware-linux vim-tiny dbus dbus-x11 udev dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity ttf-dejavu xfonts-base less openssh-client coreutils rsync openssh-server libmotif4 python python-gtk2 zenity dialog 
 
 # Define kernel architecture. Currently, we support intel/amd 32 and 64bit
 # 	If CROSS is true, we'll build for the other architecture than the buildsystem runs on 
@@ -107,7 +107,7 @@ update: filesystem-stamp otcify-stamp
 
 update-stamp: 	
 	-rm -f clean-stamp
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -y --no-install-recommends $(PACKAGES)"
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -y --force-yes --no-install-recommends $(PACKAGES)"
 	touch $@
 
 
@@ -183,11 +183,10 @@ kernel-install: filesystem-stamp kernel-stamp
 	make kernel-install-stamp
 
 kernel-install-stamp: Scripts/LINBO.chroot
-	-mkdir -p Image/boot/isolinux
+	-mkdir -p Image-new/boot/isolinux
 	ln -nf Kernel/linux-image-$(KVERS)*.deb Kernel/linux-headers-$(KVERS)*.deb Filesystem/tmp/
 	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; apt-get --purge remove linux-headers-\* linux-image-\*; dpkg -i /tmp/linux-*$(KVERS)*.deb; /etc/kernel/header_postinst.d/dkms $(KVERS) /boot/vmlinuz-$(KVERS)"
-	[ -r Filesystem/boot/vmlinuz-$(KVERS) ] && cp -uv  Filesystem/boot/vmlinuz-$(KVERS) Image/boot/isolinux/linux || true
-	[ -r Filesystem/boot/vmlinuz-$(KVERS)-64 ] && cp -uv Filesystem/boot/vmlinuz-$(KVERS)-64 Image/boot/isolinux/linux64 || true
+	[ -r Filesystem/boot/vmlinuz-$(KVERS) ] && cp -uv  Filesystem/boot/vmlinuz-$(KVERS) Image-new/boot/syslinux/linux || true
 	touch kernel-install-stamp
 
 initrd: Initrd
