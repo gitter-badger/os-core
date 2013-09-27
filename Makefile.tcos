@@ -7,7 +7,7 @@ _busybox: Sources/busybox.config
 
 _rootfs: rootfs/bin/busybox
 	-mkdir -p Image-new/boot/syslinux
-	( cd rootfs && find . | sudo cpio -H newc -ov | gzip -9v ) > Image-new/boot/syslinux/initrd.gz
+	( cd rootfs && find . | sudo cpio -R root:root -H newc -ov | gzip -9v ) > Image-new/boot/syslinux/initrd.gz
 
 # CROSS = false
 export KVERS = 3.9.10

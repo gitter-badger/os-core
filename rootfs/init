@@ -69,7 +69,9 @@ MOUNTED=""
 [ -n $nfsroot ] && NFSD=$nfsroot
 
 touch /etc/fstab
-mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$NFSD" $LINK 
+mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$NFSD" $LINK
+
+# debugshell
 
 if [ $? -eq 0 ]; then 
   MOUNTED="true" 
@@ -107,23 +109,21 @@ mountsfs package
 #
 
 AUFS=""
-mount -t tmpfs none $WRITE # links writing branch to ram!
+mount -t tmpfs -o mode=0755 none $WRITE # links writing branch to ram!
 
-
-echo "mount -t aufs -o noplink,br=${WRITE}=rw${TREE} unionfs $SHADOW"
-
-#TREE has a leading colon ":" !
-mount -t aufs -o noplink,br=${WRITE}=rw${TREE} unionfs $SHADOW  && \
-	AUFS="true"
-[ $? -eq 0 ] && AUFS="true"
-
-# read NULL
+# TREE has a leading colon ":" !
+mount -t aufs -o noplink,br=${WRITE}=rw${TREE} unionfs $SHADOW  && AUFS="true"
 
 # LINKS
 #
 
 PATH="$PATH:/bin.old:${SHADOW}/bin:${SHADOW}/sbin"
 export PATH
+
+# needed later when the system runs
+# be the first 
+export PYTHONPATH="$PYTHONPATH:/opt/python-tcos"
+
 
 # save resolv.conf
 cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
