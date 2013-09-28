@@ -12,7 +12,10 @@ umask 022
 
 locale-gen
 if ! grep -q ^$USER: /etc/passwd; then
- useradd -u 1000 -d /home/$USER -c "LINBO" -s /bin/bash $USER
+ useradd -u 1000 -d /home/$USER -s /bin/bash $USER
+ #set default pass
+ echo $USER:0pen%TC | chpasswd
+ echo root:0pen%TC | chpasswd
  GROUPS="users"
  for i in disk dialout fax voice cdrom floppy tape sudo audio dip backup video plugdev netdev powerdev scanner gnokii fuse partimag debian-tor x2gousers kismet; do
   grep -q "^$i:" /etc/group && GROUPS="$GROUPS,$i"
@@ -21,4 +24,4 @@ fi
 [ -d /home/$USER ] || mkdir -p /home/$USER
 chown -R $USER /home/$USER
 echo openthinclient > /etc/hostname
-echo '127.0.0.1\topenthinclient localhost/' > /etc/hosts
+echo -e "127.0.0.1\topenthinclient localhost/" > /etc/hosts

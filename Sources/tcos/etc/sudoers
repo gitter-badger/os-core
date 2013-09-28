@@ -18,4 +18,4 @@ Defaults	env_reset
 
 # User privilege specification
 root	ALL=(ALL) ALL
-knoppix ALL=NOPASSWD: ALL
+tcos	ALL=NOPASSWD: ALL

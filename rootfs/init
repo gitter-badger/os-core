@@ -21,12 +21,11 @@ LINK="$TCOS/link"       # nfs             OTC-Server:/openthinclient # the initi
 WRITE="$TCOS/write"     # for aufs to write this is just a folder inside the /
 BASE="$TCOS/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.sfs
 PACKAGE="$TCOS/package"
-MODULE="$TCOS/module"
 SHADOW="$TCOS/shadow"
 
 ## MAIN ####################################################
 
-for folder in home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $MODULE $SHADOW /proc /sys; do mkdir -p $folder ; done
+for folder in home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $SHADOW /proc /sys; do mkdir -p $folder ; done
 
 mount -t proc proc /proc
 mount -t sysfs sys /sys
@@ -88,7 +87,7 @@ fi
 
 TREE=""
 
-# mount base and module sfs files
+# mount base and packages sfs files
 [ -f "$LINK/sfs/base.sfs" ] || (echo "${RED} could not find $LINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1)
 if mount -t squashfs -o loop,ro "$LINK/sfs/base.sfs" $BASE 2>/dev/null; then
 	echo "base.sfs mounted...${GREEN}yes${NORMAL}"
@@ -102,7 +101,6 @@ fi
 
 echo "0" >/proc/sys/kernel/printk
 
-mountsfs module
 mountsfs package
 
 # AUFS
@@ -120,13 +118,9 @@ mount -t aufs -o noplink,br=${WRITE}=rw${TREE} unionfs $SHADOW  && AUFS="true"
 PATH="$PATH:/bin.old:${SHADOW}/bin:${SHADOW}/sbin"
 export PATH
 
-# needed later when the system runs
-# be the first 
-export PYTHONPATH="$PYTHONPATH:/opt/python-tcos"
-
-
 # save resolv.conf
 cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
+[ -e /etc/hostname ] && cp /etc/hostname ${SHADOW}/etc/hostname
 
 # dirs that have symlinks to $SHADOW
 for l in boot etc lib bin usr var opt sbin; do 

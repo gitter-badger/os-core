@@ -13,7 +13,7 @@ VESAMODE = 0 # Don't activate VESA FB
 # Define which kernel to download and compile for LINBO
 export KVERS    = 3.9.10
 
-export PACKAGES = dkms mate-core kmod vim iproute busybox locales firmware-linux vim-tiny dbus dbus-x11 udev dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity ttf-dejavu xfonts-base less openssh-client coreutils rsync openssh-server libmotif4 python python-gtk2 zenity dialog 
+export PACKAGES = ntp python-gconf python-ldap ldap-utils man syslog-ng x11vnc arandr dkms lightdm-gtk-greeter lightdm mate-desktop-environment kmod vim iproute busybox locales firmware-linux vim-tiny dbus dbus-x11 udev dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity ttf-dejavu xfonts-base less openssh-client coreutils rsync openssh-server libmotif4 python python-gtk2 zenity dialog iputils-ping htop
 
 # Define kernel architecture. Currently, we support intel/amd 32 and 64bit
 # 	If CROSS is true, we'll build for the other architecture than the buildsystem runs on 
@@ -96,10 +96,9 @@ otcify: filesystem-stamp
 
 otcify-stamp: ./Scripts/LINBO.chroot
 	-rm -f clean-stamp
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "ln -snf /bin/bash /bin/sh; apt-get update; apt-get install locales busybox"
 	Scripts/LINBO.apply-configs Sources/tcos Filesystem
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "ln -snf /bin/bash /bin/sh; apt-get update; apt-get install locales busybox"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.otcify-chroot
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.mkfilesystem64-chroot
 	touch $@ 
 
 update: filesystem-stamp otcify-stamp
@@ -120,7 +119,7 @@ compressed: Filesystem clean-stamp Scripts/LINBO.mkcompressed Bin/create_compres
 	-mkdir -p Image/KNOPPIX
 	nice -10 ionice -c 3 sudo ./Scripts/LINBO.mkcompressed Filesystem Image/KNOPPIX/KNOPPIX
 
-compressed-squashfs: filesystem-stamp otcify-stamp update-stamp clean-stamp
+compressed-squashfs: filesystem-stamp otcify-stamp update-stamp
 	-mkdir -p Image-new
 	nice -10 ionice -c 3 sudo mksquashfs Filesystem Image-new/base.sfs -noappend -always-use-fragments
 	sudo scp Image-new/base.sfs root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/sfs/base.sfs
