@@ -13,7 +13,18 @@ VESAMODE = 0 # Don't activate VESA FB
 # Define which kernel to download and compile for LINBO
 export KVERS    = 3.9.10
 
-export PACKAGES = ntp python-gconf python-ldap ldap-utils man syslog-ng x11vnc arandr dkms lightdm-gtk-greeter lightdm mate-desktop-environment kmod vim iproute busybox locales firmware-linux vim-tiny dbus dbus-x11 udev dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity ttf-dejavu xfonts-base less openssh-client coreutils rsync openssh-server libmotif4 python python-gtk2 zenity dialog iputils-ping htop
+# Have package list in alphabetical order for better human reading. Cleanup dups.
+# for package in one two three; do echo $package; done | sort -u | sed ':a;N;$!ba;s/\n/ /g'
+
+# takes round about 30 minutes to install 
+export PACKAGES = aptitude arandr blueman busybox cifs-utils console-data console-tools coreutils dbus dbus-x11 devilspie devilspie2  gdevilspie dialog dkms dosfstools dos2unix e2fsprogs firmware-linux freerdp-x11 hdparm htop icedove icedove-l10n-all iceweasel iceweasel-l10n-all iceweasel-l10n-de iproute iputils-ping jxplorer kexec-tools kmod ldap-utils leafpad less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libmotif4 libnspr4 lightdm lightdm-gtk-greeter locales locales-all man mate-applets mate-desktop-environment mate-dialogs-gnome mate-screensaver metacity net-tools nfs-common ntp openssh-client openssh-server pavucontrol pavumeter python python-gconf python-gtk2 python-ldap rdesktop rsync screen spice-client spice-client-gtk sudo syslog-ng ttf-dejavu udev util-linux vim vim-tiny wget x11vnc x11-xserver-utils xfonts-base xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xterm 
+
+# old list
+# ntp python-gconf python-ldap ldap-utils man syslog-ng x11vnc arandr dkms lightdm-gtk-greeter lightdm mate-desktop-environment mate-screensaver mate-applets mate-dialogs-gnome kmod vim iproute busybox locales firmware-linux vim-tiny dbus dbus-x11 udev dosfstools e2fsprogs cifs-utils nfs-common xorg xserver-xorg-core xserver-xorg xserver-xorg-video-intel xserver-xorg-video-radeon xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-input-evdev xserver-xorg-video-all xserver-xorg-input-kbd xserver-xorg-input-mouse libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dri-experimental libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 iceweasel iceweasel-l10n-de libnspr4 hdparm console-tools console-data inetutils-syslogd sudo kexec-tools xterm x11-xserver-utils xinit metacity ttf-dejavu xfonts-base less openssh-client coreutils rsync openssh-server libmotif4 python python-gtk2 zenity dialog iputils-ping htop spice-client spice-client-gtk aptitude leafpad blueman hdparm util-linux jxplorer pavucontrol pavumeter rdesktop screen wget python-gconf python-ldap ldap-utils man syslog-ng arandr freerdp-x11 icedove icedove-l10n-all iceweasel-l10n-all locales-all 
+
+# Libreoffice-Stuff
+# libreoffice libreoffice-base libreoffice-base-core libreoffice-calc libreoffice-common libreoffice-core libreoffice-draw libreoffice-filter-binfilter libreoffice-impress libreoffice-java-common libreoffice-math libreoffice-report-builder-bin libreoffice-style-galaxy libreoffice-writer
+
 
 # Define kernel architecture. Currently, we support intel/amd 32 and 64bit
 # 	If CROSS is true, we'll build for the other architecture than the buildsystem runs on 
@@ -109,8 +120,6 @@ update-stamp:
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -y --force-yes --no-install-recommends $(PACKAGES)"
 	touch $@
 
-
-
 clean-stamp: filesystem-stamp ./Scripts/LINBO.otcify-clean
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.otcify-clean
 	touch $@
@@ -119,10 +128,10 @@ compressed: Filesystem clean-stamp Scripts/LINBO.mkcompressed Bin/create_compres
 	-mkdir -p Image/KNOPPIX
 	nice -10 ionice -c 3 sudo ./Scripts/LINBO.mkcompressed Filesystem Image/KNOPPIX/KNOPPIX
 
-compressed-squashfs: filesystem-stamp otcify-stamp update-stamp
+compressed-squashfs: filesystem-stamp otcify-stamp update-stamp clean-stamp kernel-install-stamp 
 	-mkdir -p Image-new
-	nice -10 ionice -c 3 sudo mksquashfs Filesystem Image-new/base.sfs -noappend -always-use-fragments
-	sudo scp Image-new/base.sfs root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/sfs/base.sfs
+	nice -10 ionice -c 3 sudo mksquashfs Filesystem Image-new/base.sfs -noappend -always-use-fragments -comp xz 
+	scp Image-new/base.sfs root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/sfs/base.sfs
 
 addons: Addons
 	cd $< ; sudo mkisofs -l -R -U -v . | ../Bin/create_compressed_fs -L -2 -B 131072 -m - ../Image/KNOPPIX/KNOPPIX1
