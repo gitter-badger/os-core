@@ -61,8 +61,13 @@ bailout(){
 
 debugshell(){
  [ -n "$1" ] && echo "$1"
- /bin/busybox sh
- bailout $?
+ if [ -x /bin/bash ]; then 
+  echo "Dropping you to a real bash ..." 
+  /bin/bash
+ else
+  /bin/busybox sh
+ fi 
+ return 0
 }
 
 load_modules(){
