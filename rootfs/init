@@ -146,13 +146,14 @@ done
 #
 
 
-# modify /etc/init.d/.depend.start with insserv
+# modify /etc/init.d/.depend.* with insserv
 # enables custom LSB 
 #
 for service in /tcos/package/*/etc/init.d/*; do 
-   servicefilename=$(basename $service); 
+  servicefilename=$(basename $service); 
   insserv /etc/init.d/$servicefilename
 done
 
+# debugshell
 
 exec /sbin/init "$@" </dev/console >/dev/console 2>&1

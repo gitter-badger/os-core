@@ -62,9 +62,13 @@ bailout(){
 debugshell(){
  [ -n "$1" ] && echo "$1"
  if [ -x /bin/bash ]; then 
-  echo "Dropping you to a real bash ..." 
-  /bin/bash
+  echo "${RED}A debugshell was called.${NORMAL}"
+  echo "Found /bin/bash - dropping you to a real bash."
+  echo "Type \"exit\" to continue boot."
+  /bin/bash 
  else
+  echo "${RED}A debugshell was called.${NORMAL}"
+  echo "No /bin/bash found - dropping \"busybox sh\"."
   /bin/busybox sh
  fi 
  return 0
