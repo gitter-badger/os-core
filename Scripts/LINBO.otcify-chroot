@@ -4,14 +4,12 @@
 # This has to run chroot inside the Knoppix root filesystem!
 #
 
-set -x 
-
+#set -x 
 USER=tcos
 
 [ "`stat --printf '%i' /.`" -gt 2 ] || { echo "$0 must NEVER be run outside of chroot, exiting"'!' ; exit 1; }
 
 umask 022
-
 
 locale-gen
 
@@ -21,16 +19,16 @@ grep -q ^$USER: /etc/passwd || useradd -u 1000 -d /home/$USER -s /bin/bash $USER
 #set default pass
 echo $USER:0pen%TC | chpasswd
 echo root:0pen%TC | chpasswd
-
-GROUPS="users"
+ 
+USERGROUPS=users
 for i in disk dialout fax voice cdrom floppy tape sudo audio dip backup video plugdev netdev powerdev scanner gnokii fuse partimag debian-tor x2gousers kismet; do
-    grep -q "^$i:" /etc/group && GROUPS="$GROUPS,$i"
+    grep -q "^$i:" /etc/group && USERGROUPS="$USERGROUPS,$i"
 done
-useradd -G "$GROUPS" $USER
+
+usermod -G "$USERGROUPS" $USER
 
 [ -d /home/$USER ] || mkdir -p /home/$USER
 chown -R $USER /home/$USER
-
 
 # set default hostname to have one 
 echo openthinclient > /etc/hostname

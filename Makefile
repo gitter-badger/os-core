@@ -125,7 +125,7 @@ compressed: Filesystem clean-stamp Scripts/LINBO.mkcompressed Bin/create_compres
 	-mkdir -p Image/KNOPPIX
 	nice -10 ionice -c 3 sudo ./Scripts/LINBO.mkcompressed Filesystem Image/KNOPPIX/KNOPPIX
 
-compressed-squashfs: filesystem-stamp otcify-stamp update-stamp clean-stamp kernel-install-stamp 
+compressed-squashfs: filesystem-stamp otcify-stamp update-stamp clean-stamp kernel
 	-mkdir -p Image-new
 	nice -10 ionice -c 3 sudo mksquashfs Filesystem Image-new/base.sfs -noappend -always-use-fragments -comp xz 
 	scp Image-new/base.sfs root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/sfs/base.sfs
@@ -155,7 +155,7 @@ extra-scripts-stamp:
 
 kernel:
 	make kernel-stamp
-
+ 
 kernel-stamp: ./Scripts/LINBO.kernel
 	rm -f kernel-install-stamp
 	./Scripts/LINBO.kernel
