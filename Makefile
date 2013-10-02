@@ -17,7 +17,7 @@ export KVERS    = 3.9.10
 # for package in one two three; do echo $package; done | sort -u | sed ':a;N;$!ba;s/\n/ /g'
 
 # takes round about 30 minutes to install 
-export PACKAGES = libpam-gnome-keyring aptitude arandr blueman cifs-utils console-data console-tools coreutils dbus dbus-x11 devilspie devilspie2  gdevilspie dialog dkms dosfstools dos2unix ethtool e2fsprogs file firmware-linux freerdp-x11 hdparm htop icedove icedove-l10n-all iceweasel iceweasel-l10n-all iceweasel-l10n-de iproute iputils-ping jxplorer kexec-tools kmod ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libmotif4 lightdm lightdm-gtk-greeter locales locales-all mc devilspie devilspie2 gdevilspie man mate-applets mate-desktop-environment mate-dialogs-gnome mate-screensaver metacity net-tools nfs-common ntp openssh-client openssh-server pavucontrol pavumeter python python-gconf python-gtk2 python-ldap rdesktop rsync screen smplayer spice-client spice-client-gtk sudo sux syslog-ng tcpdump ttf-dejavu udev util-linux vim vim-tiny wget x11vnc x11-xserver-utils xfonts-base xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon  
+export PACKAGES = libpam-gnome-keyring aptitude arandr blueman cifs-utils console-data console-tools coreutils dbus dbus-x11 devilspie devilspie2  gdevilspie dialog dkms dosfstools dos2unix ethtool e2fsprogs file firmware-linux freerdp-x11 hdparm htop icedove icedove-l10n-all iceweasel iceweasel-l10n-all iceweasel-l10n-de iproute iputils-ping jxplorer kexec-tools kmod ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libmotif4 lightdm lightdm-gtk-greeter locales locales-all mc devilspie devilspie2 gdevilspie man mate-applets mate-desktop-environment mate-dialogs-gnome mate-screensaver metacity net-tools nfs-common ntp openssh-client openssh-server pavucontrol pavumeter python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client spice-client-gtk sudo sux syslog-ng tcpdump ttf-dejavu udev util-linux vim vim-tiny wget x11vnc x11-xserver-utils xfonts-base xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon  
 
 
 # Libreoffice-Stuff
@@ -105,7 +105,7 @@ otcify: filesystem-stamp
 otcify-stamp: ./Scripts/LINBO.chroot
 	-rm -f clean-stamp
 	Scripts/LINBO.apply-configs Sources/tcos Filesystem
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "ln -snf /bin/bash /bin/sh; apt-get update; apt-get install locales busybox"
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "ln -snf /bin/bash /bin/sh;"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.otcify-chroot
 	touch $@ 
 
@@ -125,7 +125,7 @@ compressed: Filesystem clean-stamp Scripts/LINBO.mkcompressed Bin/create_compres
 	-mkdir -p Image/KNOPPIX
 	nice -10 ionice -c 3 sudo ./Scripts/LINBO.mkcompressed Filesystem Image/KNOPPIX/KNOPPIX
 
-compressed-squashfs: filesystem-stamp otcify-stamp update-stamp clean-stamp kernel
+compressed-squashfs: filesystem-stamp otcify-stamp update-stamp clean-stamp kernel-install
 	-mkdir -p Image-new
 	nice -10 ionice -c 3 sudo mksquashfs Filesystem Image-new/base.sfs -noappend -always-use-fragments -comp xz 
 	scp Image-new/base.sfs root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/sfs/base.sfs
