@@ -93,7 +93,8 @@ mountsfs(){
 	   continue
 	fi
 	#create a tree for later aufs-mounts, beware of the leading colon!
-	TREE="${TREE}:$TCOS/$1/${target}=ro"
+	#TREE="${TREE}:$TCOS/$1/${target}=ro"
+	TREE="$TCOS/$1/${target}=ro:${TREE}"
  done
  return 0
 }

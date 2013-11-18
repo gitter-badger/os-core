@@ -70,8 +70,6 @@ MOUNTED=""
 touch /etc/fstab
 mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$NFSD" $LINK
 
-# debugshell
-
 if [ $? -eq 0 ]; then 
   MOUNTED="true" 
   echo "$NFSD mounted ${GREEN} successfully...${NORMAL}"
@@ -91,7 +89,7 @@ TREE=""
 [ -f "$LINK/sfs/base.sfs" ] || (echo "${RED} could not find $LINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1)
 if mount -t squashfs -o loop,ro "$LINK/sfs/base.sfs" $BASE 2>/dev/null; then
 	echo "base.sfs mounted...${GREEN}yes${NORMAL}"
-	TREE=":$BASE=ro"
+	TREE="$BASE=ro"
 else
 	echo "base.sfs mounted...${RED}no${NORMAL}"
 fi
@@ -109,8 +107,8 @@ mountsfs package
 AUFS=""
 mount -t tmpfs -o mode=0755 none $WRITE # links writing branch to ram!
 
-# TREE has a leading colon ":" !
-mount -t aufs -o noplink,br=${WRITE}=rw${TREE} unionfs $SHADOW  && AUFS="true"
+# TREE has a leading colon ":" ! (DEPRECATED)
+mount -t aufs -o noplink,br=${WRITE}=rw:${TREE} unionfs $SHADOW  && AUFS="true"
 
 # LINKS
 #
