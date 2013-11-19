@@ -10,7 +10,7 @@ _rootfs: rootfs/bin/busybox
 	( cd rootfs && find . | sudo cpio -R root:root -H newc -ov | gzip -9v ) > Image-new/boot/syslinux/initrd.gz
 
 # CROSS = false
-export KVERS = 3.9.10
+export KVERS = 3.9.12
 
 x86 = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
 x86_64 = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"

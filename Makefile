@@ -11,7 +11,7 @@ VESAMODE = 0 # Don't activate VESA FB
 # Configuration, these are evaluated by scripts and need export.
 
 # Define which kernel to download and compile for LINBO
-export KVERS    = 3.9.10
+export KVERS    = 3.12
 
 # Have package list in alphabetical order for better human reading. Cleanup dups.
 # for package in one two three; do echo $package; done | sort -u | sed ':a;N;$!ba;s/\n/ /g'
