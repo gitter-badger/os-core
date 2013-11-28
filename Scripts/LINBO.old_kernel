@@ -21,8 +21,7 @@ fi
 cd Kernel/aufs3-linux || exit 0
 echo $PWD
 
-git reset --hard HEAD
-git checkout aufs${MAJOR} #ignore the minor stepping
+git checkout -f aufs${MAJOR} #ignore the minor stepping
 git pull
 
 if ! [ -e ../patch-${KVERS}.xz ]; then
