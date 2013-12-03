@@ -61,6 +61,10 @@ bailout(){
 
 debugshell(){
  [ -n "$1" ] && echo "$1"
+ if ping -c 1 8.8.8.8 > /dev/null 2>&1; then
+  echo "${BLUE}Starting sshd.${NORMAL}"
+  dropbear -E
+ fi
  if [ -x /bin/bash ]; then 
   echo "${RED}A debugshell was called.${NORMAL}"
   echo "Found /bin/bash - dropping you to a real bash."

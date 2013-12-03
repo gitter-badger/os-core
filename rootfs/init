@@ -61,7 +61,6 @@ for i in 0; do
 	debugshell
 done
 
-
 # NFS (or local link #future)
 MOUNTED=""
 
@@ -75,7 +74,7 @@ if [ $? -eq 0 ]; then
   echo "$NFSD mounted ${GREEN} successfully...${NORMAL}"
 else 
   echo "${RED} could not mount $NFSD - exiting. ${NORMAL}"
-  exit 1
+  debugshell
 fi
 
 
@@ -151,7 +150,5 @@ for service in /tcos/package/*/etc/init.d/*; do
   servicefilename=$(basename $service); 
   insserv /etc/init.d/$servicefilename
 done
-
-# debugshell
 
 exec /sbin/init "$@" </dev/console >/dev/console 2>&1

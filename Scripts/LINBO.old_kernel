@@ -18,17 +18,33 @@ if ! [ -r Kernel/aufs3-linux ]; then
 	cd Kernel
 	git clone https://github.com/sfjro/aufs3-linux.git || { rm -rf Kernel/aufs3-linux.git; exit 1; }
 fi
-cd Kernel/aufs3-linux || exit 0
-echo $PWD
+# check, whether there is a copy of a kernel checkout already
+if  [ -d Kernel/aufs3-linux-${KVERS} ]; then
+	:
+else
+	cd Kernel/aufs3-linux || exit 0
+	echo $PWD
+    # 1. get new code and jump to a safe place -> HEAD
+    git fetch
+    git reset --hard origin/master
+    git checkout master
+    # 2. clean (maybe) existing old branches
+    git branch -D aufs${MAJOR}
+    # 3. get a clean repo to work with
+    git checkout -f aufs${MAJOR}
 
-git checkout -f aufs${MAJOR} #ignore the minor stepping
-git pull
+	if ! [ -e ../patch-${KVERS}.xz ]; then
+		wget -c -P ../ https://www.kernel.org/pub/linux/kernel/v3.x/patch-${KVERS}.xz
+	fi
 
-if ! [ -e ../patch-${KVERS}.xz ]; then
-	wget -c -P ../ https://www.kernel.org/pub/linux/kernel/v3.x/patch-${KVERS}.xz
+	xzcat ../patch-${KVERS}.xz | patch -p1
+	# create a copy of the directory for later
+    echo "Creating a copy of the git repo to ../aufs3-linux-${KVERS}"
+	rsync -a --exclude=.git/ . ../aufs3-linux-${KVERS} || exit 0
+    cd ../..
 fi
 
-xzcat ../patch-${KVERS}.xz | patch -p1
+cd Kernel/aufs3-linux-${KVERS}
 
 myARCH=`uname -m`
 
@@ -59,25 +75,28 @@ else
     mkpkgParms="--revision=1 --append-to-version=+tcos64"
 fi
 
-read -p "Use the kernel configuration from Source? [Y/n] " a
-case  "$a" in
-	N*|n*)
-		;;
-	*) cp ../../Sources/kernel${MAJOR}-"$arch".config ./.config
-		;;
-esac
-
-read -p "Save the kernel configuration to Sources? [Y/n] " a
-case "$a" in 
-	N*|n*) 
-	    ;; 
-	*)  make ARCH="$arch" oldconfig menuconfig && \
-	    cp -au ./.config ../../Sources/kernel${MAJOR}-"$arch".config
-	    ;; 
-esac
+if [ -e ../../Sources/kernel${MAJOR}-"$arch".config ]; then
+    read -p "Use the kernel configuration from Source? [Y/n] " a
+    case  "$a" in
+        N*|n*)
+            ;;
+        *)cp ../../Sources/kernel${MAJOR}-"$arch".config ./.config
+            ;;
+    esac
+else
+    make ARCH="$arch" menuconfig
+fi
 
 # build procedure
 
 (make ARCH="$arch" oldconfig && make -j8 ARCH="$arch" bzImage modules && \
 rm -rf debian; CONCURRENCY_LEVEL=8 ARCH="$arch" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$arch" --cross-compile=- $mkpkgParms --us --uc kernel_image modules_image kernel_headers kernel_source )
 
+read -p "Save the kernel configuration to Sources? [Y/n] " a
+case "$a" in 
+	N*|n*) 
+	    ;; 
+	*)make ARCH="$arch" oldconfig menuconfig && \
+	    cp -au ./.config ../../Sources/kernel${MAJOR}-"$arch".config
+	    ;; 
+esac
