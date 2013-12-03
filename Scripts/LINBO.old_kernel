@@ -96,7 +96,6 @@ read -p "Save the kernel configuration to Sources? [Y/n] " a
 case "$a" in 
 	N*|n*) 
 	    ;; 
-	*)make ARCH="$arch" oldconfig menuconfig && \
-	    cp -au ./.config ../../Sources/kernel${MAJOR}-"$arch".config
+	*)cp -au ./.config ../../Sources/kernel${MAJOR}-"$arch".config
 	    ;; 
 esac
