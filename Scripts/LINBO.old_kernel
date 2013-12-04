@@ -5,6 +5,8 @@
 # adapted to tcos by openthinclient developers
 # License: GPL V2
 
+set -x
+
 if [ -z $KVERS ]; then
 	exit 0
 fi
@@ -17,6 +19,7 @@ if ! [ -r Kernel/aufs3-linux ]; then
 	echo -e "\033[1m Fetching kernel/aufs3-linux from github.com.\033[0m"
 	cd Kernel
 	git clone https://github.com/sfjro/aufs3-linux.git || { rm -rf Kernel/aufs3-linux.git; exit 1; }
+    cd ..
 fi
 # check, whether there is a copy of a kernel checkout already
 if  [ -d Kernel/aufs3-linux-${KVERS} ]; then
@@ -95,7 +98,7 @@ if [ "$MENUCONFIG" = "true" ]; then
 fi
 
 (make ARCH="$arch" oldconfig && make -j8 ARCH="$arch" bzImage modules && \
-rm -rf debian; CONCURRENCY_LEVEL=8 ARCH="$arch" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$arch" --cross-compile=- $mkpkgParms --us --uc kernel_image modules_image kernel_headers kernel_source )
+rm -rf debian; CONCURRENCY_LEVEL=8 ARCH="$arch" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$arch" --cross-compile - $mkpkgParms --us --uc kernel_image modules_image kernel_headers kernel_source )
 
 read -p "Save the kernel configuration to Sources? [Y/n] " a
 case "$a" in 
