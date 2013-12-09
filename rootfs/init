@@ -41,24 +41,26 @@ getbootparams
 load_modules "/modules"
 
 #to override the dhcpd setting set up a HOSTNAME here
-HOSTNAME="" 
+HOSTNAME=""
 
 ip addr add 127.0.0.1/8 dev lo
 ip link set dev lo up
 
 DHCP=""
 
-for i in 0; do
-	echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
-	ip link set dev eth$i up
-	if [ -n "$HOSTNAME" ]; then
-   	 udhcpc -i eth$i -H $HOSTNAME -s /etc/udhcpc/default.script && DHCP="eth$i"
-  	else
-   	 udhcpc -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
-  	fi
-	[ -n "$DHCP" ] && break
-	echo "${RED}No answer from network.${NORMAL}"
-	debugshell
+[ -z $nic ] && nic=0
+
+for i in $nic; do
+    echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
+    ip link set dev eth$i up
+    if [ -n "$HOSTNAME" ]; then
+        udhcpc -i eth$i -H $HOSTNAME -s /etc/udhcpc/default.script && DHCP="eth$i"
+    else
+        udhcpc -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
+    fi
+    [ -n "$DHCP" ] && break
+    echo "${RED}No answer from network.${NORMAL}"
+    debugshell
 done
 
 # NFS (or local link #future)
@@ -69,10 +71,10 @@ MOUNTED=""
 touch /etc/fstab
 mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$NFSD" $LINK
 
-if [ $? -eq 0 ]; then 
-  MOUNTED="true" 
+if [ $? -eq 0 ]; then
+  MOUNTED="true"
   echo "$NFSD mounted ${GREEN} successfully...${NORMAL}"
-else 
+else
   echo "${RED} could not mount $NFSD - exiting. ${NORMAL}"
   debugshell
 fi
@@ -87,10 +89,10 @@ TREE=""
 # mount base and packages sfs files
 [ -f "$LINK/sfs/base.sfs" ] || (echo "${RED} could not find $LINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1)
 if mount -t squashfs -o loop,ro "$LINK/sfs/base.sfs" $BASE 2>/dev/null; then
-	echo "base.sfs mounted...${GREEN}yes${NORMAL}"
-	TREE="$BASE=ro"
+    echo "base.sfs mounted...${GREEN}yes${NORMAL}"
+    TREE="$BASE=ro"
 else
-	echo "base.sfs mounted...${RED}no${NORMAL}"
+    echo "base.sfs mounted...${RED}no${NORMAL}"
 fi
 
 # other SFS
@@ -120,23 +122,23 @@ cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
 [ -e /etc/hostname ] && cp /etc/hostname ${SHADOW}/etc/hostname
 
 # dirs that have symlinks to $SHADOW
-for l in boot etc lib bin usr var opt sbin; do 
-	if [ -d /$l ]; then
-		mv /$l /$l.old
-		ln -s ${SHADOW}/$l /$l
-		rm -rf /$l.old
-	elif [ -d ${SHADOW}/$l ]; then
-		ln -snf ${SHADOW}/$l /$l
-	fi
+for l in boot etc lib bin usr var opt sbin; do
+    if [ -d /$l ]; then
+        mv /$l /$l.old
+        ln -s ${SHADOW}/$l /$l
+        rm -rf /$l.old
+    elif [ -d ${SHADOW}/$l ]; then
+        ln -snf ${SHADOW}/$l /$l
+    fi
 done
 
 # dirs that have bind mounts to $SHADOW (e.G. /home has to be a mountpoint )
 
 for l in home root; do
-	if [ -d "${SHADOW}/$l" ]; then
-		rm -rf /$l && mkdir -m 755 /$l
-		mount -o bind "${SHADOW}/$l" $l
-	fi
+    if [ -d "${SHADOW}/$l" ]; then
+        rm -rf /$l && mkdir -m 755 /$l
+        mount -o bind "${SHADOW}/$l" $l
+    fi
 done
 
 # INIT
@@ -144,10 +146,10 @@ done
 
 
 # modify /etc/init.d/.depend.* with insserv
-# enables custom LSB 
+# enables custom LSB
 #
-for service in /tcos/package/*/etc/init.d/*; do 
-  servicefilename=$(basename $service); 
+for service in /tcos/package/*/etc/init.d/*; do
+  servicefilename=$(basename $service);
   insserv /etc/init.d/$servicefilename
 done
 
