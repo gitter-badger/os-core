@@ -25,8 +25,11 @@ SHADOW="$TCOS/shadow"
 
 ## MAIN ####################################################
 
-for folder in home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $SHADOW /proc /sys; do mkdir -p $folder ; done
+for folder in home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $SHADOW proc sys; do mkdir -p $folder ; done
 
+mkdir /dev/pts
+
+mount -t devpts devpts /dev/pts
 mount -t proc proc /proc
 mount -t sysfs sys /sys
 mount -t tmpfs none /tmp

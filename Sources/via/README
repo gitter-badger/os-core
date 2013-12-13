@@ -1,0 +1,2 @@
+copy the linux-image and this via directory to /tmp and execute
+install_locally.sh afterwards
