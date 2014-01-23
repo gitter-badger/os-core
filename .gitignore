@@ -1,13 +1,12 @@
 /Filesystem/*
 /Kernel/*
-/Sources/busybox/*
 /Image/*
-/Image-new/*
-/rootfs/*
-!/rootfs/init*
-!/rootfs/lib
-!/rootfs/bin/mask2cidr
+/Initrd/*
+!/Initrd/init*
+!/Initrd/lib
+!/Initrd/bin/mask2cidr
 .SyncID
+.SyncIgnore
 
 *~
 .~*

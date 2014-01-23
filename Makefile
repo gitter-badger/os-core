@@ -1,61 +1,33 @@
 #!/usr/bin/make -f
-# Makefile for LINBO
-# (C) Klaus Knopper <knoppix@knopper.net> 2013
+# Makefile for TCOS
+# (C) Steffen Hoenig <s.hoenig@openthinclient.com> 2013, 2014
+# (C) Jörn Frenzel <j.frenzel@openthinclient.com> 2013, 2014
 # License: GPL V2
 
-CMDLINE  = loglevel=4 nmi_watchdog=0 debug apm=power-off
-
-VESAMODE = 0 # Don't activate VESA FB
-# VESAMODE = 791 # 1024x768, 64k colors
-
-# Configuration, these are evaluated by scripts and need export.
-
-# Define which kernel to download and compile for LINBO
-export KVERS    = 3.12
+# Define which kernel to download and compile for TCOS
+export KVERS     = 3.12
+export X86       = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
+export X86_64    = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
+export BASE_PATH = root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root
 
 # Have package list in alphabetical order for better human reading. Cleanup dups.
 # for package in one two three; do echo $package; done | sort -u | sed ':a;N;$!ba;s/\n/ /g'
 
 # takes round about 30 minutes to install 
-export PACKAGES = usbutils libpam-gnome-keyring aptitude arandr blueman cifs-utils console-data console-tools coreutils dbus dbus-x11 devilspie devilspie2  gdevilspie dialog dkms dosfstools dos2unix ethtool e2fsprogs file firmware-linux freerdp-x11 hdparm htop icedove icedove-l10n-all iceweasel iceweasel-l10n-all iceweasel-l10n-de iproute iputils-ping jxplorer kexec-tools kmod ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libmotif4 lightdm lightdm-gtk-greeter locales locales-all mc devilspie devilspie2 gdevilspie man mate-applets mate-desktop-environment mate-dialogs-gnome mate-screensaver metacity net-tools nfs-common ntp openssh-client openssh-server pavucontrol pavumeter python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client spice-client-gtk sudo sux syslog-ng tcpdump ttf-dejavu udev util-linux vim vim-tiny wget x11vnc x11-xserver-utils xfonts-base xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon  
 
-
-# Libreoffice-Stuff
-# libreoffice libreoffice-base libreoffice-base-core libreoffice-calc libreoffice-common libreoffice-core libreoffice-draw libreoffice-filter-binfilter libreoffice-impress libreoffice-java-common libreoffice-math libreoffice-report-builder-bin libreoffice-style-galaxy libreoffice-writer
-
-# Define kernel architecture. Currently, we support intel/amd 32 and 64bit
-# 	If CROSS is true, we'll build for the other architecture than the buildsystem runs on 
-# export CROSS = false
-
-# Define the CPU architecture for testing LINBO in kvm
-# export CPU = kvm64
-export CPU = qemu64
-export MEM = 2040
-
-# My packages
-#EXTRA_PACKAGES = Sources/libntfs-3g31_2009.4.4AC.14_i386.deb Sources/ntfs-3g-ng_2009.4.4AC.14_i386.deb Sources/rsync_3.0.6-1_i386.deb Sources/cloop-utils_2.0-1_i386.deb Sources/hwsetup_1.4-21_all.deb Sources/usleep-knoppix_0.5-2_i386.deb
-
-EXTRA_PACKAGES = Sources/hwsetup_1.4-19_all.deb Sources/usleep-knoppix_0.5-1_i386.deb
-
-# My scripts
-EXTRA_SCRIPTS = Sources/Linbo/linbo_cmd
-
-# Dirs for upload
-UPLOAD_DIRS = Bin Filesystem Image Initrd Kernel Scripts Sources
+export PACKAGES = libpopt0 pciutils usbutils xdg-utils libqt4-qt3support libqt4-sql bluez-alsa alsa-utils bluez-audio python-bluez aptitude arandr blueman cifs-utils console-data console-tools coreutils dbus dbus-x11 devilspie devilspie2  gdevilspie dosfstools dos2unix ethtool e2fsprogs file firmware-linux hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libmotif4 lightdm lightdm-gtk-greeter locales locales-all marco dconf-tools mate-themes mate-applets mozo mc devilspie devilspie2 man eom engrampa atril mate-session-manager mate-media mate-desktop net-tools nfs-common ntp openssh-client openssh-server python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo systemd syslog-ng tcpdump ttf-dejavu udev util-linux vim vim-tiny wget x11vnc x11-xserver-utils xfonts-base xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon gvfs-backends mate-system-monitor libstdc++5
 
 help:
-	@echo "[1mWELCOME TO THE LINBO BUILD SYSTEM"
+	@echo "[1mWELCOME TO THE TCOS BUILD SYSTEM"
 	@echo ""
 	@echo "make kernel		(Re-)Build Kernel packages"
 	@echo "make kernel-install	(Re-)Install Kernel packages"
 	@echo "make initrd		(Re-)Build Initramfs"
 	@echo "make chroot		Work inside Filesystem"
-	@echo "make filesystem  	Bootstrap and fill the LINBO ./Filesystem directory"
-	@echo "make update      	Install or update required packages in LINBO ./Filesystem"
+	@echo "make filesystem  	Bootstrap and fill the TCOS ./Filesystem directory"
+	@echo "make update      	Install or update required packages in TCOS ./Filesystem"
 	@echo "make compressed   	Compress base filesystem image."
-	@echo "make iso		Make bootable iso (CD or DVD)"
 	@echo "make distclean   	Remove all resources that can be recreated."
-	@echo "make test		Run ISO in kvm"
 	@echo
 	@echo "Don't worry about the sequence of build commands, this Makefile will tell you"
 	@echo "what to do first, in case anything is missing."
@@ -65,18 +37,14 @@ help:
 
 # Meta-Targets
 
-all-new:
-	-rm -f Image.iso
-#	-rm -f clean-stamp
-	make knoppix cd de initrd compressed iso
-	mv -f Image.iso Image-DVD-EN.iso
-
 distclean:
-	sudo rm -rf Filesystem/* Image/boot/isolinux/linux* Image/boot/isolinux/minirt.gz Kernel/* *-stamp
+	sudo rm -rf Filesystem/* Image/boot/syslinux/linux* Image/boot/syslinux/initrd.gz Kernel/* *-stamp
 
 chroot: Filesystem ./Scripts/LINBO.chroot
 	rm -f clean-stamp
 	sudo Scripts/LINBO.chroot ./Filesystem
+
+all: compressed initrd
 
 # Build-Targets
 
@@ -88,178 +56,77 @@ filesystem-stamp: ./Scripts/LINBO.mkfilesystem
 	./Scripts/LINBO.mkfilesystem
 	touch $@
 
-knoppify: filesystem-stamp
-	make knoppify-stamp
+tcosify: filesystem-stamp
+	make tcosify-stamp
 
-knoppify-stamp: ./Scripts/LINBO.chroot
-	-rm -f clean-stamp
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "ln -snf /bin/bash /bin/sh; apt-get update; apt-get install locales busybox"
-	Scripts/LINBO.knoppify Sources/Knoppix Filesystem
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.knoppify-chroot
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.mkfilesystem64-chroot
-	touch knoppify-stamp
-
-otcify: filesystem-stamp
-	make otcify-stamp
-
-otcify-stamp: ./Scripts/LINBO.chroot
+tcosify-stamp: ./Scripts/LINBO.chroot
 	-rm -f clean-stamp
 	Scripts/LINBO.apply-configs Sources/tcos Filesystem
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "ln -snf /bin/bash /bin/sh;"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.otcify-chroot
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-chroot
 	touch $@ 
 
-update: filesystem-stamp otcify-stamp
+update: filesystem-stamp tcosify-stamp
 	make update-stamp
 
-update-stamp: 	
+update-stamp:
 	-rm -f clean-stamp
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -y --force-yes --no-install-recommends $(PACKAGES)"
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -y --force-yes --no-install-recommends $(PACKAGES); apt-get dist-upgrade; apt-get autoremove" 
 	touch $@
 
-clean-stamp: filesystem-stamp ./Scripts/LINBO.otcify-clean
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.otcify-clean
+clean: filesystem-stamp
+	make clean-stamp
+
+clean-stamp: ./Scripts/TCOS.tcosify-clean
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/LINBO.tcosify-clean
 	touch $@
 
-compressed: Filesystem clean-stamp Scripts/LINBO.mkcompressed Bin/create_compressed_fs
-	-mkdir -p Image/KNOPPIX
-	nice -10 ionice -c 3 sudo ./Scripts/LINBO.mkcompressed Filesystem Image/KNOPPIX/KNOPPIX
+compressed: filesystem-stamp tcosify-stamp update-stamp clean-stamp kernel-install-stamp
+	make compressed-stamp
 
-compressed-squashfs: filesystem-stamp otcify-stamp update-stamp clean-stamp kernel-install
-	-mkdir -p Image-new
-	nice -10 ionice -c 3 sudo mksquashfs Filesystem Image-new/base.sfs -noappend -always-use-fragments -comp xz 
-	scp Image-new/base.sfs root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/sfs/base.sfs
+compressed-stamp:
+	-mkdir -p Image
+	nice -10 ionice -c 3 sudo mksquashfs Filesystem Image/base.sfs -noappend -always-use-fragments -comp xz 
+	touch $@
 
-addons: Addons
-	cd $< ; sudo mkisofs -l -R -U -v . | ../Bin/create_compressed_fs -L -2 -B 131072 -m - ../Image/KNOPPIX/KNOPPIX1
-
-extra-packages:
-	make extra-packages-stamp
-
-extra-packages-stamp: filesystem-stamp Scripts/LINBO.chroot
-	-rm -f clean-stamp
-	@for i in $(EXTRA_PACKAGES); do [ -r "$$i" ] || { echo "Please build package $$i first." >&2; exit 1; } ; done
-	ln -nf $(EXTRA_PACKAGES) Filesystem/tmp/
-	sudo ./Scripts/LINBO.chroot Filesystem bash -c "apt-get update; apt-get install libpopt0 pciutils"
-	sudo ./Scripts/LINBO.chroot Filesystem bash -c "cd /tmp; dpkg -i $(notdir $(EXTRA_PACKAGES))"
-	touch extra-packages-stamp
-
-extra-scripts:
-	make extra-scripts-stamp
-
-extra-scripts-stamp:
-	-rm -f clean-stamp
-	@for i in $(EXTRA_SCRIPTS); do [ -r "$$i" ] || { echo "Please provide script $$i first." >&2; exit 1; } ; done
-	sudo install -m 755 $(EXTRA_SCRIPTS) Filesystem/usr/bin/
-	touch extra-scripts-stamp
-
-kernel:
+kernel: Kernel
 	make kernel-stamp
- 
-kernel-stamp: ./Scripts/LINBO.kernel
+
+kernel-stamp: ./Scripts/TCOS.kernel
 	rm -f kernel-install-stamp
-	./Scripts/LINBO.kernel
-	touch kernel-stamp
-
-env:
-	Scripts/LINBO.env
-
-#kernel64: $(KERNEL)
-#	@echo "[1mBuilding $(ARCH64) kernel...[0m"
-#	cd $(KERNEL) && \
-#	( grep -q '^CONFIG_X86_64' .config || cp .config.64 .config ) && \
-#	make -j16 ARCH="$(ARCH64)" bzImage modules && \
-#	 rm -rf debian; MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch=$(ARCH64) --cross-compile=- --append-to-version=-64 --us --uc kernel_image modules_image kernel_headers kernel_source
-#
-
-#modules-only: $(KERNEL)
-#	@echo "[1mBuilding additional modules...[0m"
-#	cd $(KERNEL) && \
-#	 CONCURRENCY_LEVEL=16 ARCH=i386 MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --us --uc modules
-#
-#install-modules modules-install:
-#	rm -f clean-stamp
-#	cd $(KERNEL) && cp ../*module*.deb ../../Filesystem/tmp/
-#	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -i /tmp/*module*.deb"
-#	-sudo /sbin/depmod -ae -b Filesystem $(KVERS)
-#
+	./Scripts/TCOS.kernel
+	touch $@
 
 kernel-install: filesystem-stamp kernel-stamp
 	make kernel-install-stamp
 
 kernel-install-stamp: Scripts/LINBO.chroot
-	-mkdir -p Image-new/boot/isolinux
+	-mkdir -p Image/boot/syslinux
 	ln -nf Kernel/linux-image-$(KVERS)*.deb Kernel/linux-headers-$(KVERS)*.deb Filesystem/tmp/
 	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; apt-get --purge remove linux-headers-\* linux-image-\*; dpkg -i /tmp/linux-*$(KVERS)*.deb; /etc/kernel/header_postinst.d/dkms $(KVERS) /boot/vmlinuz-$(KVERS)"
-	[ -r Filesystem/boot/vmlinuz-$(KVERS) ] && cp -uv  Filesystem/boot/vmlinuz-$(KVERS) Image-new/boot/syslinux/linux || true
-	touch kernel-install-stamp
+	[ -r Filesystem/boot/vmlinuz-$(KVERS) ] && cp -uv  Filesystem/boot/vmlinuz-$(KVERS) Image/boot/syslinux/linux || true
+	touch $@
 
-initrd: Initrd
-	-mkdir -p Image/boot/isolinux
-	( cd Initrd && find . | sudo cpio -H newc -ov | gzip -9v ) > Image/boot/isolinux/minirt.gz
+busybox: Sources/busybox.config Sources/busybox
+	make busybox-stamp
 
-iso: Image Scripts/LINBO.mkfinal
-	-rm -f Image/KNOPPIX/KNOPPIX.tmp
-	Scripts/LINBO.mkfinal Image Image.iso
+busybox-stamp:
+	cp Sources/busybox.config Sources/busybox/.config
+	cd Sources/busybox && \
+	$(X86) make install
+	touch $@
 
-boot-iso: Image
-	@echo "[1mCreating kernel-only boot iso image...[0m"
-	mkisofs -input-charset ISO-8859-1 -pad -l -r -J \
-          -V "KNOPPIX_BOOT" -A "KNOPPIX_BOOT" \
-          -no-emul-boot -boot-load-size 4 -boot-info-table \
-	  -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat \
-          -hide-rr-moved \
-          -m KNOPPIX -m \*.html -o Image-bootonly.iso Image || bailout 1
-	@echo "[1mKernel-only boot iso image created.[0m"
+initrd: busybox-stamp Initrd/bin/busybox
+	make initrd
 
-de: Bootfiles/$@
-	sed -i -e 's/lang=../lang=$@/g;s/# *KBDMAP german.kbd/KBDMAP german.kbd/g' Image/boot/isolinux/isolinux.cfg
-	cp -f Bootfiles/$@/* Image/boot/isolinux/
+initrd-stamp:
+	-mkdir -p Image/boot/syslinux
+	( cd Initrd && find . | sudo cpio -H newc -ov | gzip -9v ) > Image/boot/syslinux/initrd.gz
+	touch $@
 
-en: Bootfiles/$@
-	sed -i -e 's/lang=../lang=$@/g;s/^KBDMAP german.kbd/# KBDMAP german.kbd/g' Image/boot/isolinux/isolinux.cfg
-	cp -f Bootfiles/$@/* Image/boot/isolinux
+# Install-Targets
 
-knoppix: Image/boot/isolinux/isolinux.cfg
-	sed -i -e 's/DEFAULT .*$$/DEFAULT knoppix/g' Image/boot/isolinux/isolinux.cfg
-
-adriane: Image/boot/isolinux/isolinux.cfg
-	sed -i -e 's/DEFAULT .*$$/DEFAULT adriane/g' Image/boot/isolinux/isolinux.cfg
-
-Data/mkisofs.sort:
-	Scripts/LINBO.mksortlist Filesystem
-
-sda.img:
-	qemu-img create -f qcow2 -o cluster_size=4k,preallocation=metadata $@ 5G
-
-kvm:
-	[ -d /sys/module/kvm_intel -o -d /sys/module/kvm_amd ] || for i in intel amd; do sudo modprobe kvm_$$i; done || true
-
-server: kvm Image.iso
-	@echo "[1mStarting Knoppix as SERVER in kvm...[0m"
-	kvm -cpu $(CPU) -name knoppix-server -vga std -monitor stdio $(VNCOPTS) -usb -m 800 -soundhw es1370 -boot d -cdrom Image.iso -net nic,macaddr=66:44:45:30:30:19 -net user,net=10.0.2.0/24,host=10.0.2.2,hostfwd=tcp:127.0.0.1:2022-10.0.2.2:22,hostfwd=tcp:127.0.0.1:8000-10.0.2.15:80,hostfwd=tcp:127.0.0.1:8443-10.0.2.2:443 -net socket,listen=127.0.0.1:21212
-
-client: kvm Image.iso
-	@echo "[1mStarting Knoppix as CLIENT in kvm...[0m"
-	kvm -cpu $(CPU) -name knoppix-client -vga std -monitor stdio $(VNCOPTS) -usb -m 256 -soundhw es1370 -boot n -net nic,model=rtl8139,macaddr=08:00:27:A7:F1:B7 -net socket,connect=127.0.0.1:21212
-
-test: kvm Image.iso sda.img
-	@echo "[1mStarting LINBO in kvm...[0m"
-	kvm -cpu $(CPU) $(VNCOPTS) -usb -m $(MEM) -vga vmware -monitor stdio -soundhw es1370 -boot d -cdrom Image.iso -hda sda.img
-
-hdtest: kvm sda.img
-	@echo "[1mStarting Knoppix in kvm...[0m"
-	kvm -cpu $(CPU) $(VNCOPTS) -usb -m $(MEM) -monitor stdio -soundhw es1370 -boot c -hda sda.img -fda fd0.img
-
-efitest: sda.img
-	kvm -cpu $(CPU) $(VNCOPTS) -usb -m $(MEM) -monitor stdio -soundhw es1370 -L Ovmf/ -hda sda.img -fda fd0.img
-#	qemu-system-x86_64 $(VNCOPTS) -usb -m 800 -monitor stdio -soundhw es1370 -L /usr/share/qemu/ -bios /usr/share/ovmf/OVMF.fd -hda sda.img -fda fd0.img
-
-vnctest: kvm Image.iso
-	$(MAKE) VNCOPTS="-vnc :10 -k de" test
-
-flash:
-	cd Image && flash-knoppix
-
-burn: Image.iso
-	sudo cdrecord -v -dao -eject speed=8 Image.iso
+install: all
+	scp Image/boot/syslinux/linux     $(BASE_PATH)/tftp/vmlinuz
+	scp Image/boot/syslinux/initrd.gz $(BASE_PATH)/tftp/initrd.img
+	scp Image/boot/base.sfs           $(BASE_PATH)/sfs/base.sfs

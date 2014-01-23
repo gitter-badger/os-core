@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
-_busybox: Sources/busybox.config
-	cp Sources/busybox.config Sources/busybox/.config
+_busybox: Sources/busybox/.config
+	cp Sources/busybox/.config Sources/busybox.config
 	cd Sources/busybox && \
 	CONFIG_PREFIX="../../rootfs" CFLAGS="-m32" LDFLAGS="-m32" make install
 
@@ -10,16 +10,16 @@ _rootfs: rootfs/bin/busybox
 	( cd rootfs && find . | sudo cpio -R root:root -H newc -ov | gzip -9v ) > Image-new/boot/syslinux/initrd.gz
 
 # CROSS = false
-export KVERS = 3.9.12
+#KVERS=3.9.12
 
-x86 = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
-x86_64 = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
+x86=CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
+x86_cc=CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386" CROSS_COMPILE="i386-unknown-linux-uclibc-"
+x86_64=CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
 
 
 
-_kernel: Sources/kernel.config
-	 cp Sources/kernel.config Kernel/linux-$(KVERS)/.config
-	 cd Kernel/linux-$(KVERS) && \
+_kernel:
+	 cd Kernel/aufs3-linux-$(KVERS) && \
 	 $(x86) make oldconfig && \
 	 $(x86) make -j8 && \
 	 cp arch/x86/boot/bzImage ../../Image-new/boot/syslinux/linux
