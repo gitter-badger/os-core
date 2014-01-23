@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.22.0
-# Thu Jan 16 12:48:18 2014
+# Tue Jan 21 19:01:30 2014
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -62,7 +62,7 @@ CONFIG_STATIC=y
 # CONFIG_FEATURE_INDIVIDUAL is not set
 # CONFIG_FEATURE_SHARED_BUSYBOX is not set
 CONFIG_LFS=y
-CONFIG_CROSS_COMPILER_PREFIX="i386-unknown-linux-uclibc-"
+CONFIG_CROSS_COMPILER_PREFIX=""
 CONFIG_SYSROOT=""
 CONFIG_EXTRA_CFLAGS=""
 CONFIG_EXTRA_LDFLAGS=""

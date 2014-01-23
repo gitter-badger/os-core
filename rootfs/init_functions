@@ -35,7 +35,7 @@ bashify(){
 }
 
 getbootparams(){
- # eval all parameters with values	
+ # eval all parameters with values
  [ -n "$CMDLINE" ] || return 1
  local p
  for p in $CMDLINE; do
@@ -65,16 +65,9 @@ debugshell(){
   echo "${BLUE}Starting sshd.${NORMAL}"
   dropbear -E
  fi
- if [ -x /bin/bash ]; then 
-  echo "${RED}A debugshell was called.${NORMAL}"
-  echo "Found /bin/bash - dropping you to a real bash."
-  echo "Type \"exit\" to continue boot."
-  /bin/bash 
- else
-  echo "${RED}A debugshell was called.${NORMAL}"
-  echo "No /bin/bash found - dropping \"busybox sh\"."
-  /bin/busybox sh
- fi 
+ echo "${RED}A debugshell was called.${NORMAL}"
+ echo "No /bin/bash found - dropping \"busybox sh\"."
+ /bin/busybox sh
  return 0
 }
 
@@ -102,3 +95,23 @@ mountsfs(){
  done
  return 0
 }
+
+mountcustom(){
+ # suppports currently: gz, bz2
+ [ -d "$1"/packages ] || return 0
+ packages=`find $1/packages -maxdepth 1 -type f | sort`
+ for p in $packages; do
+  if `echo $p |  egrep -q 'tar.bz2$'`; then
+   (cd $SHADOW ; tar -xjf "$p")
+   [ $? -eq 0 ] && echo "$p applied...${GREEN}yes${NORMAL}"
+  elif `echo $p | egrep -q 'tar.gz$'`; then
+   (cd $SHADOW ; tar -xzf "$p")
+   [ $? -eq 0 ] && echo "$p applied...${GREEN}yes${NORMAL}"
+  else
+   echo "Error: file format of $p is ${RED}not supported${NORMAL}"
+  fi
+ done
+ # plain file support
+ # TODO: works only for folder which are linked from $SHADOW back to /
+ [ -d "$1"/rootfs ] && (cd "$1"/rootfs ; cp -a * $SHADOW) && echo "plain files ${GREEN}copied${NORMAL}"
+ }

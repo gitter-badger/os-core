@@ -22,10 +22,11 @@ WRITE="$TCOS/write"     # for aufs to write this is just a folder inside the /
 BASE="$TCOS/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.sfs
 PACKAGE="$TCOS/package"
 SHADOW="$TCOS/shadow"
+CUSTOM="$LINK/custom"
 
 ## MAIN ####################################################
 
-for folder in home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $SHADOW proc sys; do mkdir -p $folder ; done
+for folder in home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $SHADOW $CUSTOM proc sys; do mkdir -p $folder ; done
 
 mkdir /dev/pts
 
@@ -143,6 +144,9 @@ for l in home root; do
         mount -o bind "${SHADOW}/$l" $l
     fi
 done
+
+# enables additional packages (in  bz2, gz. tar, plain, format)
+mountcustom $CUSTOM
 
 # INIT
 #
