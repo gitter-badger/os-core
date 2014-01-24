@@ -1,9 +1,0 @@
-Package: cloop-utils
-Version: 2.0-1
-Architecture: i386
-Maintainer: Klaus Knopper <knoppix@knopper.net>
-Installed-Size: 734
-Depends: libc6 (>= 2.3.6-6~), libgcc1 (>= 1:4.1.1), libstdc++6 (>= 4.6), zlib1g (>= 1:1.1.4)
-Section: knoppix
-Priority: extra
-Description: Utilities for creating and exctracting cloop images files

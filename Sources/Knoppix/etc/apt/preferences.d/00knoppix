@@ -1,3 +1,0 @@
-Package: ttf-mscorefonts-installer flashplugin-nonfree
-Pin: release o=Debian,a=unstable
-Pin-Priority: 1001
