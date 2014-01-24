@@ -1,3 +1,9 @@
+
+/Base/*.dsc
+/Base/*.changes
+/Base/*.tar.gz]
+/Base/base.changelog
+
 /Filesystem/*
 /Kernel/*
 /Image/*
