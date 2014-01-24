@@ -162,8 +162,8 @@ done
 # Shrink image cache in CD version, because space is tight.
 if [ "$(dpkg -l 2>/dev/null | wc -l)" -le 2500 ]; then
  echo "Shrinking caches in CD version..."
- gtk-update-icon-cache -f -i /usr/share/icons/gnome
- gtk-update-icon-cache -f -i /usr/share/icons/hicolor
+ which gtk-update-icon-cache && gtk-update-icon-cache -f -i /usr/share/icons/gnome
+ which gtk-update-icon-cache && gtk-update-icon-cache -f -i /usr/share/icons/hicolor
  echo "Done."
 fi
 
@@ -326,7 +326,7 @@ while true; do
  fi
 done
 
-update-java-alternatives --auto
+which update-java-alternatives && update-java-alternatives --auto
 
 if [ -r /etc/eclipse/java_home ]; then
  cat >/etc/eclipse/java_home <<EOT
