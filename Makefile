@@ -5,7 +5,7 @@
 # License: GPL V2
 
 # Define which kernel to download and compile for TCOS
-export KVERS     = 3.12
+export KVERS     = 3.12.8
 export X86       = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
 export X86_64    = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
 export BASE_PATH = root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root
@@ -100,7 +100,7 @@ kernel:
 kernel-stamp: ./Scripts/TCOS.kernel
 	@echo "[1m Target: Build the kernel[0m"
 	rm -f kernel-install-stamp
-	./Scripts/TCOS.kernel
+	CROSS=true ./Scripts/TCOS.kernel
 	touch $@
 
 kernel-install: filesystem-stamp kernel-stamp
@@ -111,7 +111,7 @@ kernel-install-stamp: Scripts/LINBO.chroot kernel-stamp
 	-mkdir -p Image/boot/syslinux
 	ln -nf Kernel/linux-image-$(KVERS)*.deb Kernel/linux-headers-$(KVERS)*.deb Filesystem/tmp/
 	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; apt-get --purge remove linux-headers-\* linux-image-\*; dpkg -i /tmp/linux-*$(KVERS)*.deb; /etc/kernel/header_postinst.d/dkms $(KVERS) /boot/vmlinuz-$(KVERS)"
-	[ -r Filesystem/boot/vmlinuz-$(KVERS) ] && cp -uv  Filesystem/boot/vmlinuz-$(KVERS) Image/boot/syslinux/linux || true
+	[ -r Filesystem/boot/vmlinuz-$(KVERS)* ] && cp -uv  Filesystem/boot/vmlinuz-$(KVERS)* Image/boot/syslinux/linux || true
 	touch $@
 
 busybox: Sources/busybox.config Sources/busybox
@@ -124,8 +124,8 @@ busybox-stamp:
 	$(X86) make install
 	touch $@
 
-initrd: busybox-stamp Initrd/bin/busybox
-	make initrd
+initrd: busybox-stamp
+	make initrd-stamp
 
 initrd-stamp:
 	@echo "[1m Target: Create the initrd[0m"
