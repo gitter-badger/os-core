@@ -5,10 +5,11 @@
 # License: GPL V2
 
 # Define which kernel to download and compile for TCOS
-export KVERS     = 3.12.8
-export X86       = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
-export X86_64    = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
-export BASE_PATH = root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root
+export KVERS      = 3.12.8
+export X86        = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
+export X86_64     = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
+export BASE_PATH  = root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root
+export DEB_MIRROR = http://otc-dd-01/debian
 
 # Have package list in alphabetical order for better human reading. Cleanup dups.
 # for package in one two three; do echo $package; done | sort -u | sed ':a;N;$!ba;s/\n/ /g'
@@ -19,6 +20,9 @@ export PACKAGES = libpopt0 pciutils usbutils xdg-utils libqt4-qt3support libqt4-
 
 help:
 	@echo "[1mWELCOME TO THE TCOS BUILD SYSTEM"
+	@echo ""
+	@echo "make all			Metatarget: create the whole system"
+	@echo "make install		Metatarget: + copy everthing to the TCOS server"
 	@echo ""
 	@echo "make kernel		(Re-)Build Kernel packages"
 	@echo "make kernel-install	(Re-)Install Kernel packages"
@@ -38,7 +42,10 @@ help:
 # Meta-Targets
 
 distclean:
-	sudo rm -rf Filesystem/* Image/boot/syslinux/linux* Image/boot/syslinux/initrd.gz Kernel/* *-stamp
+	sudo rm -rf Filesystem/* Image/boot/syslinux/linux* Image/boot/syslinux/initrd.gz Kernel/* *-stamp 
+	# clean the busybox installation
+	sudo rm Initrd/bin/busybox
+
 
 chroot: Filesystem ./Scripts/LINBO.chroot
 	rm -f clean-stamp
@@ -54,7 +61,7 @@ filesystem:
 filesystem-stamp: ./Scripts/LINBO.mkfilesystem
 	@echo "[1m Target: Creating an initial filesystem[0m"
 	-rm -f update-stamp clean-stamp
-	./Scripts/LINBO.mkfilesystem
+	./Scripts/LINBO.mkfilesystem $(DEB_MIRROR)
 	touch $@
 
 tcosify: filesystem-stamp 

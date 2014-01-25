@@ -4,6 +4,8 @@
 # (C) Klaus Knopper 2013
 # License: GPL V2
 
+set -f -e
+
 . ./Scripts/LINBO.common
 
 check_commands sudo chroot debootstrap
@@ -19,6 +21,5 @@ if ls -d ./Filesystem/.??* ./Filesystem/* >/dev/null 2>&1; then
  fi
 fi
 
-# We use "stable" for our base system, and "unstable" for xorg and virtualbox!
-sudo debootstrap --arch=i386 --variant=minbase --include=locales,locales-all stable ./Filesystem http://otc-dd-01/debian
-#sudo debootstrap --arch=amd64 --variant=minbase unstable ./Filesystem/64 http://ftp.de.debian.org/debian
+# We use "stable" for our base system
+sudo debootstrap --arch=i386 --variant=minbase --include=locales,locales-all stable ./Filesystem  $1
