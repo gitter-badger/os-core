@@ -116,7 +116,7 @@ kernel-install-stamp: Scripts/LINBO.chroot kernel-stamp
 	@echo "[1m Target: Install the kernel[0m"
 	-mkdir -p Image/boot/syslinux
 	ln -nf Kernel/linux-image-$(KVERS)*.deb Kernel/linux-headers-$(KVERS)*.deb Filesystem/tmp/
-	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; apt-get --purge remove linux-headers-\* linux-image-\*; dpkg -i /tmp/linux-*$(KVERS)*.deb; /etc/kernel/header_postinst.d/dkms $(KVERS) /boot/vmlinuz-$(KVERS)"
+	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; apt-get --purge remove -y linux-headers-\* linux-image-\*; dpkg -i /tmp/linux-*$(KVERS)*.deb;"
 	[ -r Filesystem/boot/vmlinuz-$(KVERS)* ] && cp -uv  Filesystem/boot/vmlinuz-$(KVERS)* Image/boot/syslinux/linux || true
 	touch $@
 
