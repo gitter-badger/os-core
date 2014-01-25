@@ -8,7 +8,7 @@
 check_commands(){
  local cmd
  for cmd in "$@"; do
-  type -p "$cmd" >/dev/null || return 1
+  sudo which "$cmd" >/dev/null || return 1
  done
  return 0
 }

@@ -2,6 +2,7 @@
 # LINBO chroot to Filesystem
 # (C) Klaus Knopper 2013
 # License: GPL V2
+set -e -f
 
 CHROOT_DIR="$1"
 

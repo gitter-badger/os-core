@@ -5,6 +5,8 @@
 # adapted to tcos by openthinclient developers
 # License: GPL V2
 
+set -e -f
+
 if [ -z $KVERS ]; then
 	exit 0
 fi

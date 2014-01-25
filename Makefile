@@ -43,8 +43,7 @@ help:
 
 distclean:
 	sudo rm -rf Filesystem/* Image/boot/syslinux/linux* Image/boot/syslinux/initrd.gz Kernel/* *-stamp 
-	# clean the busybox installation
-	sudo rm Initrd/bin/busybox
+	sudo find ./Initrd -xdev -samefile Initrd/bin/busybox -delete
 
 
 chroot: Filesystem ./Scripts/LINBO.chroot
@@ -61,7 +60,7 @@ filesystem:
 filesystem-stamp: ./Scripts/LINBO.mkfilesystem
 	@echo "[1m Target: Creating an initial filesystem[0m"
 	-rm -f update-stamp clean-stamp
-	./Scripts/LINBO.mkfilesystem $(DEB_MIRROR)
+	./Scripts/TCOS.mkfilesystem $(DEB_MIRROR)
 	touch $@
 
 tcosify: filesystem-stamp 
