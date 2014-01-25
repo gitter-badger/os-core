@@ -88,7 +88,7 @@ clean: filesystem-stamp
 
 clean-stamp: ./Scripts/TCOS.tcosify-clean
 	@echo "[1m Target: Clean up the filesystem[0m"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-clean
+	-sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-clean
 	touch $@
 
 compressed: filesystem-stamp tcosify-stamp update-stamp clean-stamp kernel-install-stamp

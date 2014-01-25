@@ -23,8 +23,7 @@ if ! [ -r Kernel/aufs3-linux ]; then
 fi
 # check, whether there is a copy of a kernel checkout already
 if  [ -d Kernel/aufs3-linux-${KVERS} ]; then
-	:
-    MENUCONFIG=true
+    :
 else
 	cd Kernel/aufs3-linux || exit 0
 	echo $PWD
@@ -33,15 +32,18 @@ else
     git reset --hard origin/master
     git checkout master
     # 2. clean (maybe) existing old branches
-    git branch -D aufs${MAJOR}
+    if [ `git branch --list aufs${MAJOR}` ];then
+        git branch -D aufs${MAJOR}
+    fi
     # 3. get a clean repo to work with
     git checkout -f aufs${MAJOR}
 
 	if ! [ -e ../patch-${KVERS}.xz ]; then
 		wget -c -P ../ https://www.kernel.org/pub/linux/kernel/v3.x/patch-${KVERS}.xz
 	fi
-
+    set +e
 	xzcat ../patch-${KVERS}.xz | patch -p1
+    set -e
 	# create a copy of the directory for later
     echo "Creating a copy of the git repo to ../aufs3-linux-${KVERS}"
 	rsync -a --exclude=.git/ . ../aufs3-linux-${KVERS} || exit 0
@@ -80,16 +82,17 @@ else
 fi
 
 if [ -e ../../Sources/kernel${MAJOR}-"$arch".config ]; then
-    read -p "Use the kernel configuration from Source? [Y/n] " a
-    case  "$a" in
-        N*|n*)
-            ;;
-        *)cp ../../Sources/kernel${MAJOR}-"$arch".config ./.config
-            ;;
-    esac
+    cp ../../Sources/kernel${MAJOR}-"$arch".config ./.config
 else
-    make ARCH="$arch" menuconfig
+    read -p "Which kernel configuration you'd like to use? (e.G. 3.12) " a
+    if "$a"; then
+        cp ../../Sources/kernel${a}-"$arch".config ./.config
+    else
+        return 1
+    fi
 fi
+
+make oldconfig
 
 # build procedure
 

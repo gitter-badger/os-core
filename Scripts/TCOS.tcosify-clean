@@ -7,7 +7,7 @@
 #
 # This has to run chroot inside the Knoppix root filesystem!
 #
-set -e -f
+set -f
 
 [ "`stat --printf '%i' /.`" -gt 2 ] || { echo "$0 must NEVER be run outside of chroot, exiting"'!' ; exit 1; }
 
