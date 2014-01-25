@@ -43,7 +43,7 @@ help:
 
 distclean:
 	sudo rm -rf Filesystem/* Image/boot/syslinux/linux* Image/boot/syslinux/initrd.gz Kernel/* *-stamp 
-	sudo find ./Initrd -xdev -samefile Initrd/bin/busybox -delete
+	sudo find ./Initrd -xdev -samefile Initrd/bin/busybox -delete || true
 
 
 chroot: Filesystem ./Scripts/LINBO.chroot
@@ -57,7 +57,7 @@ all: compressed initrd
 filesystem: 
 	make filesystem-stamp
 
-filesystem-stamp: ./Scripts/LINBO.mkfilesystem
+filesystem-stamp: ./Scripts/TCOS.mkfilesystem
 	@echo "[1m Target: Creating an initial filesystem[0m"
 	-rm -f update-stamp clean-stamp
 	./Scripts/TCOS.mkfilesystem $(DEB_MIRROR)
