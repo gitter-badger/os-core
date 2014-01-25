@@ -21,7 +21,7 @@ export PACKAGES = libpopt0 pciutils usbutils xdg-utils libqt4-qt3support libqt4-
 help:
 	@echo "[1mWELCOME TO THE TCOS BUILD SYSTEM"
 	@echo ""
-	@echo "make all			Metatarget: create the whole system"
+	@echo "make all		Metatarget: create the whole system"
 	@echo "make install		Metatarget: + copy everthing to the TCOS server"
 	@echo ""
 	@echo "make kernel		(Re-)Build Kernel packages"
