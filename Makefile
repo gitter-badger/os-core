@@ -106,7 +106,8 @@ kernel:
 kernel-stamp: ./Scripts/TCOS.kernel
 	@echo "[1m Target: Build the kernel[0m"
 	rm -f kernel-install-stamp
-	CROSS=true ./Scripts/TCOS.kernel
+	# CROSS=true ./Scripts/TCOS.kernel
+	./Scripts/TCOS.kernel
 	touch $@
 
 kernel-install: filesystem-stamp kernel-stamp

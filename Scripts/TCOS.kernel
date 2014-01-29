@@ -5,7 +5,8 @@
 # adapted to tcos by openthinclient developers
 # License: GPL V2
 
-set -e -f
+#set -e -f -x 
+set -x 
 
 if [ -z $KVERS ]; then
 	exit 0
@@ -85,10 +86,12 @@ if [ -e ../../Sources/kernel${MAJOR}-"$arch".config ]; then
     cp ../../Sources/kernel${MAJOR}-"$arch".config ./.config
 else
     read -p "Which kernel configuration you'd like to use? (e.G. 3.12) " a
-    if "$a"; then
+    if [ -n "$a" ]; then
         cp ../../Sources/kernel${a}-"$arch".config ./.config
     else
-        return 1
+        #return 1
+	echo "Do not know which kernel to build. Stopping now."
+	exit 1
     fi
 fi
 
