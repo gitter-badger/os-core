@@ -5,8 +5,8 @@
 # adapted to tcos by openthinclient developers
 # License: GPL V2
 
-#set -e -f -x 
-set -x 
+set -e -f
+#set -x 
 
 if [ -z $KVERS ]; then
 	exit 0
@@ -15,19 +15,19 @@ fi
 MAJOR=${KVERS%.*}  # 3.4.70 -> 3.4
 MINOR=${KVERS##*.} # 3.4.70 -> 70
 
-if ! [ -r Kernel/aufs3-linux ]; then
-	mkdir -p Kernel
-	echo -e "\033[1m Fetching kernel/aufs3-linux from github.com.\033[0m"
-	cd Kernel
-	git clone https://github.com/sfjro/aufs3-linux.git || { rm -rf Kernel/aufs3-linux.git; exit 1; }
+if [ ! -d Kernel/aufs3-linux ]; then
+    mkdir -p Kernel
+    echo -e "\033[1m Fetching kernel/aufs3-linux from github.com.\033[0m"
+    cd Kernel
+        git clone --depth=1 https://github.com/sfjro/aufs3-linux.git || { rm -rf Kernel/aufs3-linux.git; exit 1; }
     cd ..
 fi
 # check, whether there is a copy of a kernel checkout already
 if  [ -d Kernel/aufs3-linux-${KVERS} ]; then
     :
 else
-	cd Kernel/aufs3-linux || exit 0
-	echo $PWD
+    cd Kernel/aufs3-linux || exit 0
+    echo $PWD
     # 1. get new code and jump to a safe place -> HEAD
     git fetch
     git reset --hard origin/master
@@ -39,9 +39,9 @@ else
     # 3. get a clean repo to work with
     git checkout -f aufs${MAJOR}
 
-	if ! [ -e ../patch-${KVERS}.xz ]; then
-		wget -c -P ../ https://www.kernel.org/pub/linux/kernel/v3.x/patch-${KVERS}.xz
-	fi
+    if ! [ -e ../patch-${KVERS}.xz ]; then
+	wget -c -P ../ https://www.kernel.org/pub/linux/kernel/v3.x/patch-${KVERS}.xz
+    fi
     set +e
 	xzcat ../patch-${KVERS}.xz | patch -p1
     set -e
@@ -59,9 +59,10 @@ case "$myARCH" in
 	i[3456]86) myARCH=i386;;
 esac
 
+# exit on unsuported architecture
 [ "$myARCH" != "x86_64" -a "$myARCH" != "i386" ] && echo "The architecture of your buildsystem is not supported by this script. Feel free to adjust it." && exit 1
-#
-# flip on CROSS
+
+# flip architecture on CROSS
 if [ "$CROSS" = "true" ]; then 
     case "$myARCH" in 
     x86_64)
