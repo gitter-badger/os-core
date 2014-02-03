@@ -402,3 +402,7 @@ for i in root knoppix; do
 $i:x
 EOT
 done
+
+
+# Compile XML schemas for glib, otherwise dconf-editor fails
+glib-compile-schemas /usr/share/glib-2.0/schemas
