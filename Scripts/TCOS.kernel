@@ -1,94 +1,59 @@
 #!/bin/bash
-# LINBO.kernel
+# TCOS.Kernel
 # download, configure and prepare Linux kernel 
 # origin by (C) Klaus Knopper 2013
-# adapted to tcos by openthinclient developers
+# adapted to tcos by Steffen Hoenig <s.hoenig@openthinclient.com>
 # License: GPL V2
 
 set -e -f
 #set -x 
 
-if [ -z $KVERS ]; then
+if [ -z $KVERS -o -z $ARCH ]; then
 	exit 0
 fi
 
 MAJOR=${KVERS%.*}  # 3.4.70 -> 3.4
 MINOR=${KVERS##*.} # 3.4.70 -> 70
 
-if [ ! -d Kernel/aufs3-linux ]; then
+if [ ! -d Kernel/aufs-linux ]; then
     mkdir -p Kernel
-    echo -e "\033[1m Fetching kernel/aufs3-linux from github.com.\033[0m"
-    cd Kernel
-        git clone --depth=1 https://github.com/sfjro/aufs3-linux.git || { rm -rf Kernel/aufs3-linux.git; exit 1; }
-    cd ..
+    echo -e "\033[1m Fetching kernel/aufs-linux from github.com.\033[0m"
+    ( cd Kernel ; git clone https://github.com/sfjro/aufs3-linux.git aufs-linux )
+else
+    ( cd Kernel/aufs-linux ; git pull ) || true
 fi
 # check, whether there is a copy of a kernel checkout already
-if  [ -d Kernel/aufs3-linux-${KVERS} ]; then
+if  [ -d Kernel/aufs-linux-${KVERS} ]; then
     :
 else
-    cd Kernel/aufs3-linux || exit 0
-    echo $PWD
-    # 1. get new code and jump to a safe place -> HEAD
-    git fetch
-    git reset --hard origin/master
-    git checkout master
-    # 2. clean (maybe) existing old branches
-    if [ `git branch --list aufs${MAJOR}` ];then
-        git branch -D aufs${MAJOR}
-    fi
-    # 3. get a clean repo to work with
-    git checkout -f aufs${MAJOR}
-
-    if ! [ -e ../patch-${KVERS}.xz ]; then
-	wget -c -P ../ https://www.kernel.org/pub/linux/kernel/v3.x/patch-${KVERS}.xz
+    # 1. Create a clone to a local ref, and checkout to a specific branch
+    echo -e "\033[1m Creating a working copy kernel/aufs-linux-${KVERS} \033[0m"
+    ( cd Kernel/aufs-linux ; git checkout aufs${MAJOR} )
+    git clone -b aufs${MAJOR} Kernel/aufs-linux Kernel/aufs-linux-${KVERS}
+    # 2. Apply MINOR patch
+    if ! [ -e Kernel/patch-${KVERS}.xz ]; then
+	wget -c -P Kernel/ https://www.kernel.org/pub/linux/kernel/v3.x/patch-${KVERS}.xz
     fi
     set +e
-	xzcat ../patch-${KVERS}.xz | patch -p1
+    ( cd Kernel/aufs-linux-${KVERS} ; xzcat ../patch-${KVERS}.xz | patch -p1 )
     set -e
-	# create a copy of the directory for later
-    echo "Creating a copy of the git repo to ../aufs3-linux-${KVERS}"
-	rsync -a --exclude=.git/ . ../aufs3-linux-${KVERS} || exit 0
-    cd ../..
-fi
-
-cd Kernel/aufs3-linux-${KVERS}
-
-myARCH=`uname -m`
-
-case "$myARCH" in
-	i[3456]86) myARCH=i386;;
-esac
-
-# exit on unsuported architecture
-[ "$myARCH" != "x86_64" -a "$myARCH" != "i386" ] && echo "The architecture of your buildsystem is not supported by this script. Feel free to adjust it." && exit 1
-
-# flip architecture on CROSS
-if [ "$CROSS" = "true" ]; then 
-    case "$myARCH" in 
-    x86_64)
-	    arch="i386";;
-    i386)
-            arch="x86_64";;
-    esac
-else 
-    arch="$myARCH"
 fi
 
 # make-kpkg needs DEB_HOST_ARCH, otherwise it will use the build hosts arch
-export DEB_HOST_ARCH=$arch
+export DEB_HOST_ARCH=$ARCH
 
-if [ "$arch" = "i386" ]; then 
+if [ "$ARCH" = "i386" ]; then 
     mkpkgParms="--revision=1 --append-to-version=+tcos"
 else
     mkpkgParms="--revision=1 --append-to-version=+tcos64"
 fi
 
-if [ -e ../../Sources/kernel${MAJOR}-"$arch".config ]; then
-    cp ../../Sources/kernel${MAJOR}-"$arch".config ./.config
+if [ -e Sources/kernel${MAJOR}-"$ARCH".config ]; then
+    cp Sources/kernel${MAJOR}-"$ARCH".config Kernel/aufs-linux-${KVERS}/.config
 else
     read -p "Which kernel configuration you'd like to use? (e.G. 3.12) " a
     if [ -n "$a" ]; then
-        cp ../../Sources/kernel${a}-"$arch".config ./.config
+        cp Sources/kernel${a}-"$ARCH".config Kernel/aufs-linux-${KVERS}/.config
     else
         #return 1
 	echo "Do not know which kernel to build. Stopping now."
@@ -96,21 +61,21 @@ else
     fi
 fi
 
-make oldconfig
+( cd Kernel/aufs-linux-${KVERS} ; make oldconfig )
 
 # build procedure
 
 if [ "$MENUCONFIG" = "true" ]; then
-    make ARCH="$arch" menuconfig
+    ( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" menuconfig )
 fi
 
-(make ARCH="$arch" oldconfig && make -j8 ARCH="$arch" bzImage modules && \
-rm -rf debian; CONCURRENCY_LEVEL=8 ARCH="$arch" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$arch" --cross-compile - $mkpkgParms --us --uc kernel_image modules_image kernel_headers kernel_source )
+( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j8 ARCH="$ARCH" bzImage modules && \
+rm -rf debian; CONCURRENCY_LEVEL=8 ARCH="$ARCH" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$ARCH" --cross-compile - $mkpkgParms --us --uc kernel_image modules_image kernel_headers kernel_source )
 
 read -p "Save the kernel configuration to Sources? [Y/n] " a
 case "$a" in 
 	N*|n*) 
 	    ;; 
-	*)cp -au ./.config ../../Sources/kernel${MAJOR}-"$arch".config
+	*)cp -au Kernel/aufs-linux-${KVERS}/.config Sources/kernel${MAJOR}-"$ARCH".config
 	    ;; 
 esac

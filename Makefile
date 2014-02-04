@@ -7,13 +7,12 @@
 SHELL := /bin/bash
 
 # Define which kernel to download and compile for TCOS
-# export KVERS      = 3.12.8
 export KVERS      = 3.13.1
 export X86        = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
 export X86_64     = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
 export BASE_PATH  = root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root
 export DEB_MIRROR = http://otc-dd-01/debian
-export CROSS = true # shuld we crosscompile? 
+export ARCH       = i386
 
 # Have package list in alphabetical order for better human reading. Cleanup dups.
 # for package in one two three; do echo $package; done | sort -u | sed ':a;N;$!ba;s/\n/ /g'
@@ -46,7 +45,7 @@ help:
 # Meta-Targets
 
 distclean:
-	sudo rm -rf Filesystem/* Image/boot/syslinux/linux* Image/boot/syslinux/initrd.gz Kernel/* *-stamp 
+	sudo rm -rf Filesystem/* Image/boot/syslinux/linux* Image/boot/syslinux/initrd.gz Kernel/aufs-linux-* *-stamp 
 	sudo find ./Initrd -xdev -samefile Initrd/bin/busybox -delete || true
 
 
