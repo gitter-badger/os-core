@@ -5,10 +5,10 @@
 # adapted to tcos by Steffen Hoenig <s.hoenig@openthinclient.com>
 # License: GPL V2
 
-set -e -f
+set -e  -f
 #set -x 
 
-if [ -z $KVERS -o -z $ARCH ]; then
+if [ -z "$KVERS" -o -z "$ARCH" ]; then
 	exit 0
 fi
 
