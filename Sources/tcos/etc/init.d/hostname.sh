@@ -31,6 +31,9 @@ do_start () {
 	[ "$VERBOSE" != no ] && log_action_begin_msg "Setting hostname to '$HOSTNAME'"
 	hostname "$HOSTNAME"
 	ES=$?
+	# Updates /etc/hosts accordingly
+	[ -f /etc/hosts ] && sed -i "/^127/c 127.0.0.1\t${HOSTNAME}\tlocalhost" /etc/hosts
+
 	[ "$VERBOSE" != no ] && log_action_end_msg $ES
 	exit $ES
 }
