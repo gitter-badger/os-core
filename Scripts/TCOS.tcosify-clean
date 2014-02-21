@@ -397,12 +397,18 @@ type -a aptitude >/dev/null 2>&1 && aptitude forget-new
 # [ -e /etc/apt/apt.conf.d/10disablepdiffs ] && echo 'Acquire::PDiffs "false";' > /etc/apt/apt.conf.d/10disablepdiffs
 echo "Done."
 
+echo -n "Resetting sources.list ..."
+rm -f /etc/apt/sources.list
+cat >/etc/apt/sources.list<<EOT
+# Debian/Squeeze is the the stable base for this installation
+deb http://http.debian.net/debian wheezy main contrib non-free
+deb http://security.debian.org wheezy/updates main contrib non-free
+# Mate repo for Debian/Squeeze
+deb http://repo.mate-desktop.org/debian wheezy main
+EOT
+
 for i in root knoppix; do
  chpasswd -e 2>/dev/null <<EOT
 $i:x
 EOT
 done
-
-
-# Compile XML schemas for glib, otherwise dconf-editor fails
-glib-compile-schemas /usr/share/glib-2.0/schemas
