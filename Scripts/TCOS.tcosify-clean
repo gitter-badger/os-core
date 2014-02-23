@@ -100,9 +100,6 @@ for i in `find /usr/*/man -name \*.\[0-9ln\]` ; do
 [ -f "$i".gz -o -f "$i".bz2 ] && rm -f "$i"
 done
 
-# delete old dowloaded packages
-apt-get clean
-
 # Strip X Libs/Modules to save space and loading time
 find /usr/X11R6/lib/modules /usr/lib/xorg/modules \( -name \*.so -o -name \*.o \) -exec strip --strip-unneeded {} \; 2>/dev/null
 
@@ -386,28 +383,38 @@ fi
 
 update-icon-caches /usr/share/icons/hicolor
 
-echo -n "Zeroing 'available' Package lists ..."
-# for i in /var/lib/apt/lists/*_{Release,InRelease,Packages,Sources}; do :>$i; touch -t 198103190000.00 $i; done
-for i in /var/lib/apt/lists/lock /var/lib/apt/lists/*_{Packages,Sources}; do :> "$i"; touch -t 198103190000.00 "$i"; done
-rm -f /var/lib/apt/lists/partial/* /var/lib/apt/lists/*_Translation* /var/lib/apt/lists/*.gpg /var/lib/apt/lists/*.IndexDiff
-rm -f /var/cache/apt/*.bin
-apt-get check
-dpkg --clear-avail
-type -a aptitude >/dev/null 2>&1 && aptitude forget-new
-# [ -e /etc/apt/apt.conf.d/10disablepdiffs ] && echo 'Acquire::PDiffs "false";' > /etc/apt/apt.conf.d/10disablepdiffs
-echo "Done."
+# echo -n "Zeroing 'available' Package lists ..."
+# for i in /var/lib/apt/lists/lock /var/lib/apt/lists/*_{Packages,Sources}; do :> "$i"; touch -t 198103190000.00 "$i"; done
+# rm -f /var/lib/apt/lists/partial/* /var/lib/apt/lists/*_Translation* /var/lib/apt/lists/*.gpg /var/lib/apt/lists/*.IndexDiff
+# rm -f /var/cache/apt/*.bin
+# apt-get check
+# dpkg --clear-avail
+# type -a aptitude >/dev/null 2>&1 && aptitude forget-new
+# echo "Done."
 
-echo -n "Resetting sources.list ..."
-rm -f /etc/apt/sources.list
-cat >/etc/apt/sources.list<<EOT
-# Debian/Squeeze is the the stable base for this installation
-deb http://http.debian.net/debian wheezy main contrib non-free
-deb http://security.debian.org wheezy/updates main contrib non-free
-# Mate repo for Debian/Squeeze
-deb http://repo.mate-desktop.org/debian wheezy main
-EOT
 
-for i in root knoppix; do
+# delete old dowloaded packages
+echo -n "Cleaning APT caches and packages lists"
+# set -x
+apt-get clean
+# ls -lisa /var/lib/apt/lists/
+# rm -rf /var/lib/apt/lists/*   # why does tgis not delete?
+find /var/lib/apt/lists/ -type f -exec rm -f {} \;
+find /var/cache/apt/ -type f -exec rm -f {} \;
+
+# causes a second update run pulling packages from web
+# 
+# echo -n "Resetting sources.list ..."
+# rm -f /etc/apt/sources.list
+# cat >/etc/apt/sources.list<<EOT
+# # Debian/Squeeze is the the stable base for this installation
+# deb http://http.debian.net/debian wheezy main contrib non-free
+# deb http://security.debian.org wheezy/updates main contrib non-free
+# # Mate repo for Debian/Squeeze
+# deb http://repo.mate-desktop.org/debian wheezy main
+# EOT
+
+for i in root ; do
  chpasswd -e 2>/dev/null <<EOT
 $i:x
 EOT

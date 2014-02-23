@@ -10,8 +10,8 @@ SHELL := /bin/bash
 export KVERS      = 3.13.1
 export X86        = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
 export X86_64     = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
-export BASE_PATH  = root@otc-dd-dev2:/develop/base/base-2.0/debian/base
-export TEST_PATH  = root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root
+export BASE_PACKAGE_PATH  = root@otc-dd-dev2:/develop/base/base-2.0/debian/base
+export LOCAL_TEST_PATH  = root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root
 export DEB_MIRROR = http://otc-dd-01/debian
 export ARCH       = i386
 
@@ -20,7 +20,7 @@ export ARCH       = i386
 
 # takes round about 30 minutes to install
 
-export PACKAGES = pcscd pcsc-tools libccid libacsccid1 eject libglib2.0-bin gvfs flashplugin-nonfree libpopt0 pciutils usbutils xdg-utils libqt4-qt3support libqt4-sql bluez-alsa alsa-utils bluez-audio python-bluez aptitude arandr blueman cifs-utils console-data console-tools coreutils dbus dbus-x11 devilspie devilspie2  gdevilspie dosfstools dos2unix ethtool e2fsprogs file firmware-linux hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libmotif4 lightdm lightdm-gtk-greeter marco dconf-tools mate-themes mate-applets mozo mc devilspie devilspie2 man eom engrampa pluma atril mate-session-manager mate-media mate-desktop mate-screensaver mate-archive-keyring net-tools nfs-common ntp openssh-client openssh-server python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev util-linux vim vim-tiny wget x11vnc x11-xserver-utils xfonts-base xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon gvfs-backends mate-system-monitor libstdc++5 freerdp-X11 zenity libx11 libssl
+export PACKAGES = pcscd pcsc-tools libccid libacsccid1 eject libglib2.0-bin gvfs flashplugin-nonfree libpopt0 pciutils usbutils xdg-utils libqt4-qt3support libqt4-sql bluez-alsa alsa-utils bluez-audio python-bluez aptitude arandr blueman cifs-utils console-data console-tools coreutils dbus dbus-x11 devilspie devilspie2  gdevilspie dosfstools dos2unix ethtool e2fsprogs file firmware-linux hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libmotif4 lightdm lightdm-gtk-greeter marco dconf-tools mate-themes mate-applets mozo mc devilspie devilspie2 man eom engrampa pluma atril mate-session-manager mate-media mate-desktop mate-screensaver mate-archive-keyring net-tools nfs-common ntp openssh-client openssh-server python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev util-linux vim vim-tiny wget x11vnc x11-xserver-utils xfonts-base xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon gvfs-backends mate-system-monitor libstdc++5 freerdp-X11 zenity libx11-6 libssl1.0.0 fontconfig mate-themes libgtk2.0-bin libgtk-3-bin
 
 export EXTRAS = openthinclient-icon-theme_1-1_all.deb
 
@@ -28,7 +28,8 @@ help:
 	@echo "[1mWELCOME TO THE TCOS BUILD SYSTEM"
 	@echo ""
 	@echo "make all		Metatarget: create the whole system"
-	@echo "make install		Metatarget: + copy everthing to the TCOS server"
+	@echo "make local-test		Metatarget: + copy everthing to local test server"
+	@echo "make package-prepare	Metatarget: + copy everthing to package build directory"
 	@echo ""
 	@echo "make kernel		(Re-)Build Kernel packages"
 	@echo "make kernel-install	(Re-)Install Kernel packages"
@@ -56,7 +57,7 @@ chroot: Filesystem ./Scripts/LINBO.chroot
 	rm -f clean-stamp
 	sudo Scripts/LINBO.chroot ./Filesystem
 
-all: compressed initrd
+all: compressed initrd 
 
 # Build-Targets
 
@@ -77,7 +78,8 @@ tcosify-stamp: ./Scripts/LINBO.chroot
 	-rm -f clean-stamp update-stamp
 	Scripts/LINBO.apply-configs Sources/tcos Filesystem
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "ln -snf /bin/bash /bin/sh;"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "cp /etc/issue /etc/issue.debian; cp /etc/motd /etc/motd.debian"
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "[ ! -f  /etc/issue.debian ] && cp /etc/issue /etc/issue.debian;" 
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "[ ! -f  /etc/motd.debian ] && cp /etc/motd /etc/motd.debian;"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-chroot
 	touch $@ 
 
@@ -90,10 +92,9 @@ update-stamp:
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -y --force-yes --no-install-recommends $(PACKAGES); apt-get dist-upgrade -y --force-yes --no-install-recommends ; apt-get autoremove" 
 	for debFile in Sources/$(EXTRAS); do ln -nf $$debFile Filesystem/tmp/ ; done
 	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -i /tmp/*.deb ; rm -rf /tmp/*.deb"
-
 	touch $@
 
-clean: filesystem-stamp
+clean: filesystem-stamp update-stamp 
 	make clean-stamp
 
 clean-stamp: ./Scripts/TCOS.tcosify-clean
@@ -107,8 +108,8 @@ compressed: filesystem-stamp tcosify-stamp update-stamp clean-stamp kernel-insta
 compressed-stamp:
 	@echo "[1m Target: Create the base.sfs container[0m"
 	-mkdir -p Image
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS version 2.x\nbuild: $(date)\nbased on" > /etc/issue; cat /etc/issue.debian >> /etc/issue'
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS version 2.x\nbuild: $(date)\nbased on Debian" > /etc/motd; cat /etc/motd.debian >> /etc/motd'
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS version 2.x\nbuild: `date`\nbased on and credits to" > /etc/issue; cat /etc/issue.debian >> /etc/issue'
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS version 2.x\nbuild: `date`\nbased on and credits to Debian" > /etc/motd; cat /etc/motd.debian >> /etc/motd'
 	nice -10 ionice -c 3 sudo mksquashfs Filesystem Image/base.sfs -noappend -always-use-fragments -comp xz 
 	touch $@
 
@@ -151,10 +152,27 @@ initrd-stamp:
 	( cd Initrd && find . | sudo cpio -H newc -ov | gzip -9v ) > Image/boot/syslinux/initrd.gz
 	touch $@
 
+
+
+##################################################
 # Install-Targets
 
-install: all
-	@echo "[1m Target: Copy the images to the TCOS server[0m"
-	scp Image/boot/syslinux/linux     $(BASE_PATH)/tftp/vmlinuz
-	scp Image/boot/syslinux/initrd.gz $(BASE_PATH)/tftp/initrd.img
-	scp Image/base.sfs           $(BASE_PATH)/sfs/base.sfs
+local-test: all 
+	make local-test-stamp
+
+local-test-stamp:
+	@echo "[1m Target: Copy base.sfs, kernel, etc. to local paths.[0m"
+	scp Image/boot/syslinux/linux     $(LOCAL_TEST_PATH)/tftp/vmlinuz
+	scp Image/boot/syslinux/initrd.gz $(LOCAL_TEST_PATH)/tftp/initrd.img
+	scp Image/base.sfs           $(LOCAL_TEST_PATH)/sfs/base.sfs
+	touch $@
+
+package-prepare: all 
+	make package-prepare-stamp
+
+package-prepare-stamp:
+	@echo "[1m Target: Copy base.sfs, kernel, etc. to package build folder.[0m"
+	scp Image/boot/syslinux/linux     $(BASE_PACKAGE_PATH)/tftp/vmlinuz
+	scp Image/boot/syslinux/initrd.gz $(BASE_PACKAGE_PATH)/tftp/initrd.img
+	scp Image/base.sfs           $(BASE_PACKAGE_PATH)/sfs/base.sfs
+	touch $@
