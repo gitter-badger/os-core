@@ -37,3 +37,4 @@ fi
 # set default hostname to have one 
 echo openthinclient > /etc/hostname
 echo -e "127.0.0.1\topenthinclient localhost/" > /etc/hosts
+

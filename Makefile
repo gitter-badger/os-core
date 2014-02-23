@@ -20,7 +20,7 @@ export ARCH       = i386
 
 # takes round about 30 minutes to install
 
-export PACKAGES = pcscd libccid libacsccid1 eject libglib2.0-bin gvfs flashplugin-nonfree libpopt0 pciutils usbutils xdg-utils libqt4-qt3support libqt4-sql bluez-alsa alsa-utils bluez-audio python-bluez aptitude arandr blueman cifs-utils console-data console-tools coreutils dbus dbus-x11 devilspie devilspie2  gdevilspie dosfstools dos2unix ethtool e2fsprogs file firmware-linux hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libmotif4 lightdm lightdm-gtk-greeter marco dconf-tools mate-themes mate-applets mozo mc devilspie devilspie2 man eom engrampa pluma atril mate-session-manager mate-media mate-desktop mate-screensaver mate-archive-keyring net-tools nfs-common ntp openssh-client openssh-server python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo systemd syslog-ng tcpdump ttf-dejavu udev util-linux vim vim-tiny wget x11vnc x11-xserver-utils xfonts-base xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon gvfs-backends mate-system-monitor libstdc++5 freerdp-X11
+export PACKAGES = pcscd pcsc-tools libccid libacsccid1 eject libglib2.0-bin gvfs flashplugin-nonfree libpopt0 pciutils usbutils xdg-utils libqt4-qt3support libqt4-sql bluez-alsa alsa-utils bluez-audio python-bluez aptitude arandr blueman cifs-utils console-data console-tools coreutils dbus dbus-x11 devilspie devilspie2  gdevilspie dosfstools dos2unix ethtool e2fsprogs file firmware-linux hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libmotif4 lightdm lightdm-gtk-greeter marco dconf-tools mate-themes mate-applets mozo mc devilspie devilspie2 man eom engrampa pluma atril mate-session-manager mate-media mate-desktop mate-screensaver mate-archive-keyring net-tools nfs-common ntp openssh-client openssh-server python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev util-linux vim vim-tiny wget x11vnc x11-xserver-utils xfonts-base xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon gvfs-backends mate-system-monitor libstdc++5 freerdp-X11 zenity libx11 libssl
 
 export EXTRAS = openthinclient-icon-theme_1-1_all.deb
 
@@ -77,6 +77,7 @@ tcosify-stamp: ./Scripts/LINBO.chroot
 	-rm -f clean-stamp update-stamp
 	Scripts/LINBO.apply-configs Sources/tcos Filesystem
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "ln -snf /bin/bash /bin/sh;"
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "cp /etc/issue /etc/issue.debian; cp /etc/motd /etc/motd.debian"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-chroot
 	touch $@ 
 
@@ -106,6 +107,8 @@ compressed: filesystem-stamp tcosify-stamp update-stamp clean-stamp kernel-insta
 compressed-stamp:
 	@echo "[1m Target: Create the base.sfs container[0m"
 	-mkdir -p Image
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS version 2.x\nbuild: $(date)\nbased on" > /etc/issue; cat /etc/issue.debian >> /etc/issue'
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS version 2.x\nbuild: $(date)\nbased on Debian" > /etc/motd; cat /etc/motd.debian >> /etc/motd'
 	nice -10 ionice -c 3 sudo mksquashfs Filesystem Image/base.sfs -noappend -always-use-fragments -comp xz 
 	touch $@
 
