@@ -161,10 +161,10 @@ local-test: all
 	make local-test-stamp
 
 local-test-stamp:
-	@echo "[1m Target: Copy base.sfs, kernel, etc. to local paths.[0m"
-	scp Image/boot/syslinux/linux     $(LOCAL_TEST_PATH)/tftp/vmlinuz
-	scp Image/boot/syslinux/initrd.gz $(LOCAL_TEST_PATH)/tftp/initrd.img
-	scp Image/base.sfs           $(LOCAL_TEST_PATH)/sfs/base.sfs
+	@echo "[1m Target: Copy base.sfs, kernel, etc. to local paths for testing.[0m"
+	rsync Image/boot/syslinux/linux     $(LOCAL_TEST_PATH)/tftp/vmlinuz
+	rsync Image/boot/syslinux/initrd.gz $(LOCAL_TEST_PATH)/tftp/initrd.img
+	rsync Image/base.sfs           $(LOCAL_TEST_PATH)/sfs/base.sfs
 	touch $@
 
 package-prepare: all 
@@ -172,7 +172,7 @@ package-prepare: all
 
 package-prepare-stamp:
 	@echo "[1m Target: Copy base.sfs, kernel, etc. to package build folder.[0m"
-	scp Image/boot/syslinux/linux     $(BASE_PACKAGE_PATH)/tftp/vmlinuz
-	scp Image/boot/syslinux/initrd.gz $(BASE_PACKAGE_PATH)/tftp/initrd.img
-	scp Image/base.sfs           $(BASE_PACKAGE_PATH)/sfs/base.sfs
+	rsync Image/boot/syslinux/linux     $(BASE_PACKAGE_PATH)/tftp/vmlinuz
+	rsync Image/boot/syslinux/initrd.gz $(BASE_PACKAGE_PATH)/tftp/initrd.img
+	rsync Image/base.sfs           $(BASE_PACKAGE_PATH)/sfs/base.sfs
 	touch $@
