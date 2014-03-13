@@ -1,6 +1,7 @@
 
-deb http://ftp.tu-chemnitz.de/pub/linux/debian/debian/ wheezy main contrib non-free
-deb-src http://ftp.tu-chemnitz.de/pub/linux/debian/debian/ wheezy main contrib non-free
-
+# Debian/Squeeze is the the stable base for this installation
+deb http://http.debian.net/debian wheezy main contrib non-free
 deb http://security.debian.org wheezy/updates main contrib non-free
 
+# Mate repo for Debian/Squeeze
+deb http://repo.mate-desktop.org/debian wheezy main
