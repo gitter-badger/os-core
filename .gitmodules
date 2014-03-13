@@ -4,3 +4,6 @@
 [submodule "Sources/busybox"]
 	path = Sources/busybox
 	url = git://git.busybox.net/busybox
+[submodule "Initrd/lib/firmware"]
+	path = Initrd/lib/firmware
+	url = git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
