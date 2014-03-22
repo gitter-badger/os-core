@@ -13,7 +13,14 @@ umask 022
 locale-gen
 
 
-# ensure, the user exists
+# delete and recreate the user everytime the script is called
+# this will ensure, that modifications in /etc/skel are appllied
+
+# delete the user
+userdel $AutoLoginUser &> /dev/null
+rm -rf /home/tcos &> /dev/null
+
+# recreate the user 
 grep -q ^$AutoLoginUser: /etc/passwd || useradd -m -u 1000 -d /home/$AutoLoginUser -s /bin/bash $AutoLoginUser
 
 #set default pass
@@ -27,6 +34,7 @@ done
 
 usermod -G "$USERGROUPS" $AutoLoginUser
 
+# should never happen
 if [ ! -d /home/$AutoLoginUser ]; then
     echo "############# WARNING, MISSING FOLDER /home/$AutoLoginUser #####################"
     echo "###### I'll create it, but you won't have the skel folder content in it. #######"
@@ -37,4 +45,3 @@ fi
 # set default hostname to have one 
 echo openthinclient > /etc/hostname
 echo -e "127.0.0.1\topenthinclient localhost/" > /etc/hosts
-

@@ -1,5 +1,5 @@
 # populate desktop icons
-tcos-desktop
+tcos-desktop-populate
 
 # start X
 exec mate-session

@@ -14,13 +14,19 @@ export BASE_PACKAGE_PATH  = root@otc-dd-dev2:/develop/base/base-2.0/debian/base
 export LOCAL_TEST_PATH  = root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root
 export DEB_MIRROR = http://otc-dd-01/debian
 export ARCH       = i386
+export BASE_VERSION ?= 2.0-xx(minor_unknown)
+
+# VARIABLE  = value --> Normal setting of a variable - values within it are recursively expanded when the variable is used, not when it's declared
+# VARIABLE ?= value --> Setting of a variable with simple expansion of the values inside - values within it are expanded at declaration time.
+# VARIABLE := value --> Setting of a variable only if it doesn't have a value
+# VARIABLE += value --> Appending the supplied value to the existing val
 
 # Have package list in alphabetical order for better human reading. Cleanup dups.
 # for package in one two three; do echo $package; done | sort -u | sed ':a;N;$!ba;s/\n/ /g'
 
 # takes round about 30 minutes to install
 
-export PACKAGES = pcscd pcsc-tools libccid libacsccid1 eject libglib2.0-bin gvfs flashplugin-nonfree libpopt0 pciutils usbutils xdg-utils libqt4-qt3support libqt4-sql bluez-alsa alsa-utils bluez-audio python-bluez aptitude arandr blueman cifs-utils console-data console-tools coreutils dbus dbus-x11 devilspie devilspie2  gdevilspie dosfstools dos2unix ethtool e2fsprogs file firmware-linux hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libmotif4 lightdm lightdm-gtk-greeter marco dconf-tools mate-themes mate-applets mozo mc devilspie devilspie2 man eom engrampa pluma atril mate-session-manager mate-media mate-desktop mate-screensaver mate-archive-keyring net-tools nfs-common ntp openssh-client openssh-server python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev util-linux vim vim-tiny wget x11vnc x11-xserver-utils xfonts-base xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon gvfs-backends mate-system-monitor libstdc++5 freerdp-X11 zenity libx11-6 libssl1.0.0 fontconfig mate-themes libgtk2.0-bin libgtk-3-bin numlockx
+export PACKAGES = pcscd pcsc-tools libccid libacsccid1 eject libglib2.0-bin gvfs flashplugin-nonfree libpopt0 pciutils usbutils xdg-utils libqt4-qt3support libqt4-sql bluez-alsa alsa-utils bluez-audio python-bluez aptitude arandr blueman cifs-utils console-data console-tools coreutils dbus dbus-x11 devilspie devilspie2  gdevilspie dosfstools dos2unix ethtool e2fsprogs file firmware-linux hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libmotif4 lightdm lightdm-gtk-greeter marco dconf-tools mate-themes mate-applets mozo mc devilspie devilspie2 man eom engrampa pluma atril mate-session-manager mate-media mate-desktop mate-screensaver mate-archive-keyring net-tools nfs-common ntp openssh-client openssh-server python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev util-linux vim vim-tiny wget x11vnc x11-xserver-utils xfonts-base xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon gvfs-backends mate-system-monitor libstdc++5 zenity libx11-6 libssl1.0.0 fontconfig mate-themes libgtk2.0-bin libgtk-3-bin numlockx ca-certificates usbip
 
 export EXTRAS = openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb
 
@@ -90,7 +96,7 @@ update-stamp:
 	@echo "[1m Target: Installing packages from PACKAGES list and updating the filesystem[0m"
 	-rm -f clean-stamp compressed-stamp
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -y --force-yes --no-install-recommends $(PACKAGES); apt-get dist-upgrade -y --force-yes --no-install-recommends ; apt-get autoremove" 
-	for debFile in Sources/$(EXTRAS); do ln -nf $$debFile Filesystem/tmp/ ; done
+	for debFile in $(EXTRAS); do ln -nf Sources/$$debFile Filesystem/tmp/$$debFile ; done
 	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -i /tmp/*.deb ; rm -rf /tmp/*.deb"
 	touch $@
 
@@ -108,8 +114,8 @@ compressed: filesystem-stamp tcosify-stamp update-stamp clean-stamp kernel-insta
 compressed-stamp:
 	@echo "[1m Target: Create the base.sfs container[0m"
 	-mkdir -p Image
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS version 2.x\nbuild: `date`\nbased on and credits to" > /etc/issue; cat /etc/issue.debian >> /etc/issue'
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS version 2.x\nbuild: `date`\nbased on and credits to Debian" > /etc/motd; cat /etc/motd.debian >> /etc/motd'
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS base $(BASE_VERSION) \nbuild: `date`\nbased on and credits to" > /etc/issue; cat /etc/issue.debian >> /etc/issue'
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS base $(BASE_VERSION) \nbuild: `date`\nbased on and credits to Debian" > /etc/motd; cat /etc/motd.debian >> /etc/motd'
 	nice -10 ionice -c 3 sudo mksquashfs Filesystem Image/base.sfs -noappend -always-use-fragments -comp xz 
 	touch $@
 
