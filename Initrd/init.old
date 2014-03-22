@@ -1,0 +1,169 @@
+#!/bin/sh
+#
+# LINBO busybox-based initramfs bootscript
+# (C) 2013 by Steffen Hoenig <s.hoenig@openthinclient.com>
+#	      Joern Frenzel <j.frenzel@openthinclient.com>
+# LICENSE: GPL V3
+
+# Its purpose:
+# 1. Mounting a squashfs container over nfs
+# 2. Unifying this ro conainter with ramdisk and file overlay
+# 3. Hand over control to "real" sysv init.
+
+# Preconditions:
+# - Kernel contains all _needed_ nfs, ethernet, aufs modules
+
+. /init_functions
+
+TCOS="/tcos"
+LINK="$TCOS/link"       # nfs             OTC-Server:/openthinclient # the initial one!
+WRITE="$TCOS/write"     # for aufs to write this is just a folder inside the /
+BASE="$TCOS/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.sfs
+PACKAGE="$TCOS/package"
+SHADOW="$TCOS/shadow"
+CUSTOM="$LINK/custom"
+
+## MAIN ####################################################
+
+for folder in home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $SHADOW $CUSTOM proc sys; do mkdir -p $folder ; done
+
+mkdir /dev/pts
+
+mount -t devpts devpts /dev/pts
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+mount -t tmpfs none /tmp
+
+mdev -s && echo "/dev...set up by ${BLUE}mdev${NORMAL}"
+
+export PATH=/bin:/usr/bin:/sbin
+
+read CMDLINE < /proc/cmdline
+
+getbootparams
+load_modules "/modules"
+
+#to override the dhcpd setting set up a HOSTNAME here
+HOSTNAME=""
+
+ip addr add 127.0.0.1/8 dev lo
+ip link set dev lo up
+
+DHCP=""
+
+[ -z $nic ] && nic=0
+
+for i in $nic; do
+    echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
+    ip link set dev eth$i up
+    if [ -n "$HOSTNAME" ]; then
+        udhcpc -i eth$i -H $HOSTNAME -s /etc/udhcpc/default.script && DHCP="eth$i"
+    else
+        udhcpc -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
+    fi
+    [ -n "$DHCP" ] && break
+    echo "${RED}No answer from network.${NORMAL}"
+    debugshell
+done
+
+# NFS (or local link #future)
+MOUNTED=""
+
+[ -n $nfsroot ] && NFSD=$nfsroot
+
+touch /etc/fstab
+mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$NFSD" $LINK
+
+if [ $? -eq 0 ]; then
+  MOUNTED="true"
+  echo "$NFSD mounted ${GREEN} successfully...${NORMAL}"
+else
+  echo "${RED} could not mount $NFSD - exiting. ${NORMAL}"
+  debugshell
+fi
+
+
+# SFS
+# base.sfs
+#
+
+TREE=""
+
+# mount base and packages sfs files
+[ -f "$LINK/sfs/base.sfs" ] || (echo "${RED} could not find $LINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1)
+if mount -t squashfs -o loop,ro "$LINK/sfs/base.sfs" $BASE 2>/dev/null; then
+    echo "base.sfs mounted...${GREEN}yes${NORMAL}"
+    TREE="$BASE=ro"
+else
+    echo "base.sfs mounted...${RED}no${NORMAL}"
+fi
+
+# other SFS
+# mount module sfs and packages sfs
+
+echo "0" >/proc/sys/kernel/printk
+
+mountsfs package
+
+# AUFS
+#
+
+AUFS=""
+mount -t tmpfs -o mode=0755 none $WRITE # links writing branch to ram!
+
+# TREE has a leading colon ":" ! (DEPRECATED)
+# :DEBUG:
+#mkdir /tcos/write1
+#mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 10.224.129.30:/home/root /tcos/write1
+#ls -la /tcos/write1/
+
+#mount -t aufs -o noplink,br=/tcos/write1=rw:${TREE} unionfs $SHADOW  && AUFS="true"
+mount -t aufs -o noplink,br:${WRITE}=rw:${TREE} unionfs $SHADOW  && AUFS="true"
+
+
+# LINKS
+#
+
+PATH="$PATH:/bin.old:${SHADOW}/bin:${SHADOW}/sbin"
+export PATH
+
+# save resolv.conf
+cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
+[ -e /etc/hostname ] && cp /etc/hostname ${SHADOW}/etc/hostname
+
+# dirs that have symlinks to $SHADOW
+for l in boot etc lib bin usr var opt sbin; do
+    if [ -d /$l ]; then
+        mv /$l /$l.old
+        ln -s ${SHADOW}/$l /$l
+        rm -rf /$l.old
+    elif [ -d ${SHADOW}/$l ]; then
+        ln -snf ${SHADOW}/$l /$l
+    fi
+done
+
+# dirs that have bind mounts to $SHADOW (e.G. /home has to be a mountpoint )
+
+for l in home root; do
+    if [ -d "${SHADOW}/$l" ]; then
+        rm -rf /$l && mkdir -m 755 /$l
+        mount -o bind "${SHADOW}/$l" $l
+    fi
+done
+
+# enables additional packages (in  bz2, gz. tar, plain, format)
+mountcustom $CUSTOM
+
+# INIT
+#
+
+
+# modify /etc/init.d/.depend.* with insserv
+# enables custom LSB
+#
+for service in /tcos/package/*/etc/init.d/*; do
+  servicefilename=$(basename $service);
+  insserv /etc/init.d/$servicefilename
+done
+
+exec /sbin/init "$@" </dev/console >/dev/console 2>&1

@@ -1,0 +1,8 @@
+ACTION=="remove", GOTO="persistent_printer_end"
+
+SUBSYSTEMS=="usb", IMPORT{builtin}="usb_id"
+ENV{ID_TYPE}!="printer", GOTO="persistent_printer_end"
+
+ENV{ID_SERIAL}=="?*", SYMLINK+="usb/lp/$env{ID_SERIAL}", GROUP="lp"
+
+LABEL="persistent_printer_end"
