@@ -14,7 +14,7 @@ export BASE_PACKAGE_PATH  = root@otc-dd-dev2:/develop/base/base-2.0/debian/base
 export LOCAL_TEST_PATH  = root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root
 export DEB_MIRROR = http://otc-dd-01/debian
 export ARCH       = i386
-export BASE_VERSION ?= 2.0-xx(minor_unknown)
+export BASE_VERSION = 2.0-xx(minor_unknown)
 
 # VARIABLE  = value --> Normal setting of a variable - values within it are recursively expanded when the variable is used, not when it's declared
 # VARIABLE ?= value --> Setting of a variable with simple expansion of the values inside - values within it are expanded at declaration time.
