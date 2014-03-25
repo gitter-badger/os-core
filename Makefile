@@ -128,7 +128,7 @@ kernel-stamp: ./Scripts/TCOS.kernel
 	./Scripts/TCOS.kernel
 	# non-pae kernel will not be part of the deb, but will be copied to
 	# Image/boot/syslinux right here
-	cp Kernel/aufs-linux-3.13.6/arch/x86/boot/bzImage Image/boot/syslinux/linux-nonpae
+	cp Kernel/aufs-linux-$(KVERS)/arch/x86/boot/bzImage_nonpae Image/boot/syslinux/linux_nonpae
 	touch $@
 
 kernel-install: filesystem-stamp kernel-stamp
