@@ -44,8 +44,10 @@ fi
 
 echo "Loading kernel modules for detected hardware"
 mdev -s && echo "/dev...set up by ${BLUE}mdev${NORMAL}"
-sleep 4
-set -x
+
+# sleep 4
+# set -x
+
 # mdev -s does not poke network interfaces or usb devices so we need to do it here.
 for i in /sys/class/net/*/uevent; do
     echo "echo: $i"

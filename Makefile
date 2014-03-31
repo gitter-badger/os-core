@@ -128,7 +128,7 @@ kernel-stamp: ./Scripts/TCOS.kernel
 	./Scripts/TCOS.kernel
 	# non-pae kernel will not be part of the deb, but will be copied to
 	# Image/boot/syslinux right here
-	cp Kernel/aufs-linux-$(KVERS)/arch/x86/boot/bzImage_nonpae Image/boot/syslinux/linux_nonpae
+	-cp Kernel/aufs-linux-$(KVERS)/arch/x86/boot/bzImage_nonpae Image/boot/syslinux/linux_nonpae
 	touch $@
 
 kernel-install: filesystem-stamp kernel-stamp
@@ -172,7 +172,7 @@ local-test: all
 local-test-stamp:
 	@echo "[1m Target: Copy base.sfs, kernel, etc. to local paths for testing.[0m"
 	rsync Image/boot/syslinux/linux     $(LOCAL_TEST_PATH)/tftp/vmlinuz
-	rsync Image/boot/syslinux/linux_nopae     $(LOCAL_TEST_PATH)/tftp/vmlinuz_nonpae
+	-rsync Image/boot/syslinux/linux_nopae     $(LOCAL_TEST_PATH)/tftp/vmlinuz_nonpae
 	rsync Image/boot/syslinux/initrd.gz $(LOCAL_TEST_PATH)/tftp/initrd.img
 	rsync Image/base.sfs           $(LOCAL_TEST_PATH)/sfs/base.sfs
 	touch $@
@@ -183,7 +183,7 @@ package-prepare: all
 package-prepare-stamp:
 	@echo "[1m Target: Copy base.sfs, kernel, etc. to package build folder.[0m"
 	rsync Image/boot/syslinux/linux     $(BASE_PACKAGE_PATH)/tftp/vmlinuz
-	rsync Image/boot/syslinux/linux_nonpae     $(BASE_PACKAGE_PATH)/tftp/vmlinuz_nonpae
+	-rsync Image/boot/syslinux/linux_nonpae     $(BASE_PACKAGE_PATH)/tftp/vmlinuz_nonpae
 	rsync Image/boot/syslinux/initrd.gz $(BASE_PACKAGE_PATH)/tftp/initrd.img
 	rsync Image/base.sfs           $(BASE_PACKAGE_PATH)/sfs/base.sfs
 	touch $@
