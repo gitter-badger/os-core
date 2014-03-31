@@ -174,11 +174,7 @@ local-test: all
 local-test-stamp:
 	@echo "[1m Target: Copy base.sfs, kernel, etc. to local paths for testing.[0m"
 	rsync Image/boot/syslinux/linux     $(LOCAL_TEST_PATH)/tftp/vmlinuz
-<<<<<<< HEAD
 	-rsync Image/boot/syslinux/linux_nopae     $(LOCAL_TEST_PATH)/tftp/vmlinuz_nonpae
-=======
-	rsync Image/boot/syslinux/linux_nonpae     $(LOCAL_TEST_PATH)/tftp/vmlinuz_nonpae
->>>>>>> 770cf1e793026fbb11756698fbbdba3622963d69
 	rsync Image/boot/syslinux/initrd.gz $(LOCAL_TEST_PATH)/tftp/initrd.img
 	rsync Image/base.sfs           $(LOCAL_TEST_PATH)/sfs/base.sfs
 	touch $@
