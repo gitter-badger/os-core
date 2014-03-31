@@ -124,7 +124,7 @@ kernel:
 
 kernel-stamp: ./Scripts/TCOS.kernel
 	@echo "[1m Target: Build the kernel[0m"
-	rm -f kernel-install-stamp
+	rm -f kernel-install-stamp compressed-stamp
 	./Scripts/TCOS.kernel
 	# non-pae kernel will not be part of the deb, but will be copied to
 	# Image/boot/syslinux right here
@@ -136,6 +136,7 @@ kernel-install: filesystem-stamp kernel-stamp
 
 kernel-install-stamp: Scripts/LINBO.chroot kernel-stamp
 	@echo "[1m Target: Install the kernel[0m"
+	rm -f compressed-stamp
 	-mkdir -p Image/boot/syslinux
 	for debFile in Kernel/linux-image-$(KVERS)*.deb Kernel/linux-headers-$(KVERS)*.deb ; do ln -nf $$debFile Filesystem/tmp/ ; done
 	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; apt-get --purge remove -y linux-headers-\* linux-image-\*; dpkg -i /tmp/linux-*$(KVERS)*.deb; rm -rf /tmp/*.deb"
@@ -143,7 +144,8 @@ kernel-install-stamp: Scripts/LINBO.chroot kernel-stamp
 	touch $@
 
 busybox: Sources/busybox.config Sources/busybox
-	make busybox-stamp 
+	make busybox-stamp
+	rm initrd-stamp
 
 busybox-stamp:
 	@echo "[1m Target: Create the busybox[0m"
@@ -172,7 +174,7 @@ local-test: all
 local-test-stamp:
 	@echo "[1m Target: Copy base.sfs, kernel, etc. to local paths for testing.[0m"
 	rsync Image/boot/syslinux/linux     $(LOCAL_TEST_PATH)/tftp/vmlinuz
-	rsync Image/boot/syslinux/linux_nopae     $(LOCAL_TEST_PATH)/tftp/vmlinuz_nonpae
+	rsync Image/boot/syslinux/linux_nonpae     $(LOCAL_TEST_PATH)/tftp/vmlinuz_nonpae
 	rsync Image/boot/syslinux/initrd.gz $(LOCAL_TEST_PATH)/tftp/initrd.img
 	rsync Image/base.sfs           $(LOCAL_TEST_PATH)/sfs/base.sfs
 	touch $@

@@ -69,13 +69,21 @@ if [ "$MENUCONFIG" = "true" ]; then
     ( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" menuconfig )
 fi
 
-( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j8 ARCH="$ARCH" bzImage modules && \
-rm -rf debian; CONCURRENCY_LEVEL=8 ARCH="$ARCH" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$ARCH" --cross-compile - $mkpkgParms --us --uc kernel_image modules_image kernel_headers kernel_source )
+#( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j8 ARCH="$ARCH" bzImage modules && \
+#rm -rf debian; CONCURRENCY_LEVEL=8 ARCH="$ARCH" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$ARCH" --cross-compile - $mkpkgParms --us --uc kernel_image modules_image kernel_headers kernel_source )
+set -x
+echo "build another Kernel for non-PAE"
+( cd Kernel/aufs-linux-${KVERS} && \
+sed -i 's/PAE=y/PAE=n/g' .config && \
+grep -i pae .config && \
+make -j8 ARCH="$ARCH" bzImage && \
+cp arch/x86/boot/bzImage arch/x86/boot/bzImage_nonpae)
+set +x
 
 read -p "Save the kernel configuration to Sources? [Y/n] " a
-case "$a" in 
-	N*|n*) 
-	    ;; 
+case "$a" in
+	N*|n*)
+	    ;;
 	*)cp -au Kernel/aufs-linux-${KVERS}/.config Sources/kernel${MAJOR}-"$ARCH".config
-	    ;; 
+	    ;;
 esac
