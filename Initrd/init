@@ -14,7 +14,6 @@
 # - Kernel contains all _needed_ nfs, ethernet, aufs modules
 
 . /init_functions
-set -e
 
 TCOS="/tcos"
 LINK="$TCOS/link"       # nfs             OTC-Server:/openthinclient # the initial one!
@@ -35,36 +34,8 @@ mount -t proc proc /proc
 mount -t sysfs sys /sys
 mount -t tmpfs none /tmp
 
-## taken from mdev-like-a-boss mdev.init
-
-if [ -e /proc/sys/kernel/hotplug ] ; then
-        echo "Setting up mdev as hotplug agent"
-        echo /sbin/mdev > /proc/sys/kernel/hotplug
-fi
-
-echo "Loading kernel modules for detected hardware"
 mdev -s && echo "/dev...set up by ${BLUE}mdev${NORMAL}"
-sleep 4
-set -x
-# mdev -s does not poke network interfaces or usb devices so we need to do it here.
-for i in /sys/class/net/*/uevent; do
-    echo "echo: $i"
-    echo 'add' > "$i"
-done 2>/dev/null
-unset i
 
-for i in /sys/bus/usb/devices/*; do
-    case "${i##*/}" in
-        [0-9]*-[0-9]*)
-            echo 'add' > "$i/uevent"
-        ;;
-    esac
-done; unset i
-# Load kernel modules, run twice.
-find /sys -name 'modalias' -type f -exec cat '{}' + | sort -u | xargs modprobe -b -a 2>/dev/null
-find /sys -name 'modalias' -type f -exec cat '{}' + | sort -u | xargs modprobe -b -a 2>/dev/null
-set +x
-##
 export PATH=/bin:/usr/bin:/sbin
 
 read CMDLINE < /proc/cmdline
@@ -80,24 +51,20 @@ ip link set dev lo up
 
 DHCP=""
 
-[ -z $nic ] && nic=eth0
+[ -z $nic ] && nic=0
 
-echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}$nic${BLUE})... ${NORMAL}"
-ip link set dev $nic up
-if [ $nic = wlan0 ]; then
-    echo "Booting from wifi"
-    wpa_supplicant -D wext -i wlan0 -c /etc/wpa_supplicant.conf -B
-    sleep 2
-fi
-
-if [ -n "$HOSTNAME" ]; then
-    udhcpc -i $nic -H $HOSTNAME -s /etc/udhcpc/default.script && DHCP="$nic"
-else
-    udhcpc -i $nic -s /etc/udhcpc/default.script && DHCP="$nic"
-fi
-[ -n "$DHCP" ] && break
-echo "${RED}No answer from network.${NORMAL}"
-debugshell
+for i in $nic; do
+    echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
+    ip link set dev eth$i up
+    if [ -n "$HOSTNAME" ]; then
+        udhcpc -i eth$i -H $HOSTNAME -s /etc/udhcpc/default.script && DHCP="eth$i"
+    else
+        udhcpc -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
+    fi
+    [ -n "$DHCP" ] && break
+    echo "${RED}No answer from network.${NORMAL}"
+    debugshell
+done
 
 # NFS (or local link #future)
 MOUNTED=""
