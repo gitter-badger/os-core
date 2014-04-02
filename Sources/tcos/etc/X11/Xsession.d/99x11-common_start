@@ -1,0 +1,25 @@
+# $Id: 99x11-common_start 305 2005-07-03 18:51:43Z dnusinow $
+
+# This file is sourced by Xsession(5), not executed.
+# TCOS modified: s.passow@openthinclient.org
+
+# tcos-nfs-mount persistent/home on NFS 
+
+tcos-mount-nfs-home
+
+# trigger display setup
+
+tcos-xrandr # will write $HOME/.tcos_displayrc
+
+# bring in tcos display settings variables
+
+if[ -f $HOME/.tcos_displayrc ] . $HOME/.tcos_displayrc
+
+# populate desktop icons
+tcos-desktop-populate
+
+# start X
+exec mate-session
+
+exec $STARTUP
+
