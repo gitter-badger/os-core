@@ -17,8 +17,13 @@ locale-gen
 # this will ensure, that modifications in /etc/skel are appllied
 
 # delete the user
-userdel $AutoLoginUser &> /dev/null
-rm -rf /home/tcos &> /dev/null
+userdel $AutoLoginUser &> /dev/null || :
+rm -rf /home/tcos &> /dev/null || :
+
+# set default hostname to have one 
+echo openthinclient > /etc/hostname
+echo -e "127.0.0.1\topenthinclient localhost/" > /etc/hosts
+
 
 # recreate the user 
 grep -q ^$AutoLoginUser: /etc/passwd || useradd -m -u 1000 -d /home/$AutoLoginUser -s /bin/bash $AutoLoginUser
@@ -41,7 +46,3 @@ if [ ! -d /home/$AutoLoginUser ]; then
     mkdir -p /home/$AutoLoginUser
     chown -R $AutoLoginUser /home/$AutoLoginUser
 fi
-
-# set default hostname to have one 
-echo openthinclient > /etc/hostname
-echo -e "127.0.0.1\topenthinclient localhost/" > /etc/hosts
