@@ -6,3 +6,7 @@ deb http://security.debian.org wheezy/updates main contrib non-free
 
 # Mate repo for Debian/Squeeze
 deb http://repo.mate-desktop.org/debian wheezy main
+
+
+# Debian sid
+deb http://http.debian.net/debian sid main contrib non-free

@@ -8,12 +8,12 @@
 tcos-mount-nfs-home
 
 # trigger display setup
-
 tcos-xrandr # will write $HOME/.tcos_displayrc
 
 # bring in tcos display settings variables
+# if[ -f $HOME/.tcos_displayrc ] . $HOME/.tcos_displayrc
 
-if[ -f $HOME/.tcos_displayrc ] . $HOME/.tcos_displayrc
+. $HOME/.tcos_displayrc
 
 # populate desktop icons
 tcos-desktop-populate
@@ -21,5 +21,5 @@ tcos-desktop-populate
 # start X
 exec mate-session
 
-exec $STARTUP
+# exec $STARTUP
 
