@@ -25,7 +25,6 @@ CUSTOM="$LINK/custom"
 
 ## MAIN ####################################################
 
-
 for folder in home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $SHADOW $CUSTOM proc sys; do mkdir -p $folder ; done
 
 mkdir /dev/pts
@@ -166,5 +165,5 @@ for service in /tcos/package/*/etc/init.d/*; do
   servicefilename=$(basename $service);
   insserv /etc/init.d/$servicefilename
 done
-echo "$@" > /dollar_at
+
 exec /sbin/init "$@" </dev/console >/dev/console 2>&1
