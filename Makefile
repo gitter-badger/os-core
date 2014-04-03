@@ -31,7 +31,7 @@ export PACKAGES = libpam-ldap alsa-utils aptitude arandr atril blueman bluez-als
 
 export PACKAGES_SID = mesa-vdpau-drivers vdpauinfo x11-xserver-utils xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-ati 
 
-export PACKAGES_BACKPORTS = firmware-linux firmware-linux-nonfree 
+export PACKAGES_BACKPORTS = firmware-linux firmware-linux-free firmware-linux-nonfree 
 
 export EXTRAS = openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb
 
@@ -77,7 +77,7 @@ filesystem:
 
 filesystem-stamp: ./Scripts/TCOS.mkfilesystem
 	@echo "[1m Target: Creating an initial filesystem[0m"
-	-rm -f update-stamp clean-stamp
+	-rm -f tcosify-stamp update-stamp clean-stamp
 	./Scripts/TCOS.mkfilesystem $(DEB_MIRROR)
 	touch $@
 
