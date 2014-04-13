@@ -1,9 +1,6 @@
-
-/Base/*.dsc
-/Base/*.changes
-/Base/*.tar.gz]
-/Base/base.changelog
-
+/Base
+!/Base/base-2.0/
+!/Base/build-howto/
 /Filesystem/*
 /Kernel/*
 /Image/*
