@@ -1,0 +1,13 @@
+Source: base
+Section: base
+Priority: required
+Maintainer: Steffen Hoenig <s.hoenig@openthinclient.com>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.3
+
+Package: base
+Architecture: i386
+Depends: tcos-scripts (>= 2.0-20), tcos-libs (>= 2.0-6), tcos-devices (>= 2.0-7)
+Essential: yes
+Description: TCOS base system
+ This package contains the operating system files a client will boot on startup.

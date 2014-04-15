@@ -10,7 +10,7 @@ SHELL := /bin/bash
 export KVERS      = 3.13.6
 export X86        = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
 export X86_64     = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
-export BASE_PACKAGE_PATH  = root@otc-dd-dev2:/develop/base/base-2.0/debian/base
+export BASE_PACKAGE_PATH  = Base/base-2.0/debian/base
 export LOCAL_TEST_PATH  = root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root
 export DEB_MIRROR = http://otc-dd-01/debian
 export ARCH       = i386
