@@ -1,3 +1,11 @@
+base (2.0-17) unstable; urgency=low
+
+  * UPDATE: update all debian packages
+  * NEW: have packages pulseaudio pavucontrol (for use with FreeRPD) in packages list
+  * NEW: have package strace in packages list
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Thu, 17 Apr 2014 23:42:33 +0200
+
 base (2.0-16) unstable; urgency=low
 
   * FIX: test for existance of .tcos_xrandrrc before sourcing it in Filesystem/etc/X11/Xsession.d/99x11-common_start
