@@ -1,11 +1,7 @@
 #!/bin/bash
-# Restore initial UNCONFIGURED system state, clean all temporary files
-# WARNING: This script will basically destroy your system. It only works
-# for Knoppix because Knoppix' autoconfiguration scripts fix all the missing
-# config files.
 
 #
-# This has to run chroot inside the Knoppix root filesystem!
+# This has to run chroot inside the root filesystem!
 #
 set -f
 
@@ -242,12 +238,6 @@ for file in /bin/ntfs-3g.real /bin/ntfs-3g; do
 done
 chmod u+s /sbin/mount.exfat-fuse
 
-if [ -d /var/run/tor ]; then
- # Strangely, this is required by tors user configuration frontend, though it's "debian-tor" by default.
- chown knoppix.knoppix /var/run/tor
- chmod u=rwx,g=,o= /var/run/tor
-fi
-
 # KDE
 chmod 1777 /var/tmp
 # For Dovecot bluetooth Java lib
@@ -369,15 +359,15 @@ fi
 ln -snf /bin/true /usr/bin/lxlock
 
 # Browser data
-rm -f /home/knoppix/.mozilla/firefox/knoppix/places.sqlite
-rm -f '/home/knoppix/.config/chromium/Default/Top Sites'* \
-      '/home/knoppix/.config/chromium/Default/Visited Links'* \
-      '/home/knoppix/.config/chromium/Default/History'*
+rm -f /home/tcos/.mozilla/firefox/knoppix/places.sqlite
+rm -f '/home/tcos/.config/chromium/Default/Top Sites'* \
+      '/home/tcos/.config/chromium/Default/Visited Links'* \
+      '/home/tcos/.config/chromium/Default/History'*
 
 # sqlite
 if type -p sqlite3 >/dev/null 2>&1; then
  echo "Vacuuming *.sqlite files..."
- find /home/knoppix/.mozilla/firefox -iname \*.sqlite -exec sqlite3 {} vacuum \;
+ find /home/tcos/.mozilla/firefox -iname \*.sqlite -exec sqlite3 {} vacuum \;
  echo "Done."
 fi
 
@@ -419,3 +409,7 @@ for i in root ; do
 $i:x
 EOT
 done
+
+echo -n "Fix permissions for sudoers"
+chmod 440 /etc/sudoers
+chown root:root /etc/sudoers
