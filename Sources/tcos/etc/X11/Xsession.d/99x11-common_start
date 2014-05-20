@@ -11,9 +11,9 @@ tcos-mount-nfs-home
 tcos-xrandr # will write $HOME/.tcos_displayrc
 
 # bring in tcos display settings variables
-# if[ -f $HOME/.tcos_displayrc ] . $HOME/.tcos_displayrc
+[ -f $HOME/.tcos_displayrc ] && . $HOME/.tcos_displayrc
 
-. $HOME/.tcos_displayrc
+#. $HOME/.tcos_displayrc
 
 # populate desktop icons
 tcos-desktop-populate
