@@ -39,6 +39,11 @@ done
 
 usermod -G "$USERGROUPS" $AutoLoginUser
 
+# Some old udev rules by  libccid and cyberja*.deb require a group named pcscd,
+# even the pcscd itself does not require this any longer.
+# Let's calm the startup, give them the group.
+groupadd pcscd
+
 # should never happen
 if [ ! -d /home/$AutoLoginUser ]; then
     echo "############# WARNING, MISSING FOLDER /home/$AutoLoginUser #####################"
@@ -46,3 +51,4 @@ if [ ! -d /home/$AutoLoginUser ]; then
     mkdir -p /home/$AutoLoginUser
     chown -R $AutoLoginUser /home/$AutoLoginUser
 fi
+

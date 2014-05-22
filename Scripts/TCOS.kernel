@@ -70,24 +70,25 @@ if [ "$MENUCONFIG" = "true" ]; then
 fi
 
 # build the kernel and have a deb
-#( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j8 ARCH="$ARCH" bzImage modules && \
-#rm -rf debian; CONCURRENCY_LEVEL=8 ARCH="$ARCH" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$ARCH" --cross-compile - $mkpkgParms --us --uc kernel_image modules_image kernel_headers kernel_source )
+( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j$CPU_CORES ARCH="$ARCH" bzImage modules && \
+CONCURRENCY_LEVEL=$CPU_CORES ARCH="$ARCH" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$ARCH" --cross-compile - $mkpkgParms --us --uc kernel_image modules_image kernel_headers)
 
-# build the kernel and have a deb
-( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j8 ARCH="$ARCH" bzImage modules && \
-CONCURRENCY_LEVEL=8 ARCH="$ARCH" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$ARCH" --cross-compile - $mkpkgParms --us --uc kernel_image modules_image kernel_headers kernel_source )
+# save the pae-kernel
+( cd Kernel/aufs-linux-${KVERS} && \
+cp arch/x86/boot/bzImage arch/x86/boot/bzImage_pae)
 
-
-
+# build another kernel without pae requirement
 # this is going to be a part of the new kernel build chain using buildroot
-# set -x
-# echo "build another Kernel for non-PAE"
-# ( cd Kernel/aufs-linux-${KVERS} && \
-# sed -i 's/PAE=y/PAE=n/g' .config && \
-# grep -i pae .config && \
-# make -j8 ARCH="$ARCH" bzImage && \
-# cp arch/x86/boot/bzImage arch/x86/boot/bzImage_nonpae)
-# set +x
+set -x
+echo "build another Kernel for non-PAE"
+( cd Kernel/aufs-linux-${KVERS} && \
+sed -i 's/PAE=y/PAE=n/g' .config && \
+grep -i pae .config && \
+make -j$CPU_CORES ARCH="$ARCH" bzImage && \
+cp arch/x86/boot/bzImage arch/x86/boot/bzImage_nonpae ; \
+sed -i 's/PAE=y/PAE=n/g' .config)
+set +x
+# ###############
 
 read -p "Save the kernel configuration to Sources? [Y/n] " a
 case "$a" in
