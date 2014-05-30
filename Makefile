@@ -32,8 +32,7 @@ export PACKAGES_UNSTABLE = mesa-vdpau-drivers vdpauinfo x11-xserver-utils xorg x
 
 export PACKAGES_BACKPORTS = firmware-linux firmware-linux-free firmware-linux-nonfree 
 
-export EXTRAS = openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb
-
+export EXTRAS = openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb pcscd_1.8.11-3~tcos20+1_i386.deb
 help:
 	@echo "[1mWELCOME TO THE TCOS BUILD SYSTEM"
 	@echo ""
