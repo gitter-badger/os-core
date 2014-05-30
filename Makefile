@@ -106,7 +106,7 @@ update-stamp:
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends  -t wheezy-backports $(PACKAGES_BACKPORTS)"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get dist-upgrade -y --force-yes --no-install-recommends ; apt-get autoremove"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get autoremove"
-	for debFile in $(EXTRAS); do ln -nf Sources/$$debFile Filesystem/tmp/$$debFile ; done
+	for debFile in $(EXTRAS); do ln -nf Packages/$$debFile Filesystem/tmp/$$debFile ; done
 	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -i /tmp/*.deb ; rm -rf /tmp/*.deb"
 	touch $@
 
