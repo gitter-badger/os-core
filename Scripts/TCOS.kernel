@@ -15,6 +15,10 @@ fi
 MAJOR=${KVERS%.*}  # 3.4.70 -> 3.4
 MINOR=${KVERS##*.} # 3.4.70 -> 70
 
+# make-kpkg needs DEB_HOST_ARCH, otherwise it will use the build hosts arch
+export DEB_HOST_ARCH=$ARCH
+
+
 if [ ! -d Kernel/aufs-linux ]; then
     mkdir -p Kernel
     echo -e "\033[1m Fetching kernel/aufs-linux from github.com.\033[0m"
@@ -39,61 +43,57 @@ else
     set -e
 fi
 
-# make-kpkg needs DEB_HOST_ARCH, otherwise it will use the build hosts arch
-export DEB_HOST_ARCH=$ARCH
-
-if [ "$ARCH" = "i386" ]; then 
+for CPU_TYPE in non-pae transmeta normal; do
     mkpkgParms="--revision=1 --append-to-version=+tcos"
-else
-    mkpkgParms="--revision=1 --append-to-version=+tcos64"
-fi
-
-if [ -e Sources/kernel${MAJOR}-"$ARCH".config ]; then
-    cp Sources/kernel${MAJOR}-"$ARCH".config Kernel/aufs-linux-${KVERS}/.config
-else
-    read -p "Which kernel configuration you'd like to use? (e.G. 3.12) " a
-    if [ -n "$a" ]; then
-        cp Sources/kernel${a}-"$ARCH".config Kernel/aufs-linux-${KVERS}/.config
+    if [ -e Sources/kernel${MAJOR}-${ARCH}-${CPU_TYPE}.config ]; then
+	ln -s Sources/kernel${MAJOR}-${ARCH}-${CPU_TYPE}.config Kernel/aufs-linux-${KVERS}/.config
+	# cp Sources/kernel${MAJOR}-"$ARCH".config Kernel/aufs-linux-${KVERS}/.config
     else
-        #return 1
-	echo "Do not know which kernel to build. Stopping now."
-	exit 1
+	echo "KOMISCH"
+	#read -p "Which kernel configuration you'd like to use? (e.G. 3.12) " a
+	#if [ -n "$a" ]; then
+        #    cp Sources/kernel${a}-"$ARCH".config Kernel/aufs-linux-${KVERS}/.config
+	#else
+	#    echo "Do not know which kernel to build. Stopping now."
+	#    exit 1
+	#fi
     fi
-fi
 
-( cd Kernel/aufs-linux-${KVERS} ; make oldconfig )
+    if [ "$CPU_TYPE" == "normal" ]; then 
+    # build header and deb only for "normal" kernel 
+	( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j$CPU_CORES ARCH="$ARCH" bzImage && \
+	    CONCURRENCY_LEVEL=$CPU_CORES ARCH="$ARCH" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$ARCH" --cross-compile - $mkpkgParms --us --uc kernel_image modules_image kernel_headers)
+    else 
+	# otherwise just build the kernel image
+	( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j$CPU_CORES ARCH="$ARCH" bzImage )
+    fi
 
-# build procedure
+    # save the kernel image
+    ( cd Kernel/aufs-linux-${KVERS} && cp arch/x86/boot/bzImage arch/x86/boot/bzImage_${CPU_TYPE})
 
-if [ "$MENUCONFIG" = "true" ]; then
-    ( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" menuconfig )
-fi
+    #read -p "Save the kernel configuration to Sources? [Y/n] " a
+    #case "$a" in
+	#N*|n*)
+	 #   ;;
+	#*)cp -au Kernel/aufs-linux-${KVERS}/.config Sources/kernel${MAJOR}-"$ARCH".config
+	 #   ;;
+    #esac
+    echo "Kernel $CPU_TYPE done. Presse any key."; read bla
+done 
 
-# build the kernel and have a deb
-( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j$CPU_CORES ARCH="$ARCH" bzImage modules && \
-CONCURRENCY_LEVEL=$CPU_CORES ARCH="$ARCH" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$ARCH" --cross-compile - $mkpkgParms --us --uc kernel_image modules_image kernel_headers)
 
-# save the pae-kernel
-( cd Kernel/aufs-linux-${KVERS} && \
-cp arch/x86/boot/bzImage arch/x86/boot/bzImage_pae)
+
+
 
 # build another kernel without pae requirement
 # this is going to be a part of the new kernel build chain using buildroot
-set -x
-echo "build another Kernel for non-PAE"
-( cd Kernel/aufs-linux-${KVERS} && \
-sed -i 's/PAE=y/PAE=n/g' .config && \
-grep -i pae .config && \
-make -j$CPU_CORES ARCH="$ARCH" bzImage && \
-cp arch/x86/boot/bzImage arch/x86/boot/bzImage_nonpae ; \
-sed -i 's/PAE=y/PAE=n/g' .config)
-set +x
+#set -x
+#echo "build another Kernel for non-PAE"
+#( cd Kernel/aufs-linux-${KVERS} && \
+#sed -i 's/PAE=y/PAE=n/g' .config && \
+#grep -i pae .config && \
+#make -j$CPU_CORES ARCH="$ARCH" bzImage && \
+#cp arch/x86/boot/bzImage arch/x86/boot/bzImage_nonpae ; \
+#sed -i 's/PAE=y/PAE=n/g' .config)
+#set +x
 # ###############
-
-read -p "Save the kernel configuration to Sources? [Y/n] " a
-case "$a" in
-	N*|n*)
-	    ;;
-	*)cp -au Kernel/aufs-linux-${KVERS}/.config Sources/kernel${MAJOR}-"$ARCH".config
-	    ;;
-esac
