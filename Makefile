@@ -35,7 +35,7 @@ export PACKAGES_BACKPORTS = firmware-linux firmware-linux-free firmware-linux-no
 
 export PACKAGES_BUSYBOXBUILD = build-essential fakeroot
 
-export EXTRAS = openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb
+export EXTRAS = openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb pcscd_1.8.11-3~tcos20+1_i386.deb
 
 help:
 	@echo "[1mWELCOME TO THE TCOS BUILD SYSTEM"
@@ -117,7 +117,7 @@ update-stamp:
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends  -t wheezy-backports $(PACKAGES_BACKPORTS)"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get dist-upgrade -y --force-yes --no-install-recommends ; apt-get autoremove"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get autoremove"
-	for debFile in $(EXTRAS); do ln -nf Sources/$$debFile Filesystem/tmp/$$debFile ; done
+	for debFile in $(EXTRAS); do ln -nf Packages/$$debFile Filesystem/tmp/$$debFile ; done
 	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -i /tmp/*.deb ; rm -rf /tmp/*.deb"
 	touch $@
 
