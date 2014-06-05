@@ -1,14 +1,12 @@
-# Debian/Squeeze is the stable base for this installation
-#
-deb http://otc-dd-01/debian     stable          main contrib non-free
-deb http://otc-dd-01/debian     unstable        main contrib non-free
-deb http://security.debian.org  stable/updates  main contrib non-free
+# Debian/wheezy is the stable base for this installation
+
+deb http://otc-dd-01/debian             wheezy                  main contrib non-free
+deb http://otc-dd-01/debian             wheezy-backports        main contrib non-free
+deb http://otc-dd-01/debian             wheezy-updates          main contrib non-free
+
+deb http://otc-dd-01/debian-security    wheezy/updates          main contrib non-free
+
+deb http://otc-dd-01/debian             unstable                main contrib non-free
 
 # MATE-Desktop 1.8 repository for Debian
 deb http://otc-dd-01/mate18     wheezy          main
-
-# Knoppix repository
-# deb http://debian-knoppix.alioth.debian.org ./
-
-# Debian Multimedia, contains non-free software like acrobat reader
-# deb http://www.deb-multimedia.org squeeze main non-free

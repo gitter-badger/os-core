@@ -2,7 +2,9 @@
 # TCOS.Kernel
 # download, configure and prepare Linux kernel 
 # origin by (C) Klaus Knopper 2013
-# adapted to tcos by Steffen Hoenig <s.hoenig@openthinclient.com>
+# adapted to tcos by 
+#    Steffen Hoenig <s.hoenig@openthinclient.com>
+#    Jörn Frenzel <j.frenzel@openthinclient.com>
 # License: GPL V2
 
 set -e  -f
@@ -18,7 +20,6 @@ MINOR=${KVERS##*.} # 3.4.70 -> 70
 # make-kpkg needs DEB_HOST_ARCH, otherwise it will use the build hosts arch
 export DEB_HOST_ARCH=$ARCH
 
-
 if [ ! -d Kernel/aufs-linux ]; then
     mkdir -p Kernel
     echo -e "\033[1m Fetching kernel/aufs-linux from github.com.\033[0m"
@@ -26,14 +27,15 @@ if [ ! -d Kernel/aufs-linux ]; then
 else
     ( cd Kernel/aufs-linux ; git pull ) || true
 fi
+
 # check, whether there is a copy of a kernel checkout already
-if  [ -d Kernel/aufs-linux-${KVERS} ]; then
-    :
-else
+if  [ ! -d Kernel/aufs-linux-${KVERS} ]; then
+
     # 1. Create a clone to a local ref, and checkout to a specific branch
     echo -e "\033[1m Creating a working copy kernel/aufs-linux-${KVERS} \033[0m"
     ( cd Kernel/aufs-linux ; git checkout aufs${MAJOR} )
     git clone -b aufs${MAJOR} Kernel/aufs-linux Kernel/aufs-linux-${KVERS}
+
     # 2. Apply MINOR patch
     if ! [ -e Kernel/patch-${KVERS}.xz ]; then
 	wget -c -P Kernel/ https://www.kernel.org/pub/linux/kernel/v3.x/patch-${KVERS}.xz
@@ -43,57 +45,47 @@ else
     set -e
 fi
 
-for CPU_TYPE in non-pae transmeta normal; do
-    mkpkgParms="--revision=1 --append-to-version=+tcos"
+for CPU_TYPE in normal non-pae transmeta; do
+    mkpkgParms="--revision=1 --append-to-version=+tcos-${CPU_TYPE}"
+    tcosKernelConf=Sources/kernel${MAJOR}-${ARCH}-${CPU_TYPE}.config
     if [ -e Sources/kernel${MAJOR}-${ARCH}-${CPU_TYPE}.config ]; then
-	ln -s Sources/kernel${MAJOR}-${ARCH}-${CPU_TYPE}.config Kernel/aufs-linux-${KVERS}/.config
-	# cp Sources/kernel${MAJOR}-"$ARCH".config Kernel/aufs-linux-${KVERS}/.config
+	cp  $tcosKernelConf Kernel/aufs-linux-${KVERS}/.config 
     else
-	echo "KOMISCH"
+	echo "Could not find file $tcosKernelConf ." 
+	echo "We expect a ready to use configuratioen here - exiting." 
+	exit 1
 	#read -p "Which kernel configuration you'd like to use? (e.G. 3.12) " a
 	#if [ -n "$a" ]; then
-        #    cp Sources/kernel${a}-"$ARCH".config Kernel/aufs-linux-${KVERS}/.config
+         #   cp Sources/kernel${a}-"$ARCH".config Kernel/aufs-linux-${KVERS}/.config
 	#else
-	#    echo "Do not know which kernel to build. Stopping now."
-	#    exit 1
+	 #   echo "Do not know which kernel to build. Stopping now."
+	 #   exit 1
 	#fi
     fi
 
-    if [ "$CPU_TYPE" == "normal" ]; then 
-    # build header and deb only for "normal" kernel 
+#    if [ "$CPU_TYPE" == "normal" ]; then 
+        # build header and deb only for "normal" kernel 
 	( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j$CPU_CORES ARCH="$ARCH" bzImage && \
-	    CONCURRENCY_LEVEL=$CPU_CORES ARCH="$ARCH" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$ARCH" --cross-compile - $mkpkgParms --us --uc kernel_image modules_image kernel_headers)
-    else 
-	# otherwise just build the kernel image
-	( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j$CPU_CORES ARCH="$ARCH" bzImage )
-    fi
+	    CONCURRENCY_LEVEL=$CPU_CORES ARCH="$ARCH" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$ARCH" \
+	    --cross-compile - $mkpkgParms --us --uc kernel_image modules_image kernel_headers)
+#    else 
+#	# otherwise just build the kernel image
+#	( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j$CPU_CORES ARCH="$ARCH" bzImage )
+#    fi
 
     # save the kernel image
     ( cd Kernel/aufs-linux-${KVERS} && cp arch/x86/boot/bzImage arch/x86/boot/bzImage_${CPU_TYPE})
 
-    #read -p "Save the kernel configuration to Sources? [Y/n] " a
-    #case "$a" in
-	#N*|n*)
-	 #   ;;
-	#*)cp -au Kernel/aufs-linux-${KVERS}/.config Sources/kernel${MAJOR}-"$ARCH".config
-	 #   ;;
-    #esac
-    echo "Kernel $CPU_TYPE done. Presse any key."; read bla
+    if ! diff -q Kernel/aufs-linux-${KVERS}/.config $tcosKernelConf &> /dev/null ; then 
+	read -p "Save your changes back to $tcosKernelConf ? [Y/n] " a
+	case "$a" in
+	    N*|n*)
+		;;
+	    *)
+		cp -a Kernel/aufs-linux-${KVERS}/.config $tcosKernelConf
+		;;
+	esac
+    fi
+    # echo "Kernel $CPU_TYPE done. Presse any key."; read bla
 done 
 
-
-
-
-
-# build another kernel without pae requirement
-# this is going to be a part of the new kernel build chain using buildroot
-#set -x
-#echo "build another Kernel for non-PAE"
-#( cd Kernel/aufs-linux-${KVERS} && \
-#sed -i 's/PAE=y/PAE=n/g' .config && \
-#grep -i pae .config && \
-#make -j$CPU_CORES ARCH="$ARCH" bzImage && \
-#cp arch/x86/boot/bzImage arch/x86/boot/bzImage_nonpae ; \
-#sed -i 's/PAE=y/PAE=n/g' .config)
-#set +x
-# ###############

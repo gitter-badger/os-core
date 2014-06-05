@@ -1,6 +1,10 @@
 /Base
 !/Base/base-2.0/
+/Base/base-2.0/debian/*
 !/Base/build-howto/
+
+/Bbox-build-chroot/*
+
 /Filesystem/*
 /Kernel/*
 /Image/*

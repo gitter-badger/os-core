@@ -1,3 +1,17 @@
+base (2.0-18) unstable; urgency=low
+
+  * UPDATE: new kernel version 3.14.2
+  * UPDATE: update all debian packages
+  * FIX: https://github.com/openthinclient/openthinclient-os-core/issues/6
+      - added group pcscd even pcscd does not need it any longer
+      - just get the startup quiet
+  * FIX: https://github.com/openthinclient/openthinclient-os-core/issues/4
+      - data inside the init.cpio (initrd) had wrong ownerchip
+  * NEW: have file /etc/security/pam_env.conf applied form Sources/tcos...
+  * NEW: have packages xcyberjack libifd-cyberjack6 in package list
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Mon, 19 May 2014 22:46:32 +0200
+
 base (2.0-17) unstable; urgency=low
 
   * UPDATE: update all debian packages

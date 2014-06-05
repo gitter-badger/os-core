@@ -1,1 +1,1 @@
-Apt::default-Release "stable";
+Apt::default-Release "wheezy";

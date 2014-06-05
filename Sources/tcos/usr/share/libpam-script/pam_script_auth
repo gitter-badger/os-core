@@ -1,0 +1,30 @@
+#!/bin/bash
+
+MY_UID=1000
+MY_GID=1000
+PASSWD="/etc/passwd"
+GROUP="/etc/group"
+USER="$PAM_USER"
+
+if [ ! -s ${PASSWD}.tmpl ]; then
+	cp ${PASSWD} ${PASSWD}.tmpl
+fi
+
+if [ ! -s ${GROUP}.tmpl ]; then
+	cp ${GROUP} ${GROUP}.tmpl
+fi
+
+if [ "$USER" = "tcos" ]; then
+	cp ${PASSWD}.tmpl ${PASSWD}
+	cp ${GROUP}.tmpl ${GROUP}
+	exit 0
+fi
+
+# modify user
+sed "s/\(^tcos\):\(.*\):\(.*\):\(.*\):\(.*\):\(.*\):\(.*\)/${USER}:\2:${MY_UID}:${MY_GID}:\5:\6:\7/g" ${PASSWD}.tmpl > ${PASSWD}
+
+# modify group
+sed "s/:\<tcos\>/:${USER},tcos/g" ${GROUP}.tmpl > ${GROUP}
+sed -i "s/^tcos:x:.*/tcos:x:${MY_GID}:/g" ${GROUP}
+
+exit 0
