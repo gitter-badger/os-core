@@ -1,6 +1,6 @@
  dpkg-buildpackage -rfakeroot -D -us -uc
 dpkg-buildpackage: Quellpaket pcsc-lite
-dpkg-buildpackage: Quellversion 1.8.11-3~tcos20+3
+dpkg-buildpackage: Quellversion 1.8.11-3~tcos20+4
 dpkg-buildpackage: Quellen geändert durch Steffen Hoenig <s.hoenig@openthinclient.com>
  dpkg-source --before-build pcsc-lite-1.8.11
 dpkg-buildpackage: Host-Architektur i386
@@ -8,119 +8,13 @@ dpkg-buildpackage: Host-Architektur i386
 dh clean --with autoreconf --parallel
    dh_testdir -O--parallel
    dh_auto_clean -O--parallel
-make[1]: Entering directory `/develop/pcsc-lite-1.8.11'
-Making distclean in doc
-make[2]: Entering directory `/develop/pcsc-lite-1.8.11/doc'
-Making distclean in example
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/doc/example'
-rm -rf .libs _libs
- rm -f pcsc_demo
-rm -f *.o
-rm -f *.lo
-rm -f *.tab.c
-test -z "" || rm -f 
-test . = "." || test -z "" || rm -f 
-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
-rm -rf ./.deps
-rm -f Makefile
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/doc/example'
-Making distclean in .
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/doc'
-rm -rf .libs _libs
-rm -f *.lo
-test -z "doxygen.conf pcscd.8 reader.conf.5" || rm -f doxygen.conf pcscd.8 reader.conf.5
-test . = "." || test -z "" || rm -f 
-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/doc'
-rm -f Makefile
-make[2]: Leaving directory `/develop/pcsc-lite-1.8.11/doc'
-Making distclean in etc
-make[2]: Entering directory `/develop/pcsc-lite-1.8.11/etc'
-rm -rf .libs _libs
-rm -f *.lo
-test -z "pcscd.service pcscd.socket" || rm -f pcscd.service pcscd.socket
-test . = "." || test -z "" || rm -f 
-rm -f Makefile
-make[2]: Leaving directory `/develop/pcsc-lite-1.8.11/etc'
-Making distclean in src
-make[2]: Entering directory `/develop/pcsc-lite-1.8.11/src'
-Making distclean in spy
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/src/spy'
-test -z "pcsc-spy.1" || rm -f pcsc-spy.1
-test -z "libpcscspy.la" || rm -f libpcscspy.la
-rm -f "./so_locations"
-rm -rf .libs _libs
-rm -f *.o
-rm -f *.lo
-rm -f *.tab.c
-test -z "" || rm -f 
-test . = "." || test -z "" || rm -f 
-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
-rm -rf ./.deps
-rm -f Makefile
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/src/spy'
-Making distclean in .
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/src'
-test -z "libpcsclite.la" || rm -f libpcsclite.la
-rm -f "./so_locations"
-rm -rf .libs _libs
- rm -f testpcsc pcsc-wirecheck pcsc-wirecheck-gen
- rm -f pcscd
-rm -f *.o
-rm -f *.lo
-rm -f *.tab.c
-test -z "libpcsclite.pc pcscd.h" || rm -f libpcsclite.pc pcscd.h
-test . = "." || test -z "" || rm -f 
-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/src'
-rm -rf ./.deps
-rm -f Makefile
-make[2]: Leaving directory `/develop/pcsc-lite-1.8.11/src'
-Making distclean in .
-make[2]: Entering directory `/develop/pcsc-lite-1.8.11'
-rm -rf .libs _libs
-rm -f *.lo
-test -z "src/PCSC/pcsclite.h" || rm -f src/PCSC/pcsclite.h
-test . = "." || test -z "" || rm -f 
-test -z "ChangeLog.svn" || rm -f ChangeLog.svn
-rm -f config.h stamp-h1
-rm -f libtool config.lt
-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
-make[2]: Leaving directory `/develop/pcsc-lite-1.8.11'
-rm -f config.status config.cache config.log configure.lineno config.status.lineno
-rm -f Makefile
-make[1]: Leaving directory `/develop/pcsc-lite-1.8.11'
    dh_autoreconf_clean -O--parallel
    dh_clean -O--parallel
  dpkg-source -b pcsc-lite-1.8.11
 dpkg-source: Information: Quellformat »3.0 (quilt)« wird verwendet
 dpkg-source: Information: pcsc-lite wird unter Benutzung des existierenden ./pcsc-lite_1.8.11.orig.tar.bz2 gebaut
-dpkg-source: Warnung: Löschen der Datei config.h.in wird ignoriert
-dpkg-source: Warnung: Löschen der Datei ylwrap wird ignoriert
-dpkg-source: Warnung: Löschen der Datei depcomp wird ignoriert
-dpkg-source: Warnung: Löschen der Datei ltmain.sh wird ignoriert
-dpkg-source: Warnung: Löschen der Datei ChangeLog.svn wird ignoriert
-dpkg-source: Warnung: Löschen der Datei Makefile.in wird ignoriert
-dpkg-source: Warnung: Löschen der Datei config.sub wird ignoriert
-dpkg-source: Warnung: Löschen der Datei compile wird ignoriert
-dpkg-source: Warnung: Löschen der Datei missing wird ignoriert
-dpkg-source: Warnung: Löschen der Datei configure wird ignoriert
-dpkg-source: Warnung: Löschen der Datei aclocal.m4 wird ignoriert
-dpkg-source: Warnung: Löschen der Datei INSTALL wird ignoriert
-dpkg-source: Warnung: Löschen der Datei config.guess wird ignoriert
-dpkg-source: Warnung: Löschen der Datei ar-lib wird ignoriert
-dpkg-source: Warnung: Löschen der Datei install-sh wird ignoriert
-dpkg-source: Warnung: Löschen der Datei src/Makefile.in wird ignoriert
-dpkg-source: Warnung: Löschen der Datei src/pcscd.h wird ignoriert
-dpkg-source: Warnung: Löschen der Datei src/spy/Makefile.in wird ignoriert
-dpkg-source: Warnung: Löschen der Datei src/PCSC/pcsclite.h wird ignoriert
-dpkg-source: Warnung: Löschen der Datei m4/libtool.m4 wird ignoriert
-dpkg-source: Warnung: Löschen der Datei m4/ltoptions.m4 wird ignoriert
-dpkg-source: Warnung: Löschen der Datei doc/Makefile.in wird ignoriert
-dpkg-source: Warnung: Löschen der Datei doc/example/Makefile.in wird ignoriert
-dpkg-source: Warnung: Löschen der Datei etc/Makefile.in wird ignoriert
-dpkg-source: Information: pcsc-lite wird in pcsc-lite_1.8.11-3~tcos20+3.debian.tar.gz gebaut
-dpkg-source: Information: pcsc-lite wird in pcsc-lite_1.8.11-3~tcos20+3.dsc gebaut
+dpkg-source: Information: pcsc-lite wird in pcsc-lite_1.8.11-3~tcos20+4.debian.tar.gz gebaut
+dpkg-source: Information: pcsc-lite wird in pcsc-lite_1.8.11-3~tcos20+4.dsc gebaut
  debian/rules build
 dh build --with autoreconf --parallel
    dh_testdir -O--parallel
@@ -133,17 +27,8 @@ libtoolize: copying file `m4/ltoptions.m4'
 libtoolize: copying file `m4/ltsugar.m4'
 libtoolize: copying file `m4/ltversion.m4'
 libtoolize: copying file `m4/lt~obsolete.m4'
-configure.ac:66: installing `./ar-lib'
-configure.ac:65: installing `./compile'
-configure.ac:15: installing `./config.guess'
-configure.ac:15: installing `./config.sub'
-configure.ac:8: installing `./install-sh'
-configure.ac:8: installing `./missing'
-doc/example/Makefile.am: installing `./depcomp'
-configure.ac: installing `./ylwrap'
-Makefile.am: installing `./INSTALL'
    debian/rules override_dh_auto_configure
-make[1]: Entering directory `/develop/pcsc-lite-1.8.11'
+make[1]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11'
 dh_auto_configure --  --enable-usbdropdir=/usr/lib/pcsc/drivers CFLAGS="-g -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security" CPPFLAGS="-D_FORTIFY_SOURCE=2" CXXFLAGS="-g -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security" FFLAGS="-g -O2" LDFLAGS="-Wl,-z,relro" 
 checking for a BSD-compatible install... /usr/bin/install -c
 checking whether build environment is sane... yes
@@ -339,23 +224,23 @@ config.status: creating src/spy/Makefile
 config.status: creating config.h
 config.status: executing depfiles commands
 config.status: executing libtool commands
-make[1]: Leaving directory `/develop/pcsc-lite-1.8.11'
+make[1]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11'
    dh_auto_build -O--parallel
-make[1]: Entering directory `/develop/pcsc-lite-1.8.11'
+make[1]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11'
 make  all-recursive
-make[2]: Entering directory `/develop/pcsc-lite-1.8.11'
+make[2]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11'
 Making all in src
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/src'
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
 Making all in spy
-make[4]: Entering directory `/develop/pcsc-lite-1.8.11/src/spy'
+make[4]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/src/spy'
   CC     libpcscspy.lo
   CCLD   libpcscspy.la
 pod2man \
 		--center="PC/SC lite" \
 		--release="pcsc-lite 1.8.11" \
 		./pcsc-spy.pod > pcsc-spy.1
-make[4]: Leaving directory `/develop/pcsc-lite-1.8.11/src/spy'
-make[4]: Entering directory `/develop/pcsc-lite-1.8.11/src'
+make[4]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/src/spy'
+make[4]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
   CC     libpcsclite_la-debug.lo
   CC     libpcsclite_la-error.lo
   CC     libpcsclite_la-winscard_clnt.lo
@@ -376,7 +261,6 @@ touch pcsc-wirecheck-dist.c
   CCLD   pcsc-wirecheck
   CC     pcscd-auth.o
   CC     pcscd-atrhandler.o
-  LEX    configfile.c
   CC     pcscd-configfile.o
   CC     pcscd-debuglog.o
   CC     pcscd-dyn_hpux.o
@@ -405,146 +289,144 @@ touch pcsc-wirecheck-dist.c
   CC     pcscd-winscard_msg_srv.o
   CC     pcscd-winscard_svc.o
   CCLD   pcscd
-make[4]: Leaving directory `/develop/pcsc-lite-1.8.11/src'
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/src'
+make[4]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
 Making all in etc
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/etc'
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/etc'
 make[3]: Für das Ziel »all« ist nichts zu tun.
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/etc'
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/etc'
 Making all in doc
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/doc'
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
 Making all in .
-make[4]: Entering directory `/develop/pcsc-lite-1.8.11/doc'
+make[4]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
 make[4]: Für das Ziel »all-am« ist nichts zu tun.
-make[4]: Leaving directory `/develop/pcsc-lite-1.8.11/doc'
+make[4]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
 Making all in example
-make[4]: Entering directory `/develop/pcsc-lite-1.8.11/doc/example'
+make[4]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/doc/example'
   CC     pcsc_demo-pcsc_demo.o
   CCLD   pcsc_demo
-make[4]: Leaving directory `/develop/pcsc-lite-1.8.11/doc/example'
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/doc'
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11'
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11'
-make[2]: Leaving directory `/develop/pcsc-lite-1.8.11'
-make[1]: Leaving directory `/develop/pcsc-lite-1.8.11'
+make[4]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/doc/example'
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11'
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11'
+make[2]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11'
+make[1]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11'
    dh_auto_test -O--parallel
-make[1]: Entering directory `/develop/pcsc-lite-1.8.11'
+make[1]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11'
 Making check in src
-make[2]: Entering directory `/develop/pcsc-lite-1.8.11/src'
+make[2]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
 Making check in spy
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/src/spy'
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/src/spy'
 make[3]: Für das Ziel »check« ist nichts zu tun.
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/src/spy'
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/src'
-  LEX    configfile.c
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/src'
-make[2]: Leaving directory `/develop/pcsc-lite-1.8.11/src'
-Making check in etc
-make[2]: Entering directory `/develop/pcsc-lite-1.8.11/etc'
-make[2]: Für das Ziel »check« ist nichts zu tun.
-make[2]: Leaving directory `/develop/pcsc-lite-1.8.11/etc'
-Making check in doc
-make[2]: Entering directory `/develop/pcsc-lite-1.8.11/doc'
-Making check in .
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/doc'
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/src/spy'
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
 make[3]: Für das Ziel »check-am« ist nichts zu tun.
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/doc'
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
+make[2]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
+Making check in etc
+make[2]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/etc'
+make[2]: Für das Ziel »check« ist nichts zu tun.
+make[2]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/etc'
+Making check in doc
+make[2]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
+Making check in .
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
+make[3]: Für das Ziel »check-am« ist nichts zu tun.
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
 Making check in example
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/doc/example'
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/doc/example'
 make[3]: Für das Ziel »check« ist nichts zu tun.
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/doc/example'
-make[2]: Leaving directory `/develop/pcsc-lite-1.8.11/doc'
-make[2]: Entering directory `/develop/pcsc-lite-1.8.11'
-make[2]: Leaving directory `/develop/pcsc-lite-1.8.11'
-make[1]: Leaving directory `/develop/pcsc-lite-1.8.11'
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/doc/example'
+make[2]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
+make[2]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11'
+make[2]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11'
+make[1]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11'
  fakeroot debian/rules binary
 dh binary --with autoreconf --parallel
    dh_testroot -O--parallel
    dh_prep -O--parallel
    dh_installdirs -O--parallel
    dh_auto_install -O--parallel
-make[1]: Entering directory `/develop/pcsc-lite-1.8.11'
+make[1]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11'
 Making install in src
-make[2]: Entering directory `/develop/pcsc-lite-1.8.11/src'
+make[2]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
 Making install in spy
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/src/spy'
-make[4]: Entering directory `/develop/pcsc-lite-1.8.11/src/spy'
- /bin/mkdir -p '/develop/pcsc-lite-1.8.11/debian/tmp/usr/bin'
- /usr/bin/install -c pcsc-spy '/develop/pcsc-lite-1.8.11/debian/tmp/usr/bin'
- /bin/mkdir -p '/develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu'
- /bin/bash ../../libtool   --mode=install /usr/bin/install -c   libpcscspy.la '/develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu'
-libtool: install: /usr/bin/install -c .libs/libpcscspy.so.0.0.0 /develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu/libpcscspy.so.0.0.0
-libtool: install: (cd /develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu && { ln -s -f libpcscspy.so.0.0.0 libpcscspy.so.0 || { rm -f libpcscspy.so.0 && ln -s libpcscspy.so.0.0.0 libpcscspy.so.0; }; })
-libtool: install: (cd /develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu && { ln -s -f libpcscspy.so.0.0.0 libpcscspy.so || { rm -f libpcscspy.so && ln -s libpcscspy.so.0.0.0 libpcscspy.so; }; })
-libtool: install: /usr/bin/install -c .libs/libpcscspy.lai /develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu/libpcscspy.la
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/src/spy'
+make[4]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/src/spy'
+ /bin/mkdir -p '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/bin'
+ /usr/bin/install -c pcsc-spy '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/bin'
+ /bin/mkdir -p '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu'
+ /bin/bash ../../libtool   --mode=install /usr/bin/install -c   libpcscspy.la '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu'
+libtool: install: /usr/bin/install -c .libs/libpcscspy.so.0.0.0 /develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu/libpcscspy.so.0.0.0
+libtool: install: (cd /develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu && { ln -s -f libpcscspy.so.0.0.0 libpcscspy.so.0 || { rm -f libpcscspy.so.0 && ln -s libpcscspy.so.0.0.0 libpcscspy.so.0; }; })
+libtool: install: (cd /develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu && { ln -s -f libpcscspy.so.0.0.0 libpcscspy.so || { rm -f libpcscspy.so && ln -s libpcscspy.so.0.0.0 libpcscspy.so; }; })
+libtool: install: /usr/bin/install -c .libs/libpcscspy.lai /develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu/libpcscspy.la
 libtool: install: warning: remember to run `libtool --finish /usr/lib/i386-linux-gnu'
- /bin/mkdir -p '/develop/pcsc-lite-1.8.11/debian/tmp/usr/share/man/man1'
- /usr/bin/install -c -m 644 pcsc-spy.1 '/develop/pcsc-lite-1.8.11/debian/tmp/usr/share/man/man1'
-make[4]: Leaving directory `/develop/pcsc-lite-1.8.11/src/spy'
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/src/spy'
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/src'
-  LEX    configfile.c
-make[4]: Entering directory `/develop/pcsc-lite-1.8.11/src'
- /bin/mkdir -p '/develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu'
- /bin/bash ../libtool   --mode=install /usr/bin/install -c   libpcsclite.la '/develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu'
-libtool: install: /usr/bin/install -c .libs/libpcsclite.so.1.0.0 /develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu/libpcsclite.so.1.0.0
-libtool: install: (cd /develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu && { ln -s -f libpcsclite.so.1.0.0 libpcsclite.so.1 || { rm -f libpcsclite.so.1 && ln -s libpcsclite.so.1.0.0 libpcsclite.so.1; }; })
-libtool: install: (cd /develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu && { ln -s -f libpcsclite.so.1.0.0 libpcsclite.so || { rm -f libpcsclite.so && ln -s libpcsclite.so.1.0.0 libpcsclite.so; }; })
-libtool: install: /usr/bin/install -c .libs/libpcsclite.lai /develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu/libpcsclite.la
+ /bin/mkdir -p '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/share/man/man1'
+ /usr/bin/install -c -m 644 pcsc-spy.1 '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/share/man/man1'
+make[4]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/src/spy'
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/src/spy'
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
+make[4]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
+ /bin/mkdir -p '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu'
+ /bin/bash ../libtool   --mode=install /usr/bin/install -c   libpcsclite.la '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu'
+libtool: install: /usr/bin/install -c .libs/libpcsclite.so.1.0.0 /develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu/libpcsclite.so.1.0.0
+libtool: install: (cd /develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu && { ln -s -f libpcsclite.so.1.0.0 libpcsclite.so.1 || { rm -f libpcsclite.so.1 && ln -s libpcsclite.so.1.0.0 libpcsclite.so.1; }; })
+libtool: install: (cd /develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu && { ln -s -f libpcsclite.so.1.0.0 libpcsclite.so || { rm -f libpcsclite.so && ln -s libpcsclite.so.1.0.0 libpcsclite.so; }; })
+libtool: install: /usr/bin/install -c .libs/libpcsclite.lai /develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu/libpcsclite.la
 libtool: install: warning: remember to run `libtool --finish /usr/lib/i386-linux-gnu'
-  LEX    configfile.c
- /bin/mkdir -p '/develop/pcsc-lite-1.8.11/debian/tmp/usr/sbin'
-  /bin/bash ../libtool   --mode=install /usr/bin/install -c pcscd '/develop/pcsc-lite-1.8.11/debian/tmp/usr/sbin'
-libtool: install: /usr/bin/install -c pcscd /develop/pcsc-lite-1.8.11/debian/tmp/usr/sbin/pcscd
- /bin/mkdir -p '/develop/pcsc-lite-1.8.11/debian/tmp/usr/include'
- /bin/mkdir -p '/develop/pcsc-lite-1.8.11/debian/tmp/usr/include/PCSC'
- /usr/bin/install -c -m 644  PCSC/debuglog.h PCSC/ifdhandler.h PCSC/reader.h PCSC/winscard.h PCSC/wintypes.h '/develop/pcsc-lite-1.8.11/debian/tmp/usr/include/PCSC'
- /bin/mkdir -p '/develop/pcsc-lite-1.8.11/debian/tmp/usr/include/PCSC'
- /usr/bin/install -c -m 644 PCSC/pcsclite.h '/develop/pcsc-lite-1.8.11/debian/tmp/usr/include/PCSC'
- /bin/mkdir -p '/develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu/pkgconfig'
- /usr/bin/install -c -m 644 libpcsclite.pc '/develop/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu/pkgconfig'
-make[4]: Leaving directory `/develop/pcsc-lite-1.8.11/src'
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/src'
-make[2]: Leaving directory `/develop/pcsc-lite-1.8.11/src'
+ /bin/mkdir -p '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/sbin'
+  /bin/bash ../libtool   --mode=install /usr/bin/install -c pcscd '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/sbin'
+libtool: install: /usr/bin/install -c pcscd /develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/sbin/pcscd
+ /bin/mkdir -p '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/include'
+ /bin/mkdir -p '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/include/PCSC'
+ /usr/bin/install -c -m 644  PCSC/debuglog.h PCSC/ifdhandler.h PCSC/reader.h PCSC/winscard.h PCSC/wintypes.h '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/include/PCSC'
+ /bin/mkdir -p '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/include/PCSC'
+ /usr/bin/install -c -m 644 PCSC/pcsclite.h '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/include/PCSC'
+ /bin/mkdir -p '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu/pkgconfig'
+ /usr/bin/install -c -m 644 libpcsclite.pc '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/lib/i386-linux-gnu/pkgconfig'
+make[4]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
+make[2]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/src'
 Making install in etc
-make[2]: Entering directory `/develop/pcsc-lite-1.8.11/etc'
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/etc'
+make[2]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/etc'
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/etc'
 make[3]: Für das Ziel »install-exec-am« ist nichts zu tun.
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/etc'
-make[2]: Leaving directory `/develop/pcsc-lite-1.8.11/etc'
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/etc'
+make[2]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/etc'
 Making install in doc
-make[2]: Entering directory `/develop/pcsc-lite-1.8.11/doc'
+make[2]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
 Making install in .
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/doc'
-make[4]: Entering directory `/develop/pcsc-lite-1.8.11/doc'
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
+make[4]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
 make[4]: Für das Ziel »install-exec-am« ist nichts zu tun.
- /bin/mkdir -p '/develop/pcsc-lite-1.8.11/debian/tmp/usr/share/doc/pcsc-lite'
- /usr/bin/install -c -m 644 README.DAEMON README.polkit '/develop/pcsc-lite-1.8.11/debian/tmp/usr/share/doc/pcsc-lite'
- /bin/mkdir -p '/develop/pcsc-lite-1.8.11/debian/tmp/usr/share/man/man5'
- /usr/bin/install -c -m 644 reader.conf.5 '/develop/pcsc-lite-1.8.11/debian/tmp/usr/share/man/man5'
- /bin/mkdir -p '/develop/pcsc-lite-1.8.11/debian/tmp/usr/share/man/man8'
- /usr/bin/install -c -m 644 pcscd.8 '/develop/pcsc-lite-1.8.11/debian/tmp/usr/share/man/man8'
+ /bin/mkdir -p '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/share/doc/pcsc-lite'
+ /usr/bin/install -c -m 644 README.DAEMON README.polkit '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/share/doc/pcsc-lite'
+ /bin/mkdir -p '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/share/man/man5'
+ /usr/bin/install -c -m 644 reader.conf.5 '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/share/man/man5'
+ /bin/mkdir -p '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/share/man/man8'
+ /usr/bin/install -c -m 644 pcscd.8 '/develop/core/Packages/pcsc-lite-1.8.11/debian/tmp/usr/share/man/man8'
 make  install-data-hook
-make[5]: Entering directory `/develop/pcsc-lite-1.8.11/doc'
+make[5]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
 make[5]: Für das Ziel »install-data-hook« ist nichts zu tun.
-make[5]: Leaving directory `/develop/pcsc-lite-1.8.11/doc'
-make[4]: Leaving directory `/develop/pcsc-lite-1.8.11/doc'
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/doc'
+make[5]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
+make[4]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
 Making install in example
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11/doc/example'
-make[4]: Entering directory `/develop/pcsc-lite-1.8.11/doc/example'
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/doc/example'
+make[4]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11/doc/example'
 make[4]: Für das Ziel »install-exec-am« ist nichts zu tun.
 make[4]: Für das Ziel »install-data-am« ist nichts zu tun.
-make[4]: Leaving directory `/develop/pcsc-lite-1.8.11/doc/example'
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11/doc/example'
-make[2]: Leaving directory `/develop/pcsc-lite-1.8.11/doc'
-make[2]: Entering directory `/develop/pcsc-lite-1.8.11'
-make[3]: Entering directory `/develop/pcsc-lite-1.8.11'
+make[4]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/doc/example'
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/doc/example'
+make[2]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11/doc'
+make[2]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11'
+make[3]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11'
 make[3]: Für das Ziel »install-exec-am« ist nichts zu tun.
 make[3]: Für das Ziel »install-data-am« ist nichts zu tun.
-make[3]: Leaving directory `/develop/pcsc-lite-1.8.11'
-make[2]: Leaving directory `/develop/pcsc-lite-1.8.11'
-make[1]: Leaving directory `/develop/pcsc-lite-1.8.11'
+make[3]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11'
+make[2]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11'
+make[1]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11'
    dh_install -O--parallel
    dh_installdocs -O--parallel
    dh_installchangelogs -O--parallel
@@ -557,9 +439,9 @@ make[1]: Leaving directory `/develop/pcsc-lite-1.8.11'
    dh_installifupdown -O--parallel
    dh_installinfo -O--parallel
    debian/rules override_dh_installinit
-make[1]: Entering directory `/develop/pcsc-lite-1.8.11'
+make[1]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11'
 dh_installinit -n
-make[1]: Leaving directory `/develop/pcsc-lite-1.8.11'
+make[1]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11'
    dh_installmenu -O--parallel
    dh_installmime -O--parallel
    dh_installmodules -O--parallel
@@ -582,9 +464,9 @@ make[1]: Leaving directory `/develop/pcsc-lite-1.8.11'
    dh_compress -O--parallel
    dh_fixperms -O--parallel
    debian/rules override_dh_strip
-make[1]: Entering directory `/develop/pcsc-lite-1.8.11'
+make[1]: Entering directory `/develop/core/Packages/pcsc-lite-1.8.11'
 dh_strip --dbg-package=libpcsclite1-dbg
-make[1]: Leaving directory `/develop/pcsc-lite-1.8.11'
+make[1]: Leaving directory `/develop/core/Packages/pcsc-lite-1.8.11'
    dh_makeshlibs -O--parallel
    dh_shlibdeps -O--parallel
 dpkg-shlibdeps: Warnung: Das Paket könnte eine nutzlose Abhängigkeit vermeiden, falls debian/libpcsclite-dev/usr/lib/i386-linux-gnu/libpcscspy.so.0.0.0 nicht gegen librt.so.1 gelinkt wäre (es verwendet keines der Symbole der Bibliothek).
@@ -599,11 +481,11 @@ dpkg-gencontrol: Warnung: File::FcntlLock not available; using flock which is no
 dpkg-gencontrol: Warnung: File::FcntlLock not available; using flock which is not NFS-safe
    dh_md5sums -O--parallel
    dh_builddeb -O--parallel
-dpkg-deb: Paket »pcscd« wird in »../pcscd_1.8.11-3~tcos20+3_i386.deb« gebaut.
-dpkg-deb: Paket »libpcsclite-dev« wird in »../libpcsclite-dev_1.8.11-3~tcos20+3_i386.deb« gebaut.
-dpkg-deb: Paket »libpcsclite1-dbg« wird in »../libpcsclite1-dbg_1.8.11-3~tcos20+3_i386.deb« gebaut.
-dpkg-deb: Paket »libpcsclite1« wird in »../libpcsclite1_1.8.11-3~tcos20+3_i386.deb« gebaut.
- dpkg-genchanges  >../pcsc-lite_1.8.11-3~tcos20+3_i386.changes
+dpkg-deb: Paket »pcscd« wird in »../pcscd_1.8.11-3~tcos20+4_i386.deb« gebaut.
+dpkg-deb: Paket »libpcsclite-dev« wird in »../libpcsclite-dev_1.8.11-3~tcos20+4_i386.deb« gebaut.
+dpkg-deb: Paket »libpcsclite1-dbg« wird in »../libpcsclite1-dbg_1.8.11-3~tcos20+4_i386.deb« gebaut.
+dpkg-deb: Paket »libpcsclite1« wird in »../libpcsclite1_1.8.11-3~tcos20+4_i386.deb« gebaut.
+ dpkg-genchanges  >../pcsc-lite_1.8.11-3~tcos20+4_i386.changes
 dpkg-genchanges: Originalquellen beim Hochladen nicht hinzufügen
  dpkg-source --after-build pcsc-lite-1.8.11
 dpkg-buildpackage: Binärpakete(e) und Diff hochzuladen (Originalquellen NICHT enthalten)

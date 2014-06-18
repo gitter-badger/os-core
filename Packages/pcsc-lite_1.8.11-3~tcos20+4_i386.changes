@@ -1,0 +1,42 @@
+Format: 1.8
+Date: Thu, 05 Jun 2014 16:27:59 +0000
+Source: pcsc-lite
+Binary: pcscd libpcsclite-dev libpcsclite1-dbg libpcsclite1
+Architecture: source i386
+Version: 1.8.11-3~tcos20+4
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: Steffen Hoenig <s.hoenig@openthinclient.com>
+Changed-By: Steffen Hoenig <s.hoenig@openthinclient.com>
+Description: 
+ libpcsclite-dev - Middleware to access a smart card using PC/SC (development files)
+ libpcsclite1 - Middleware to access a smart card using PC/SC (library)
+ libpcsclite1-dbg - Middleware to access a smart card using PC/SC (debugging symbols)
+ pcscd      - Middleware to access a smart card using PC/SC (daemon side)
+Changes: 
+ pcsc-lite (1.8.11-3~tcos20+4) UNRELEASED; urgency=low
+ .
+   * changed dh_installinit to surpress update-rc.d
+   * added update-rc.d remove to pcscd.postinst
+   * added a start condition to init.d
+Checksums-Sha1: 
+ b4660cc1be11351f6a32ae50b9f11e837811438b 1301 pcsc-lite_1.8.11-3~tcos20+4.dsc
+ 67498fec93c9e72781df811fa537949f0529c0a1 15928 pcsc-lite_1.8.11-3~tcos20+4.debian.tar.gz
+ 63a1682f7a7e077d7912a31e39501cc6c171d950 97998 pcscd_1.8.11-3~tcos20+4_i386.deb
+ a672f357d91edf2dbc11d8b0cd14a2d0cafa5b81 78870 libpcsclite-dev_1.8.11-3~tcos20+4_i386.deb
+ 155e62bcab886e6b7bd2b1a298b842001d2f8736 208470 libpcsclite1-dbg_1.8.11-3~tcos20+4_i386.deb
+ 1aa6db78acef4a14607cca837b876546c1485d82 59624 libpcsclite1_1.8.11-3~tcos20+4_i386.deb
+Checksums-Sha256: 
+ 67475723955357e0968848f7f88c46a268a1774cb3503e9837fbfec1145d7de5 1301 pcsc-lite_1.8.11-3~tcos20+4.dsc
+ 18c1af44085e30fc65726913c17d7317de6440ffad586ef36fe0c0dd30fd6343 15928 pcsc-lite_1.8.11-3~tcos20+4.debian.tar.gz
+ 8e26658454a4e470b65da5af9e1ba4a75634b51bf50f72b04eb8d2f560549ad1 97998 pcscd_1.8.11-3~tcos20+4_i386.deb
+ 25b84b9c672e0b39223d8d305da91350bf908ca50648aa78c458ec44833e8bd8 78870 libpcsclite-dev_1.8.11-3~tcos20+4_i386.deb
+ fc2207c5469c55a699c060bb34ff90338e3c68366f7c2a93f2953aad74cc774a 208470 libpcsclite1-dbg_1.8.11-3~tcos20+4_i386.deb
+ 6ef83186c50fd79587463416085598a8439eb644b2145516442d7a645bf9beb9 59624 libpcsclite1_1.8.11-3~tcos20+4_i386.deb
+Files: 
+ 5812c325d4bd2213d80ac9cc51dd6d6b 1301 misc optional pcsc-lite_1.8.11-3~tcos20+4.dsc
+ 5941a38afd8e14ece3511b8a6584f0e5 15928 misc optional pcsc-lite_1.8.11-3~tcos20+4.debian.tar.gz
+ 9821fd864d35853466d033507e292ab9 97998 misc optional pcscd_1.8.11-3~tcos20+4_i386.deb
+ 74d17754edbe3d9d4d1734d3f8c1a91a 78870 libdevel optional libpcsclite-dev_1.8.11-3~tcos20+4_i386.deb
+ 877cd33706007e75010fd2a21738868b 208470 debug extra libpcsclite1-dbg_1.8.11-3~tcos20+4_i386.deb
+ 2d0fc331d1e8433edc9b14a6329283b4 59624 libs optional libpcsclite1_1.8.11-3~tcos20+4_i386.deb
