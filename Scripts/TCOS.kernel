@@ -17,8 +17,8 @@ fi
 MAJOR=${KVERS%.*}  # 3.4.70 -> 3.4
 MINOR=${KVERS##*.} # 3.4.70 -> 70
 
-# make-kpkg needs DEB_HOST_ARCH, otherwise it will use the build hosts arch
-export DEB_HOST_ARCH=$ARCH
+cd /
+
 
 if [ ! -d Kernel/aufs-linux ]; then
     mkdir -p Kernel
@@ -42,14 +42,28 @@ if  [ ! -d Kernel/aufs-linux-${KVERS} ]; then
     fi
     set +e
     ( cd Kernel/aufs-linux-${KVERS} ; xzcat ../patch-${KVERS}.xz | patch -p1 )
+    # to prevent a "dirty" kernel, we need to commit
+    ( cd Kernel/aufs-linux-${KVERS} ; git commit -a -m "Applied  patch-${KVERS}.xz" )
     set -e
 fi
 
+
+# have three kernel compile folder, each for a cpu_type
+# this should be more perfomant than compiling three times in the same folder
+# (if you change the configuration and need to recompile)
+( cd Kernel/; \
+  [ -d aufs-linux-${KVERS}_normal ] || cp -ar aufs-linux-${KVERS} aufs-linux-${KVERS}_normal; \
+  [ -d aufs-linux-${KVERS}_non-pae ] || cp -ar aufs-linux-${KVERS}_normal aufs-linux-${KVERS}_non-pae; \
+  [ -d aufs-linux-${KVERS}_transmeta ] || cp -ar aufs-linux-${KVERS}_normal aufs-linux-${KVERS}_transmeta;
+)
+
 for CPU_TYPE in normal non-pae transmeta; do
+#for CPU_TYPE in transmeta; do
+#for CPU_TYPE in normal; do
     mkpkgParms="--revision=1 --append-to-version=+tcos-${CPU_TYPE}"
     tcosKernelConf=Sources/kernel${MAJOR}-${ARCH}-${CPU_TYPE}.config
-    if [ -e Sources/kernel${MAJOR}-${ARCH}-${CPU_TYPE}.config ]; then
-	cp  $tcosKernelConf Kernel/aufs-linux-${KVERS}/.config 
+    if [ -e $tcosKernelConf ]; then
+	cp  $tcosKernelConf Kernel/aufs-linux-${KVERS}_${CPU_TYPE}/.config 
     else
 	echo "Could not find file $tcosKernelConf ." 
 	echo "We expect a ready to use configuratioen here - exiting." 
@@ -63,29 +77,25 @@ for CPU_TYPE in normal non-pae transmeta; do
 	#fi
     fi
 
-#    if [ "$CPU_TYPE" == "normal" ]; then 
-        # build header and deb only for "normal" kernel 
-	( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j$CPU_CORES ARCH="$ARCH" bzImage && \
-	    CONCURRENCY_LEVEL=$CPU_CORES ARCH="$ARCH" MODULE_LOC=`pwd`/../modules fakeroot make-kpkg --arch="$ARCH" \
-	    --cross-compile - $mkpkgParms --us --uc kernel_image modules_image kernel_headers)
-#    else 
-#	# otherwise just build the kernel image
-#	( cd Kernel/aufs-linux-${KVERS} ; make ARCH="$ARCH" oldconfig && make -j$CPU_CORES ARCH="$ARCH" bzImage )
-#    fi
+    # make -j$CPU_CORES ARCH="$ARCH" bzImage && 
+    (cd Kernel/aufs-linux-${KVERS}_${CPU_TYPE} ; make ARCH="$ARCH" oldconfig && if [ "$ARCH" = "i386" ]; then export CFLAGS="-m32"; fi && \
+	DEB_HOST_ARCH="$ARCH" CONCURRENCY_LEVEL="$CPU_CORES" ARCH="$ARCH" MODULE_LOC=`pwd`/../modules \
+	fakeroot make-kpkg  --cross-compile - --arch $ARCH $mkpkgParms --us --uc kernel_image modules_image kernel_headers \
+    )
 
-    # save the kernel image
-    ( cd Kernel/aufs-linux-${KVERS} && cp arch/x86/boot/bzImage arch/x86/boot/bzImage_${CPU_TYPE})
-
-    if ! diff -q Kernel/aufs-linux-${KVERS}/.config $tcosKernelConf &> /dev/null ; then 
-	read -p "Save your changes back to $tcosKernelConf ? [Y/n] " a
-	case "$a" in
-	    N*|n*)
-		;;
-	    *)
-		cp -a Kernel/aufs-linux-${KVERS}/.config $tcosKernelConf
-		;;
-	esac
-    fi
+    # if ! diff -q Kernel/aufs-linux-${KVERS}_${CPU_TYPE}/.config $tcosKernelConf &> /dev/null ; then 
+    # 	read -p "Save your changes back to $tcosKernelConf ? [Y/n] " a
+    # 	case "$a" in
+    # 	    N*|n*)
+    # 		;;
+    # 	    *)
+    # 		cp -a Kernel/aufs-linux-${KVERS}_${CPU_TYPE}/.config $tcosKernelConf
+    # 		;;
+    # 	esac
+    # else
+    # 	:
+    # fi
+     
     # echo "Kernel $CPU_TYPE done. Presse any key."; read bla
 done 
 

@@ -7,17 +7,17 @@
 SHELL := /bin/bash
 
 # Define which kernel to download and compile for TCOS
-export KVERS      = 3.14.5
+export KVERS      = 3.15.1
 export BUSYBOX_VERSION = 1.22.1
 export X86        = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
 export X86_64     = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
-export BASE_PACKAGE_PATH  = Base/base-2.0/debian/base
-export LOCAL_TEST_PATH  = root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root
+#export BASE_PACKAGE_PATH  = Base/base-2.0/debian/base
+export BASE_PACKAGE_PATH  = root@otc-dd-dev2:/develop/Base/base-2.0/
+export LOCAL_TEST_PATH  = root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root/
 export DEB_MIRROR = http://otc-dd-01/debian
 export CPU_CORES = 4
 export ARCH       = i386
 export BASE_VERSION ?= 2.0-xx(minor_unknown)
-
 
 
 # VARIABLE  = value --> Normal setting of a variable - values within it are recursively expanded when the variable is used, not when it's declared
@@ -32,7 +32,7 @@ export BASE_VERSION ?= 2.0-xx(minor_unknown)
 # 
 # These are the packages from debian wheezy 
 #
-export PACKAGES = libpam-ldap alsa-utils aptitude atril blueman bluez-alsa bluez-audio ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dos2unix dosfstools e2fsprogs eject engrampa eom ethtool file flashplugin-nonfree fontconfig freerdp-X11 gdevilspie gvfs gvfs-backends hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libacsccid1 libccid libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libglib2.0-bin libgtk2.0-bin libgtk-3-bin libmotif4 libpopt0 libqt4-qt3support libqt4-sql libssl1.0.0 libstdc++5 libx11-6 lightdm lightdm-gtk-greeter man marco mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes mc mozo net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils pcsc-tools pluma python python-bluez python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev usbip usbutils util-linux vim vim-tiny wget x11vnc  xdg-utils xfonts-base xinetd xinit zenity caja mate-utils-common mate-utils pulseaudio pavucontrol strace fxcyberjack libifd-cyberjack6 xtightvncviewer dnsutils dmidecode lshw hwinfo libsasl2-modules libsasl2-modules-gssapi-mit libxerces-c3.1 libcurl3 libwebkitgtk-1.0-0 
+export PACKAGES = libpam-ldap alsa-utils aptitude atril blueman bluez-alsa bluez-audio ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dos2unix dosfstools e2fsprogs eject engrampa eom ethtool file flashplugin-nonfree fontconfig freerdp-X11 gdevilspie gvfs gvfs-backends hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libacsccid1 libccid libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libglib2.0-bin libgtk2.0-bin libgtk-3-bin libmotif4 libpopt0 libqt4-qt3support libqt4-sql libssl1.0.0 libstdc++5 libx11-6 lightdm lightdm-gtk-greeter man marco mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes mc mozo net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils pcsc-tools pluma python python-bluez python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev usbip usbutils util-linux vim vim-tiny wget x11vnc  xdg-utils xfonts-base xinetd xinit zenity caja mate-utils-common mate-utils mate-media-pulse pulseaudio pavucontrol strace fxcyberjack libifd-cyberjack6 xtightvncviewer dnsutils dmidecode lshw hwinfo libsasl2-modules libsasl2-modules-gssapi-mit libxerces-c3.1 libcurl3 libwebkitgtk-1.0-0 
 
 # These are the packages from debian sid/unstable. We need some newer stuff in some cases.  
 #
@@ -44,7 +44,7 @@ export PACKAGES_BACKPORTS = firmware-linux firmware-linux-free firmware-linux-no
 
 # These are the packages we install inside the busybox buildsystem
 #
-export PACKAGES_BUSYBOXBUILD = build-essential fakeroot
+export PACKAGES_BUSYBOXBUILD = build-essential fakeroot kernel-package bc git cpio distcc dkms wget ca-certificates 
 
 # Some packages are handmade or handpicked by the otc-team
 #
@@ -75,7 +75,7 @@ help:
 	@echo "[0m"
 
 # Meta-Targets
-
+#
 distclean:
 	sudo rm -rf Filesystem/* Image/boot/syslinux/vmlinuz* Image/boot/syslinux/initrd.gz Kernel/aufs-linux-* *-stamp 
 	sudo find ./Initrd -xdev -samefile Initrd/bin/busybox -delete || true
@@ -85,10 +85,12 @@ chroot: Filesystem ./Scripts/LINBO.chroot
 	rm -f clean-stamp
 	sudo Scripts/LINBO.chroot ./Filesystem
 
-all: compressed initrd 
+all: 
+	make initrd 
+	make compressed 
 
 # Build-Targets
-
+#
 filesystem: 
 	make filesystem-stamp
 
@@ -114,27 +116,27 @@ busybox: Sources/busybox.config Sources/busybox busybox-build-chroot-stamp
 busybox-stamp:
 	@echo "[1m Target: Create the busybox[0m"
 
-#	get config in place
+        # get config in place
 	-mkdir -p Sources/busybox
 	sudo cp Sources/busybox.config Sources/busybox/.config
 
-# 	check if there is already a busybox source and download/extract it if not
+        # check if there is already a busybox source and download/extract it if not
 	(test -r Sources/busybox/Makefile || \
 	cd Sources && wget -O - http://busybox.net/downloads/busybox-$(BUSYBOX_VERSION).tar.bz2  | tar -xjf - && \
 	mv busybox-$(BUSYBOX_VERSION)/* busybox/ && rm -rf busybox-$(BUSYBOX_VERSION))
 
-# 	just to be sure, unmount it
+        # just to be sure, unmount it
 	-sudo umount Bbox-build-chroot/busybox &> /dev/null
 	-sudo umount Bbox-build-chroot/Initrd &> /dev/null
 
-# 	we need to bind mount it, softlinks won't work
+        # we need to bind mount it, softlinks won't work
 	sudo mount -o bind Sources/busybox Bbox-build-chroot/busybox
 	sudo mount -o bind Initrd Bbox-build-chroot/Initrd
 
-#	let's compile
+        # let's compile
 	sudo Scripts/LINBO.chroot Bbox-build-chroot /bin/bash -c "cd /busybox; make clean; $(X86) make -j$(CPU_CORES) install"
 
-#	get rid of the bind mounts
+        # get rid of the bind mounts
 	sudo umount Bbox-build-chroot/busybox &> /dev/null
 	sudo umount Bbox-build-chroot/Initrd &> /dev/null
 	touch $@
@@ -197,11 +199,25 @@ kernel:
 kernel-stamp: ./Scripts/TCOS.kernel 
 	@echo "[1m Target: Build the kernel[0m"
 	rm -f kernel-install-stamp compressed-stamp 
-	./Scripts/TCOS.kernel
-	-mkdir -p Image/boot/syslinux/linux
-	cp Kernel/aufs-linux-$(KVERS)/arch/x86/boot/bzImage_normal Image/boot/syslinux/vmlinuz
-	cp Kernel/aufs-linux-$(KVERS)/arch/x86/boot/bzImage_non-pae Image/boot/syslinux/vmlinuz_non-pae
-	cp Kernel/aufs-linux-$(KVERS)/arch/x86/boot/bzImage_transmeta Image/boot/syslinux/vmlinuz_transmeta
+
+        # just to be sure, unmount it
+	-sudo umount Bbox-build-chroot/Kernel &> /dev/null; sudo umount Bbox-build-chroot/Sources &> /dev/null
+
+        # we need to bind mount it, softlinks won't work
+	sudo mount -o bind Sources Bbox-build-chroot/Sources
+	sudo mount -o bind Kernel Bbox-build-chroot/Kernel
+
+        # let's compile inside the changeroot
+	sudo CPU_CORES=$(CPU_CORES) KVERS=$(KVERS) ARCH=$(ARCH) Scripts/LINBO.chroot Bbox-build-chroot /bin/bash < Scripts/TCOS.kernel
+
+        # get rid of the bind mounts
+	sudo umount Bbox-build-chroot/Kernel &> /dev/null; sudo umount Bbox-build-chroot/Sources &> /dev/null
+
+	-mkdir -p Image/boot/syslinux
+	cp Kernel/aufs-linux-$(KVERS)_normal/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz
+	cp Kernel/aufs-linux-$(KVERS)_non-pae/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz_non-pae
+	cp Kernel/aufs-linux-$(KVERS)_transmeta/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz_transmeta
+
 	touch $@
 
 kernel-install: filesystem-stamp kernel-stamp
@@ -211,7 +227,7 @@ kernel-install-stamp: Scripts/LINBO.chroot kernel-stamp
 	@echo "[1m Target: Install the kernel[0m"
 	rm -f compressed-stamp
 	-mkdir -p Image/boot/syslinux
-	for debFile in Kernel/linux-image-$(KVERS)*.deb Kernel/linux-headers-$(KVERS)*.deb ; do ln -nf $$debFile Filesystem/tmp/ ; done
+	for debFile in Kernel/linux-image-$(KVERS)*.deb Kernel/linux-headers-$(KVERS)*.deb ; do sudo ln -nf $$debFile Filesystem/tmp/ ; done
 	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; apt-get --purge remove -y linux-headers-\* linux-image-\*; dpkg -i /tmp/linux-*$(KVERS)*.deb; rm -rf /tmp/*.deb"
 	touch $@
 
@@ -222,9 +238,9 @@ initrd-stamp:
 	@echo "[1m Target: Create the initrd[0m"
 	-mkdir -p Image/boot/syslinux
 
-#	*** CAVEAT ***
-# 	If xz is used for initrd compression, lzma format must be used. Either pxelinux (bootloader) 
-#	or the kernel itsel can't handle it.
+        # *** CAVEAT ***
+        # If xz is used for initrd compression, lzma format must be used. Either pxelinux (bootloader) 
+        # or the kernel itself can't handle other formats.
 	( cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > ../Image/boot/syslinux/initrd.xz )
 	touch $@
 
@@ -247,7 +263,7 @@ package-prepare: all
 
 package-prepare-stamp:
 	@echo "[1m Target: Copy base.sfs, kernel, etc. to package build folder.[0m"
-	rsync Image/boot/syslinux/vmlinuz*     $(BASE_PACKAGE_PATH)/tftp/
-	rsync Image/boot/syslinux/initrd.xz $(BASE_PACKAGE_PATH)/tftp/initrd.img
-	rsync Image/base.sfs           $(BASE_PACKAGE_PATH)/sfs/
-	touch $@
+	rsync Image/boot/syslinux/vmlinuz*     $(BASE_PACKAGE_PATH)/debian/base/tftp/
+	rsync Image/boot/syslinux/initrd.xz $(BASE_PACKAGE_PATH)/debian/base/tftp/initrd.img
+	rsync Image/base.sfs           $(BASE_PACKAGE_PATH)/debian/base/sfs/
+        # touch $@

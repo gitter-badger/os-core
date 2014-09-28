@@ -57,6 +57,7 @@ install: build
 # 	# copy the things we need inside a temporary copy 
 #	# we use hardlinks to save time and discspace
 	-cp -a $(CURDIR)/tftp/* $(CURDIR)/debian/base/tftp/
+	-cp -a $(CURDIR)/sfs/* $(CURDIR)/debian/base/sfs/
 
 # Build architecture-independent files here.
 binary-indep: build install
