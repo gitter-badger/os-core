@@ -14,11 +14,12 @@ if [ -z "$KVERS" -o -z "$ARCH" ]; then
 	exit 0
 fi
 
-MAJOR=${KVERS%.*}  # 3.4.70 -> 3.4
-MINOR=${KVERS##*.} # 3.4.70 -> 70
+MAJOR=$(echo $KVERS | cut -d. -f1-2)
+
+#MAJOR=${KVERS%.*}  # 3.4.70 -> 3.4
+#MINOR=${KVERS##*.} # 3.4.70 -> 70
 
 cd /
-
 
 if [ ! -d Kernel/aufs-linux ]; then
     mkdir -p Kernel
@@ -31,6 +32,8 @@ fi
 # check, whether there is a copy of a kernel checkout already
 if  [ ! -d Kernel/aufs-linux-${KVERS} ]; then
 
+    echo "MAJOR = $MAJOR"
+
     # 1. Create a clone to a local ref, and checkout to a specific branch
     echo -e "\033[1m Creating a working copy kernel/aufs-linux-${KVERS} \033[0m"
     ( cd Kernel/aufs-linux ; git checkout aufs${MAJOR} )
@@ -41,9 +44,11 @@ if  [ ! -d Kernel/aufs-linux-${KVERS} ]; then
 	wget -c -P Kernel/ https://www.kernel.org/pub/linux/kernel/v3.x/patch-${KVERS}.xz
     fi
     set +e
-    ( cd Kernel/aufs-linux-${KVERS} ; xzcat ../patch-${KVERS}.xz | patch -p1 )
-    # to prevent a "dirty" kernel, we need to commit
-    ( cd Kernel/aufs-linux-${KVERS} ; git commit -a -m "Applied  patch-${KVERS}.xz" )
+
+    echo -e "\033[1m Patching major aufs kernel to vanilla minor if necessary ..\033[0m"
+    # Don't try to apply a patch if there is no minor (i.e. kernel version is 3.17)
+    # Keep in mind: The major includes the aufs stuff already. 
+    [ "$MINOR" != "$MAJOR" ] && ( cd Kernel/aufs-linux-${KVERS} ; xzcat ../patch-${KVERS}.xz | patch -p1)
     set -e
 fi
 
@@ -52,14 +57,14 @@ fi
 # this should be more perfomant than compiling three times in the same folder
 # (if you change the configuration and need to recompile)
 ( cd Kernel/; \
-  [ -d aufs-linux-${KVERS}_normal ] || cp -ar aufs-linux-${KVERS} aufs-linux-${KVERS}_normal; \
-  [ -d aufs-linux-${KVERS}_non-pae ] || cp -ar aufs-linux-${KVERS}_normal aufs-linux-${KVERS}_non-pae; \
-  [ -d aufs-linux-${KVERS}_transmeta ] || cp -ar aufs-linux-${KVERS}_normal aufs-linux-${KVERS}_transmeta;
+  [ -d aufs-linux-${KVERS}_normal ] ||    (echo "Copying kernel source for normal kernel"; cp -ar aufs-linux-${KVERS} aufs-linux-${KVERS}_normal) ; \
+  [ -d aufs-linux-${KVERS}_non-pae ] ||   (echo "Copying kernel source for non-pae kernel";cp -ar aufs-linux-${KVERS}_normal aufs-linux-${KVERS}_non-pae); \
+  [ -d aufs-linux-${KVERS}_transmeta ] || (echo "Copying kernel source for transmeta kernel"; cp -ar aufs-linux-${KVERS}_normal aufs-linux-${KVERS}_transmeta);
 )
 
-for CPU_TYPE in normal non-pae transmeta; do
-#for CPU_TYPE in transmeta; do
-#for CPU_TYPE in normal; do
+# for CPU_TYPE in normal non-pae transmeta; do
+# for CPU_TYPE in non-pae transmeta; do
+for CPU_TYPE in non-pae; do
     mkpkgParms="--revision=1 --append-to-version=+tcos-${CPU_TYPE}"
     tcosKernelConf=Sources/kernel${MAJOR}-${ARCH}-${CPU_TYPE}.config
     if [ -e $tcosKernelConf ]; then
@@ -86,14 +91,10 @@ for CPU_TYPE in normal non-pae transmeta; do
     # if ! diff -q Kernel/aufs-linux-${KVERS}_${CPU_TYPE}/.config $tcosKernelConf &> /dev/null ; then 
     # 	read -p "Save your changes back to $tcosKernelConf ? [Y/n] " a
     # 	case "$a" in
-    # 	    N*|n*)
-    # 		;;
-    # 	    *)
+    # 	    Y*|y*|J*|j*)
     # 		cp -a Kernel/aufs-linux-${KVERS}_${CPU_TYPE}/.config $tcosKernelConf
-    # 		;;
+    #  		;;
     # 	esac
-    # else
-    # 	:
     # fi
      
     # echo "Kernel $CPU_TYPE done. Presse any key."; read bla

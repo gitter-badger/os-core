@@ -25,23 +25,34 @@ CUSTOM="$LINK/custom"
 
 ## MAIN ####################################################
 
-for folder in home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $SHADOW $CUSTOM proc sys; do mkdir -p $folder ; done
+export PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
-mkdir /dev/pts
+# create essential folder
+for folder in /dev/pts home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $SHADOW $CUSTOM proc sys; do mkdir -p $folder ; done
 
 mount -t devpts devpts /dev/pts
 mount -t proc proc /proc
 mount -t sysfs sys /sys
 mount -t tmpfs none /tmp
 
-mdev -s && echo "/dev...set up by ${BLUE}mdev${NORMAL}"
-
-export PATH=/bin:/usr/bin:/sbin
+# try to have a variable for each paramater in CMDLINE, e.g. fglrx=true
+# set some defaults before
+#
+fglrx=false
+figlet=true
+autoswap=true
 
 read CMDLINE < /proc/cmdline
-
 getbootparams
-load_modules "/modules"
+
+# display figlet logo
+#
+$figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
+
+mdev -s && echo "/dev...set up by ${BLUE}mdev${NORMAL}"
+
+# no longer in use
+# load_modules "/modules"
 
 #to override the dhcpd setting set up a HOSTNAME here
 HOSTNAME=""
@@ -49,9 +60,9 @@ HOSTNAME=""
 ip addr add 127.0.0.1/8 dev lo
 ip link set dev lo up
 
-DHCP=""
-
+# support multiple networkcards
 [ -z $nic ] && nic=0
+DHCP=""
 
 for i in $nic; do
     echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
@@ -165,5 +176,33 @@ for service in /tcos/package/*/etc/init.d/*; do
   servicefilename=$(basename $service);
   insserv /etc/init.d/$servicefilename
 done
+
+
+# Check if fglrx drivers for radeon cards should be used.
+# Preven tusing fglrx in case of non existing AMD hardware.
+# 
+if $fglrx && $(/usr/bin/lspci | /bin/grep -q AMD); then 
+    echo "${GREEN}Switching client to use proprietary fglrx drivers.${NORMAL}"
+    echo "blacklist radeon" >> /etc/modprobe.d/tcos-blacklist.conf
+    mkdir -p /etc/X11/xorg.conf.d &> /dev/null
+    echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tDriver "fglrx"\nEndSection' > /etc/X11/xorg.conf.d/20-fglrx.conf
+    update-alternatives --set glx /usr/lib/fglrx
+else
+    echo "blacklist fglrx" >> /etc/modprobe.d/tcos-blacklist.conf
+fi
+
+# mdev does not know about blockdevices, 
+# this should become a device
+
+# activate swap
+# lsblk read old MBR and new GPT tables
+#
+#if $autoswap ; then
+#    lsblk -P -o NAME,FSTYPE 2> /dev/null | grep swap | while read line; do 
+#	eval "$line" 
+#	swapon /dev/${NAME} &> /dev/null
+#	[ $? -eq 0 ] && echo -e "activate swap on ${NAME} \t ${GREEN}OK${NORMAL}"
+#    done
+#fi
 
 exec /sbin/init "$@" </dev/console >/dev/console 2>&1

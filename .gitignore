@@ -1,4 +1,5 @@
 /Base
+/BACKUPS
 !/Base/base-2.0/
 /Base/base-2.0/debian/*
 !/Base/build-howto/

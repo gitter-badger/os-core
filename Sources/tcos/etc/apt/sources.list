@@ -6,7 +6,6 @@ deb http://otc-dd-01/debian             wheezy-updates          main contrib non
 
 deb http://otc-dd-01/debian-security    wheezy/updates          main contrib non-free
 
+# some stuff from sid
 deb http://otc-dd-01/debian             unstable                main contrib non-free
 
-# MATE-Desktop 1.8 repository for Debian
-deb http://otc-dd-01/mate18     wheezy          main

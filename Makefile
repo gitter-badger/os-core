@@ -7,7 +7,7 @@
 SHELL := /bin/bash
 
 # Define which kernel to download and compile for TCOS
-export KVERS      = 3.15.1
+export KVERS      = 3.17
 export BUSYBOX_VERSION = 1.22.1
 export X86        = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
 export X86_64     = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
@@ -32,24 +32,42 @@ export BASE_VERSION ?= 2.0-xx(minor_unknown)
 # 
 # These are the packages from debian wheezy 
 #
-export PACKAGES = libpam-ldap alsa-utils aptitude atril blueman bluez-alsa bluez-audio ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dos2unix dosfstools e2fsprogs eject engrampa eom ethtool file flashplugin-nonfree fontconfig freerdp-X11 gdevilspie gvfs gvfs-backends hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libacsccid1 libccid libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libglib2.0-bin libgtk2.0-bin libgtk-3-bin libmotif4 libpopt0 libqt4-qt3support libqt4-sql libssl1.0.0 libstdc++5 libx11-6 lightdm lightdm-gtk-greeter man marco mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes mc mozo net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils pcsc-tools pluma python python-bluez python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev usbip usbutils util-linux vim vim-tiny wget x11vnc  xdg-utils xfonts-base xinetd xinit zenity caja mate-utils-common mate-utils mate-media-pulse pulseaudio pavucontrol strace fxcyberjack libifd-cyberjack6 xtightvncviewer dnsutils dmidecode lshw hwinfo libsasl2-modules libsasl2-modules-gssapi-mit libxerces-c3.1 libcurl3 libwebkitgtk-1.0-0 
+export PACKAGES = libpam-ldap alsa-utils aptitude atril ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dos2unix dosfstools e2fsprogs eject engrampa eom ethtool file flashplugin-nonfree fontconfig gdevilspie gvfs gvfs-backends hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libacsccid1 libccid libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libglib2.0-bin libgtk2.0-bin libgtk-3-bin libmotif4 libpopt0 libqt4-qt3support libqt4-sql libssl1.0.0 libstdc++5 libx11-6 lightdm lightdm-gtk-greeter man marco mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes mc mozo net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils pcsc-tools pluma python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev usbip usbutils util-linux vim vim-tiny wget x11vnc  xdg-utils xfonts-base xinetd xinit zenity caja mate-utils-common mate-utils mate-media-pulse pulseaudio pavucontrol strace fxcyberjack libifd-cyberjack6 xtightvncviewer dnsutils dmidecode lshw hwinfo libsasl2-modules libsasl2-modules-gssapi-mit libxerces-c3.1 libcurl3 libwebkitgtk-1.0-0 libgssglue1
 
+##################################################################
 # These are the packages from debian sid/unstable. We need some newer stuff in some cases.  
 #
-export PACKAGES_UNSTABLE = mesa-vdpau-drivers vdpauinfo x11-xserver-utils xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-ati xserver-xorg-video-geode xserver-xorg-video-glide xserver-xorg-video-amd libgl1-mesa-dri arandr libglew1.10 libvdpau1 freerdp xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom mesa-utils 
+export PACKAGES_UNSTABLE = mesa-vdpau-drivers vdpauinfo x11-xserver-utils xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-ati xserver-xorg-video-geode xserver-xorg-video-glide xserver-xorg-video-amd libgl1-mesa-dri arandr libglew1.10 libvdpau1 freerdp-X11 xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom mesa-utils 
 
-# These are the packages we pull debian backports.  
+##################################################################
+# These are the packages we pull from debian backports.  
 #
 export PACKAGES_BACKPORTS = firmware-linux firmware-linux-free firmware-linux-nonfree 
 
+##################################################################
 # These are the packages we install inside the busybox buildsystem
 #
 export PACKAGES_BUSYBOXBUILD = build-essential fakeroot kernel-package bc git cpio distcc dkms wget ca-certificates 
 
+##################################################################
 # Some packages are handmade or handpicked by the otc-team
 #
 export EXTRAS = openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb libpcsclite1_1.8.11-3~tcos20+3_i386.deb  libpcsclite-dev_1.8.11-3~tcos20+3_i386.deb  pcscd_1.8.11-3~tcos20+3_i386.deb
 
+##################################################################
+# Some packages are temporarily used to compile non-gpl stuff.
+# These Pakages will be uninstalled when their job is done.
+# used from SID/unstable
+#
+export PACKAGES_COMMERCIAL_BUILD = cpp-4.9 dkms gcc gcc-4.9 libgcc-4.9-dev  make nvidia-installer-cleanup patch fglrx-modules-dkms
+
+##################################################################
+# These are proprietary packages for some special hardware. These 
+# packages need to be installed in a finaly finished  Filesystem 
+# with kernel-headers within.
+# used from SID/unstable
+#
+export PACKAGES_COMMERCIAL = fglrx-driver glx-alternative-fglrx glx-alternative-mesa glx-diversions xvba-va-driver amd-opencl-icd libfglrx libgl1-fglrx-glx  libcilkrts5 libasan1 libatomic1 libubsan0 libitm1 libfglrx-amdxvba1 ocl-icd-libopencl1 amd-opencl-icd
 
 help:
 	@echo "[1mWELCOME TO THE TCOS BUILD SYSTEM"
@@ -80,14 +98,15 @@ distclean:
 	sudo rm -rf Filesystem/* Image/boot/syslinux/vmlinuz* Image/boot/syslinux/initrd.gz Kernel/aufs-linux-* *-stamp 
 	sudo find ./Initrd -xdev -samefile Initrd/bin/busybox -delete || true
 
-
-chroot: Filesystem ./Scripts/LINBO.chroot
+chroot: filesystem ./Scripts/LINBO.chroot
 	rm -f clean-stamp
 	sudo Scripts/LINBO.chroot ./Filesystem
 
 all: 
 	make initrd 
+	make final-clean
 	make compressed 
+	-rm -f kernel-install-stamp 
 
 # Build-Targets
 #
@@ -116,14 +135,18 @@ busybox: Sources/busybox.config Sources/busybox busybox-build-chroot-stamp
 busybox-stamp:
 	@echo "[1m Target: Create the busybox[0m"
 
-        # get config in place
-	-mkdir -p Sources/busybox
-	sudo cp Sources/busybox.config Sources/busybox/.config
 
         # check if there is already a busybox source and download/extract it if not
 	(test -r Sources/busybox/Makefile || \
-	cd Sources && wget -O - http://busybox.net/downloads/busybox-$(BUSYBOX_VERSION).tar.bz2  | tar -xjf - && \
-	mv busybox-$(BUSYBOX_VERSION)/* busybox/ && rm -rf busybox-$(BUSYBOX_VERSION))
+		cd Sources && \
+		wget -O - http://busybox.net/downloads/busybox-$(BUSYBOX_VERSION).tar.bz2  | tar -xjf - && \
+		-rm -rf busybox && \
+		mv busybox-$(BUSYBOX_VERSION) busybox \
+	)
+
+        # get config in place
+	sudo cp Sources/busybox.config Sources/busybox/.config
+
 
         # just to be sure, unmount it
 	-sudo umount Bbox-build-chroot/busybox &> /dev/null
@@ -169,23 +192,31 @@ update-stamp:
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get dist-upgrade -y --force-yes --no-install-recommends ; apt-get autoremove"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get autoremove"
 	for debFile in $(EXTRAS); do ln -nf Packages/$$debFile Filesystem/tmp/$$debFile ; done
-#	TODO: Have a local repo here instead of files
 	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -i /tmp/*.deb ; rm -rf /tmp/*.deb"
-#	sudo Scripts/LINBO.chroot Filesystem bash -c "gdebi --option=\"--no-install-recommends\" /tmp/*.deb ; sleep 30; rm -rf /tmp/*.deb"
 	touch $@
 
-clean: filesystem-stamp update-stamp 
+clean: filesystem-stamp update-stamp commercial-module-stamp kernel-install-stamp
 	make clean-stamp
 
-clean-stamp: ./Scripts/TCOS.tcosify-clean
+clean-stamp: ./Scripts/TCOS.tcosify-clean 
 	@echo "[1m Target: Clean up the filesystem[0m"
 	-sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-clean
 	touch $@
 
-compressed: filesystem-stamp tcosify-stamp update-stamp clean-stamp kernel-install-stamp
+final-clean: clean-stamp 
+	make final-clean-stamp
+
+final-clean-stamp:
+        # This target should run just before a new base-package is finnaly build.
+        # Get rid of stuff you don't really need after the build process
+	-sudo rm -f Filesystem/boot/*
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get --purge remove -y linux-headers-\* $(PACKAGES_COMMERCIAL_BUILD)"
+	touch $@
+
+compressed: filesystem-stamp tcosify-stamp update-stamp clean-stamp kernel-install-stamp commercial-module-stamp 
 	make compressed-stamp
 
-compressed-stamp:
+compressed-stamp: 
 	@echo "[1m Target: Create the base.sfs container[0m"
 	-mkdir -p Image
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS base $(BASE_VERSION) \nbuild: `date`\nbased on and credits to" > /etc/issue; cat /etc/issue.debian >> /etc/issue'
@@ -207,16 +238,18 @@ kernel-stamp: ./Scripts/TCOS.kernel
 	sudo mount -o bind Sources Bbox-build-chroot/Sources
 	sudo mount -o bind Kernel Bbox-build-chroot/Kernel
 
-        # let's compile inside the changeroot
+        # Let's compile inside the busybox changeroot.
+        # This ensures to have the kernel compiled with the systems libs and compilers
+        # and gives us a better 32 bit environment.
 	sudo CPU_CORES=$(CPU_CORES) KVERS=$(KVERS) ARCH=$(ARCH) Scripts/LINBO.chroot Bbox-build-chroot /bin/bash < Scripts/TCOS.kernel
 
         # get rid of the bind mounts
 	sudo umount Bbox-build-chroot/Kernel &> /dev/null; sudo umount Bbox-build-chroot/Sources &> /dev/null
 
 	-mkdir -p Image/boot/syslinux
-	cp Kernel/aufs-linux-$(KVERS)_normal/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz
-	cp Kernel/aufs-linux-$(KVERS)_non-pae/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz_non-pae
-	cp Kernel/aufs-linux-$(KVERS)_transmeta/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz_transmeta
+	-cp Kernel/aufs-linux-$(KVERS)_normal/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz
+	-cp Kernel/aufs-linux-$(KVERS)_non-pae/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz_non-pae
+	-cp Kernel/aufs-linux-$(KVERS)_transmeta/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz_transmeta
 
 	touch $@
 
@@ -225,10 +258,27 @@ kernel-install: filesystem-stamp kernel-stamp
 
 kernel-install-stamp: Scripts/LINBO.chroot kernel-stamp
 	@echo "[1m Target: Install the kernel[0m"
-	rm -f compressed-stamp
+	-rm -f compressed-stamp
+	-rm -f commercial-module-stamp
 	-mkdir -p Image/boot/syslinux
 	for debFile in Kernel/linux-image-$(KVERS)*.deb Kernel/linux-headers-$(KVERS)*.deb ; do sudo ln -nf $$debFile Filesystem/tmp/ ; done
-	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; apt-get --purge remove -y linux-headers-\* linux-image-\*; dpkg -i /tmp/linux-*$(KVERS)*.deb; rm -rf /tmp/*.deb"
+	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; dpkg -i /tmp/linux-*$(KVERS)*.deb; rm -rf /tmp/*.deb"
+	touch $@
+
+commercial-module: kernel-install-stamp update-stamp
+	make commercial-module-stamp
+
+commercial-module-stamp: 
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends -t unstable $(PACKAGES_COMMERCIAL_BUILD)"
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends -t unstable $(PACKAGES_COMMERCIAL)"
+
+        # This script ensures, that the fglrx kernel module is build for all kernel versions.
+        # The package itself doesn't do this job right.
+	sudo KVERS=$(KVERS) Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.fglrx_install 
+
+        # This script compiles and installs the usbrdr kernel modules
+		sudo KVERS=$(KVERS) Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.usbrdr_install 
+
 	touch $@
 
 initrd: busybox-stamp
@@ -249,7 +299,7 @@ initrd-stamp:
 ##################################################
 # Install-Targets
 
-local-test: all 
+local-test: compressed initrd
 	make local-test-stamp
 
 local-test-stamp:
@@ -263,6 +313,10 @@ package-prepare: all
 
 package-prepare-stamp:
 	@echo "[1m Target: Copy base.sfs, kernel, etc. to package build folder.[0m"
+        # /usr/src/* and /boot/* are not needed to run a client
+        # Target "all" calls target "final-clean". We consider the kernel stuff as removed once
+        # we have prepared for packaging.
+	 -rm -f kernel-install-stamp 
 	rsync Image/boot/syslinux/vmlinuz*     $(BASE_PACKAGE_PATH)/debian/base/tftp/
 	rsync Image/boot/syslinux/initrd.xz $(BASE_PACKAGE_PATH)/debian/base/tftp/initrd.img
 	rsync Image/base.sfs           $(BASE_PACKAGE_PATH)/debian/base/sfs/
