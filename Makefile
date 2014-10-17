@@ -32,7 +32,7 @@ export BASE_VERSION ?= 2.0-xx(minor_unknown)
 # 
 # These are the packages from debian wheezy 
 #
-export PACKAGES = libpam-ldap alsa-utils aptitude atril ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dos2unix dosfstools e2fsprogs eject engrampa eom ethtool file flashplugin-nonfree fontconfig gdevilspie gvfs gvfs-backends hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libacsccid1 libccid libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libglib2.0-bin libgtk2.0-bin libgtk-3-bin libmotif4 libpopt0 libqt4-qt3support libqt4-sql libssl1.0.0 libstdc++5 libx11-6 lightdm lightdm-gtk-greeter man marco mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes mc mozo net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils pcsc-tools pluma python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev usbip usbutils util-linux vim vim-tiny wget x11vnc  xdg-utils xfonts-base xinetd xinit zenity caja mate-utils-common mate-utils mate-media-pulse pulseaudio pavucontrol strace fxcyberjack libifd-cyberjack6 xtightvncviewer dnsutils dmidecode lshw hwinfo libsasl2-modules libsasl2-modules-gssapi-mit libxerces-c3.1 libcurl3 libwebkitgtk-1.0-0 libgssglue1
+export PACKAGES = libpam-ldap alsa-utils aptitude atril ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dos2unix dosfstools e2fsprogs eject engrampa eom ethtool file flashplugin-nonfree fontconfig gdevilspie gvfs gvfs-backends hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libacsccid1 libccid libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libglib2.0-bin libgtk2.0-bin libgtk-3-bin libmotif4 libpopt0 libqt4-qt3support libqt4-sql libssl1.0.0 libstdc++5 libx11-6 lightdm lightdm-gtk-greeter man marco mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes mc mozo net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils  pluma python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev usbip usbutils util-linux vim vim-tiny wget x11vnc  xdg-utils xfonts-base xinetd xinit zenity caja mate-utils-common mate-utils mate-media-pulse pulseaudio pavucontrol strace fxcyberjack libifd-cyberjack6 xtightvncviewer dnsutils dmidecode lshw hwinfo libsasl2-modules libsasl2-modules-gssapi-mit libxerces-c3.1 libcurl3 libwebkitgtk-1.0-0 libgssglue1
 
 ##################################################################
 # These are the packages from debian sid/unstable. We need some newer stuff in some cases.  
@@ -53,6 +53,9 @@ export PACKAGES_BUSYBOXBUILD = build-essential fakeroot kernel-package bc git cp
 # Some packages are handmade or handpicked by the otc-team
 #
 export EXTRAS = openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb libpcsclite1_1.8.11-3~tcos20+3_i386.deb  libpcsclite-dev_1.8.11-3~tcos20+3_i386.deb  pcscd_1.8.11-3~tcos20+3_i386.deb
+# some packages need to be after our deb packages
+export PACKAGES_AFTER_EXTRAS = pcsc-tools
+
 
 ##################################################################
 # Some packages are temporarily used to compile non-gpl stuff.
@@ -98,7 +101,7 @@ distclean:
 	sudo rm -rf Filesystem/* Image/boot/syslinux/vmlinuz* Image/boot/syslinux/initrd.gz Kernel/aufs-linux-* *-stamp 
 	sudo find ./Initrd -xdev -samefile Initrd/bin/busybox -delete || true
 
-chroot: filesystem ./Scripts/LINBO.chroot
+chroot: filesystem-stamp ./Scripts/LINBO.chroot
 	rm -f clean-stamp
 	sudo Scripts/LINBO.chroot ./Filesystem
 
@@ -106,7 +109,7 @@ all:
 	make initrd 
 	make final-clean
 	make compressed 
-	-rm -f kernel-install-stamp 
+#	-rm -f kernel-install-stamp 
 
 # Build-Targets
 #
@@ -114,35 +117,34 @@ filesystem:
 	make filesystem-stamp
 
 filesystem-stamp: ./Scripts/TCOS.mkfilesystem
-	@echo "[1m Target: Creating an initial filesystem[0m"
+	@echo "[1m Target filesystem-stamp: Creating an initial filesystem[0m"
 	-rm -f tcosify-stamp update-stamp clean-stamp
 	./Scripts/TCOS.mkfilesystem $(DEB_MIRROR)
 	touch $@
 
-busybox-build-chroot:
+busybox-build-chroot: filesystem-stamp
 	make busybox-build-chroot-stamp 
 
-busybox-build-chroot-stamp: Scripts/LINBO.chroot filesystem-stamp  
+busybox-build-chroot-stamp: Scripts/LINBO.chroot filesystem-stamp
+        # the initial content of Bbox-build-chroot is a copy of folder Filesystem
+	@echo "[1m Target busybox-build-chroot-stamp: Create a changeroot to build busybox inside[0m"
 	sudo Scripts/LINBO.chroot Bbox-build-chroot /bin/bash -c "apt-get install -y --force-yes --no-install-recommends  $(PACKAGES_BUSYBOXBUILD)"
 	sudo Scripts/LINBO.chroot Bbox-build-chroot /bin/bash -c "ln -sf /bin/bash /bin/sh; mkdir /busybox /Initrd"
 	sudo Scripts/LINBO.chroot Bbox-build-chroot /bin/bash -c  "cd /usr/bin; ln -s gcc-4.7 i486-linux-gcc; ln -s ar i486-linux-ar; ln -s strip i486-linux-strip"
 	touch $@ 
 
-busybox: Sources/busybox.config Sources/busybox busybox-build-chroot-stamp 
+busybox: Sources/busybox.config Sources/busybox busybox-build-chroot-stamp
 	make busybox-stamp
 	-rm initrd-stamp 
 
 busybox-stamp:
-	@echo "[1m Target: Create the busybox[0m"
-
-
+	@echo "[1m Target busybox-stamp: Create the busybox[0m"
         # check if there is already a busybox source and download/extract it if not
-	(test -r Sources/busybox/Makefile || \
-		cd Sources && \
+	test -r Sources/busybox/Makefile || \
+		(cd Sources && \
 		wget -O - http://busybox.net/downloads/busybox-$(BUSYBOX_VERSION).tar.bz2  | tar -xjf - && \
-		-rm -rf busybox && \
-		mv busybox-$(BUSYBOX_VERSION) busybox \
-	)
+		rm -rf busybox && \
+		mv busybox-$(BUSYBOX_VERSION) busybox)
 
         # get config in place
 	sudo cp Sources/busybox.config Sources/busybox/.config
@@ -154,6 +156,7 @@ busybox-stamp:
 
         # we need to bind mount it, softlinks won't work
 	sudo mount -o bind Sources/busybox Bbox-build-chroot/busybox
+	-mkdir -p Initrd
 	sudo mount -o bind Initrd Bbox-build-chroot/Initrd
 
         # let's compile
@@ -169,7 +172,7 @@ tcosify: filesystem-stamp
 	make tcosify-stamp
 
 tcosify-stamp: ./Scripts/LINBO.chroot
-	@echo "[1m Target: Applying TCOS specific changes[0m"
+	@echo "[1m Target tcosify-stamp: Applying TCOS specific changes[0m"
 	-rm -f clean-stamp update-stamp
 	Scripts/LINBO.apply-configs Sources/tcos Filesystem
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "ln -snf /bin/bash /bin/sh;"
@@ -182,7 +185,7 @@ update: filesystem-stamp tcosify-stamp
 	make update-stamp
 
 update-stamp:
-	@echo "[1m Target: Installing packages from PACKAGES list and updating the filesystem[0m"
+	@echo "[1m Target update-stamp: Installing packages from PACKAGES list and updating the filesystem[0m"
 	-rm -f clean-stamp compressed-stamp
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -y --force-yes --no-install-recommends wget sudo"	
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "wget -qO - http://mirror1.mate-desktop.org/debian/mate-archive-keyring.gpg | sudo apt-key add -"
@@ -193,42 +196,35 @@ update-stamp:
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get autoremove"
 	for debFile in $(EXTRAS); do ln -nf Packages/$$debFile Filesystem/tmp/$$debFile ; done
 	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -i /tmp/*.deb ; rm -rf /tmp/*.deb"
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends $(PACKAGES_AFTER_EXTRAS)"
 	touch $@
 
-clean: filesystem-stamp update-stamp commercial-module-stamp kernel-install-stamp
+clean: commercial-module-stamp 
 	make clean-stamp
 
 clean-stamp: ./Scripts/TCOS.tcosify-clean 
-	@echo "[1m Target: Clean up the filesystem[0m"
+	@echo "[1m Target clean-stamp: Clean up the filesystem[0m"
 	-sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-clean
 	touch $@
 
-final-clean: clean-stamp 
+final-clean: clean-stamp
 	make final-clean-stamp
 
 final-clean-stamp:
+	@echo "[1m Target final-clean: Clean all useless stuff before shipping.[0m"
         # This target should run just before a new base-package is finnaly build.
         # Get rid of stuff you don't really need after the build process
+	@echo "[1m Target final-clean-stamp: Remove [0m"
 	-sudo rm -f Filesystem/boot/*
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get --purge remove -y linux-headers-\* $(PACKAGES_COMMERCIAL_BUILD)"
 	touch $@
 
-compressed: filesystem-stamp tcosify-stamp update-stamp clean-stamp kernel-install-stamp commercial-module-stamp 
-	make compressed-stamp
-
-compressed-stamp: 
-	@echo "[1m Target: Create the base.sfs container[0m"
-	-mkdir -p Image
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS base $(BASE_VERSION) \nbuild: `date`\nbased on and credits to" > /etc/issue; cat /etc/issue.debian >> /etc/issue'
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS base $(BASE_VERSION) \nbuild: `date`\nbased on and credits to Debian" > /etc/motd; cat /etc/motd.debian >> /etc/motd'
-	nice -10 ionice -c 3 sudo XZ_OPT="-6 -t 2" mksquashfs Filesystem Image/base.sfs -noappend -always-use-fragments -comp xz
-	touch $@
 
 kernel:
 	make kernel-stamp
 
 kernel-stamp: ./Scripts/TCOS.kernel 
-	@echo "[1m Target: Build the kernel[0m"
+	@echo "[1m Target kernel-stamp: Build the kernel[0m"
 	rm -f kernel-install-stamp compressed-stamp 
 
         # just to be sure, unmount it
@@ -256,10 +252,9 @@ kernel-stamp: ./Scripts/TCOS.kernel
 kernel-install: filesystem-stamp kernel-stamp
 	make kernel-install-stamp
 
-kernel-install-stamp: Scripts/LINBO.chroot kernel-stamp
-	@echo "[1m Target: Install the kernel[0m"
-	-rm -f compressed-stamp
-	-rm -f commercial-module-stamp
+kernel-install-stamp: Scripts/LINBO.chroot kernel
+	@echo "[1m Target kernel-install-stamp: Install the kernel[0m"
+	-rm -f compressed-stamp commercial-module-stamp final-clean-stamp
 	-mkdir -p Image/boot/syslinux
 	for debFile in Kernel/linux-image-$(KVERS)*.deb Kernel/linux-headers-$(KVERS)*.deb ; do sudo ln -nf $$debFile Filesystem/tmp/ ; done
 	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; dpkg -i /tmp/linux-*$(KVERS)*.deb; rm -rf /tmp/*.deb"
@@ -269,6 +264,7 @@ commercial-module: kernel-install-stamp update-stamp
 	make commercial-module-stamp
 
 commercial-module-stamp: 
+	@echo "[1m Target commercial-module-stamp: Build commercial module inside the filsystem[0m"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends -t unstable $(PACKAGES_COMMERCIAL_BUILD)"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends -t unstable $(PACKAGES_COMMERCIAL)"
 
@@ -277,33 +273,42 @@ commercial-module-stamp:
 	sudo KVERS=$(KVERS) Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.fglrx_install 
 
         # This script compiles and installs the usbrdr kernel modules
-		sudo KVERS=$(KVERS) Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.usbrdr_install 
-
+	sudo KVERS=$(KVERS) Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.usbrdr_install 
 	touch $@
 
 initrd: busybox-stamp
 	make initrd-stamp
 
 initrd-stamp:
-	@echo "[1m Target: Create the initrd[0m"
+	@echo "[1m Target initrd-stamp: Create the initrd[0m"
 	-mkdir -p Image/boot/syslinux
-
         # *** CAVEAT ***
         # If xz is used for initrd compression, lzma format must be used. Either pxelinux (bootloader) 
         # or the kernel itself can't handle other formats.
 	( cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > ../Image/boot/syslinux/initrd.xz )
 	touch $@
 
+#compressed: filesystem-stamp update-stamp kernel-install-stamp commercial-module-stamp clean-stamp
+compressed: kernel-install-stamp update-sqtamp commercial-module-stamp clean-stamp
+	make compressed-stamp
+
+compressed-stamp: 
+	@echo "[1m Target compressed-stamp: Create the base.sfs container[0m"
+	-mkdir -p Image
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS base $(BASE_VERSION) \nbuild: `date`\nbased on and credits to" > /etc/issue; cat /etc/issue.debian >> /etc/issue'
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS base $(BASE_VERSION) \nbuild: `date`\nbased on and credits to Debian" > /etc/motd; cat /etc/motd.debian >> /etc/motd'
+	nice -10 ionice -c 3 sudo XZ_OPT="-6 -t 2" mksquashfs Filesystem Image/base.sfs -noappend -always-use-fragments -comp xz
+	touch $@
 
 
 ##################################################
 # Install-Targets
 
-local-test: compressed initrd
+local-test: initrd-stamp compressed-stamp commercial-module-stamp
 	make local-test-stamp
 
 local-test-stamp:
-	@echo "[1m Target: Copy base.sfs, kernel, etc. to local paths for testing.[0m"
+	@echo "[1m Target local-test-stamp: Copy base.sfs, kernel, etc. to local paths for testing.[0m"
 	rsync Image/boot/syslinux/vmlinuz*     $(LOCAL_TEST_PATH)/tftp/
 	rsync Image/boot/syslinux/initrd.xz $(LOCAL_TEST_PATH)/tftp/initrd.img
 	rsync Image/base.sfs           $(LOCAL_TEST_PATH)/sfs/
@@ -312,7 +317,7 @@ package-prepare: all
 	make package-prepare-stamp
 
 package-prepare-stamp:
-	@echo "[1m Target: Copy base.sfs, kernel, etc. to package build folder.[0m"
+	@echo "[1m Target package-prepare-stamp: Copy base.sfs, kernel, etc. to package build folder.[0m"
         # /usr/src/* and /boot/* are not needed to run a client
         # Target "all" calls target "final-clean". We consider the kernel stuff as removed once
         # we have prepared for packaging.
