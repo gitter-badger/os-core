@@ -1,0 +1,27 @@
+#! /bin/bash
+
+
+# There is a fglrx bug, since kernel 3.17 
+# we need to apply a patch
+#
+# See: https://forum.manjaro.org/index.php?topic=16610.0
+# Clould become obsolete in newer versions.
+
+if $(echo $KVERS | grep -q 3.17); then  
+    wget https://github.com/kolasa/fglrx-14.200/commit/6cd142e81de01ebcde8e62a59d84b6adef235e75.patch -O /tmp/kcl_acpi.c.patch
+    for fglrxmodule in $(ls -1 /usr/src/ | grep fglrx); do
+	(cd /usr/src/${fglrxmodule} && patch -N  -p1 < /tmp/kcl_acpi.c.patch)
+    done 
+fi
+
+for fglrxmodule_version in $(ls -1 /usr/src/ | grep fglrx | sed 's/fglrx-//'); do
+    for kernel in $(ls -1 /usr/src/ | grep $KVERS | sed 's/linux-headers-//'); do
+    	  dkms install -m fglrx -v ${fglrxmodule_version} -k ${kernel}
+    done 
+done
+
+# Roll back unecesarry things.
+# We'll decide this dynamically in initrd (init)
+
+rm -f /etc/modprobe.d/fglrx-blacklists-radeon.conf
+update-alternatives --set glx /usr/lib/mesa-diverted
