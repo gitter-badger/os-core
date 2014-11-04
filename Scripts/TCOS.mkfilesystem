@@ -26,5 +26,5 @@ sudo debootstrap --arch=i386 --variant=minbase --include=locales,locales-all sta
 
 
 echo -e "\e[1mCopying the filesystem to Bbox-build-chroot ... \e[0m"
-sudo rm -rf ./Bboxbuild-chroot
+sudo rm -rf ./Bbox-build-chroot
 sudo cp -ar ./Filesystem ./Bbox-build-chroot
