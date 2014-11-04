@@ -23,11 +23,19 @@ PACKAGE="$TCOS/package"
 SHADOW="$TCOS/shadow"
 CUSTOM="$LINK/custom"
 
+# Some more default variables here.
+# Values can be overwritten in kernel commandline - Key=Value
+#
+fglrx=false
+figlet=true
+splashImage=openthinclient.ppm
+
+
 ## MAIN ####################################################
 
 export PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
-# create essential folder
+# create essential folders
 for folder in /dev/pts home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $SHADOW $CUSTOM proc sys; do mkdir -p $folder ; done
 
 mount -t devpts devpts /dev/pts
@@ -35,20 +43,24 @@ mount -t proc proc /proc
 mount -t sysfs sys /sys
 mount -t tmpfs none /tmp
 
-# try to have a variable for each paramater in CMDLINE, e.g. fglrx=true
-# set some defaults before
-#
-fglrx=false
-figlet=true
-autoswap=true
-
+# Get Key=Value pairs from kernel commandline and overwrite defaults.
 read CMDLINE < /proc/cmdline
 getbootparams
 
-# display figlet logo
-#
-$figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
+# Shut up or display figlet logo if not in quiet mode.
+grep -wq quiet /proc/cmdline 
+if [ $? = 0 ]; then
+#    echo "Going to be silent ...."
+#    sleep 2
+#    clear
+    sleep 2
+#    exec 1>/dev/null 2>/dev/null # THERE WILL BE NO OUTPUT ON tty1 ANY LONGER AFTER THIS LINE!
+else
+    echo "Not going to be silent ...."
+    $figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
+fi
 
+# rum mdev
 mdev -s && echo "/dev...set up by ${BLUE}mdev${NORMAL}"
 
 # no longer in use
@@ -92,6 +104,11 @@ else
   echo "${RED} could not mount $NFSD - exiting. ${NORMAL}"
   debugshell
 fi
+ 
+##################################
+# get the splashscreen running
+ 
+fbsplash  -silent -s /tcos/link/custom/splashscreens/${splashImage} 
 
 
 # SFS
@@ -179,7 +196,7 @@ done
 
 
 # Check if fglrx drivers for radeon cards should be used.
-# Preven tusing fglrx in case of non existing AMD hardware.
+# Prevent using fglrx in case of non existing AMD hardware.
 # 
 if $fglrx && $(/usr/bin/lspci | /bin/grep -q AMD); then 
     echo "${GREEN}Switching client to use proprietary fglrx drivers.${NORMAL}"
@@ -205,4 +222,7 @@ fi
 #    done
 #fi
 
+
 exec /sbin/init "$@" </dev/console >/dev/console 2>&1
+
+#exec 1>/dev/null 2>/dev/null # THERE WILL BE NO OUTPUT ON tty1 ANY LONGER AFTER THIS LINE!

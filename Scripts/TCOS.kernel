@@ -31,9 +31,7 @@ fi
 
 # check, whether there is a copy of a kernel checkout already
 if  [ ! -d Kernel/aufs-linux-${KVERS} ]; then
-
     echo "MAJOR = $MAJOR"
-
     # 1. Create a clone to a local ref, and checkout to a specific branch
     echo -e "\033[1m Creating a working copy kernel/aufs-linux-${KVERS} \033[0m"
     ( cd Kernel/aufs-linux ; git checkout aufs${MAJOR} )
@@ -49,7 +47,11 @@ if  [ ! -d Kernel/aufs-linux-${KVERS} ]; then
     # Don't try to apply a patch if there is no minor (i.e. kernel version is 3.17)
     # Keep in mind: The major includes the aufs stuff already. 
     [ "$MINOR" != "$MAJOR" ] && ( cd Kernel/aufs-linux-${KVERS} ; xzcat ../patch-${KVERS}.xz | patch -p1)
-    set -e
+
+    # we don't like it dirty
+    find Kernel/aufs-linux-${KVERS} -type d -name '.git' -exec rm -rf {} \; || true
+    find Kernel/aufs-linux-${KVERS} -type f -name '.gitignore' -exec rm -f {} \; || true
+
 fi
 
 
@@ -57,14 +59,15 @@ fi
 # this should be more perfomant than compiling three times in the same folder
 # (if you change the configuration and need to recompile)
 ( cd Kernel/; \
-  [ -d aufs-linux-${KVERS}_normal ] ||    (echo "Copying kernel source for normal kernel"; cp -ar aufs-linux-${KVERS} aufs-linux-${KVERS}_normal) ; \
-  [ -d aufs-linux-${KVERS}_non-pae ] ||   (echo "Copying kernel source for non-pae kernel";cp -ar aufs-linux-${KVERS}_normal aufs-linux-${KVERS}_non-pae); \
-  [ -d aufs-linux-${KVERS}_transmeta ] || (echo "Copying kernel source for transmeta kernel"; cp -ar aufs-linux-${KVERS}_normal aufs-linux-${KVERS}_transmeta);
+  [ -d aufs-linux-${KVERS}_normal ] ||    (echo "Copying kernel source for normal kernel"; cp -al aufs-linux-${KVERS} aufs-linux-${KVERS}_normal) ; \
+  [ -d aufs-linux-${KVERS}_non-pae ] ||   (echo "Copying kernel source for non-pae kernel";cp -al aufs-linux-${KVERS}_normal aufs-linux-${KVERS}_non-pae); \
+  [ -d aufs-linux-${KVERS}_transmeta ] || (echo "Copying kernel source for transmeta kernel"; cp -al aufs-linux-${KVERS}_normal aufs-linux-${KVERS}_transmeta);
 )
 
 # for CPU_TYPE in normal non-pae transmeta; do
 # for CPU_TYPE in non-pae transmeta; do
-for CPU_TYPE in non-pae; do
+# for CPU_TYPE in non-pae; do
+for CPU_TYPE in normal; do
     mkpkgParms="--revision=1 --append-to-version=+tcos-${CPU_TYPE}"
     tcosKernelConf=Sources/kernel${MAJOR}-${ARCH}-${CPU_TYPE}.config
     if [ -e $tcosKernelConf ]; then
@@ -83,9 +86,9 @@ for CPU_TYPE in non-pae; do
     fi
 
     # make -j$CPU_CORES ARCH="$ARCH" bzImage && 
-    (cd Kernel/aufs-linux-${KVERS}_${CPU_TYPE} ; make ARCH="$ARCH" oldconfig && if [ "$ARCH" = "i386" ]; then export CFLAGS="-m32"; fi && \
+    (cd Kernel/aufs-linux-${KVERS}_${CPU_TYPE} ; nice -n19 make ARCH="$ARCH" oldconfig && if [ "$ARCH" = "i386" ]; then export CFLAGS="-m32"; fi && \
 	DEB_HOST_ARCH="$ARCH" CONCURRENCY_LEVEL="$CPU_CORES" ARCH="$ARCH" MODULE_LOC=`pwd`/../modules \
-	fakeroot make-kpkg  --cross-compile - --arch $ARCH $mkpkgParms --us --uc kernel_image modules_image kernel_headers \
+	nice -n19 fakeroot make-kpkg  --cross-compile - --arch $ARCH $mkpkgParms --us --uc kernel_image modules_image kernel_headers \
     )
 
     # if ! diff -q Kernel/aufs-linux-${KVERS}_${CPU_TYPE}/.config $tcosKernelConf &> /dev/null ; then 
@@ -96,7 +99,7 @@ for CPU_TYPE in non-pae; do
     #  		;;
     # 	esac
     # fi
-     
-    # echo "Kernel $CPU_TYPE done. Presse any key."; read bla
+    echo "Kernel $CPU_TYPE done."; sleep 10
+
 done 
 

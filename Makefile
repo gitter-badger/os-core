@@ -6,8 +6,15 @@
 
 SHELL := /bin/bash
 
+
+# make filesystem OK
+# make kernel OK
+# make update OK, pcsc-tools machen bei Installation dumm
+# make initrd OK
+# make commercial-module OK
+
 # Define which kernel to download and compile for TCOS
-export KVERS      = 3.17
+export KVERS      = 3.17.1
 export BUSYBOX_VERSION = 1.22.1
 export X86        = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
 export X86_64     = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
@@ -156,6 +163,7 @@ busybox-stamp:
 
         # we need to bind mount it, softlinks won't work
 	sudo mount -o bind Sources/busybox Bbox-build-chroot/busybox
+
 	-mkdir -p Initrd
 	sudo mount -o bind Initrd Bbox-build-chroot/Initrd
 
@@ -220,7 +228,7 @@ final-clean-stamp:
 	touch $@
 
 
-kernel:
+kernel: busybox-build-chroot-stamp
 	make kernel-stamp
 
 kernel-stamp: ./Scripts/TCOS.kernel 
@@ -231,6 +239,7 @@ kernel-stamp: ./Scripts/TCOS.kernel
 	-sudo umount Bbox-build-chroot/Kernel &> /dev/null; sudo umount Bbox-build-chroot/Sources &> /dev/null
 
         # we need to bind mount it, softlinks won't work
+	-sudo mkdir -p Bbox-build-chroot/Sources Bbox-build-chroot/Kernel
 	sudo mount -o bind Sources Bbox-build-chroot/Sources
 	sudo mount -o bind Kernel Bbox-build-chroot/Kernel
 
@@ -289,7 +298,7 @@ initrd-stamp:
 	touch $@
 
 #compressed: filesystem-stamp update-stamp kernel-install-stamp commercial-module-stamp clean-stamp
-compressed: kernel-install-stamp update-sqtamp commercial-module-stamp clean-stamp
+compressed: commercial-module-stamp clean-stamp
 	make compressed-stamp
 
 compressed-stamp: 
