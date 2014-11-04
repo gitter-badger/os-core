@@ -63,12 +63,6 @@ fi
 # rum mdev
 mdev -s && echo "/dev...set up by ${BLUE}mdev${NORMAL}"
 
-# no longer in use
-# load_modules "/modules"
-
-#to override the dhcpd setting set up a HOSTNAME here
-HOSTNAME=""
-
 ip addr add 127.0.0.1/8 dev lo
 ip link set dev lo up
 
@@ -79,11 +73,7 @@ DHCP=""
 for i in $nic; do
     echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
     ip link set dev eth$i up
-    if [ -n "$HOSTNAME" ]; then
-        udhcpc -i eth$i -H $HOSTNAME -s /etc/udhcpc/default.script && DHCP="eth$i"
-    else
-        udhcpc -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
-    fi
+    udhcpc -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
     [ -n "$DHCP" ] && break
     echo "${RED}No answer from network.${NORMAL}"
     debugshell
@@ -152,7 +142,7 @@ mount -t aufs -o noplink,br:${WRITE}=rw:${TREE} unionfs $SHADOW  && AUFS="true"
 # LINKS
 #
 
-PATH="$PATH:/bin.old:${SHADOW}/bin:${SHADOW}/sbin"
+PATH="$PATH:/busybox/bin:${SHADOW}/bin:${SHADOW}/sbin"
 export PATH
 
 # save resolv.conf
@@ -160,11 +150,11 @@ cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
 [ -e /etc/hostname ] && cp /etc/hostname ${SHADOW}/etc/hostname
 
 # dirs that have symlinks to $SHADOW
+mkdir /busybox
 for l in boot etc lib bin usr var opt sbin; do
     if [ -d /$l ]; then
-        mv /$l /$l.old
+        mv /$l /busybox/$l
         ln -s ${SHADOW}/$l /$l
-        rm -rf /$l.old
     elif [ -d ${SHADOW}/$l ]; then
         ln -snf ${SHADOW}/$l /$l
     fi
