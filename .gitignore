@@ -9,10 +9,6 @@
 /Filesystem/*
 /Kernel/*
 /Image/*
-/Initrd/*
-!/Initrd/init*
-!/Initrd/lib
-!/Initrd/bin/mask2cidr
 .SyncID
 .SyncIgnore
 /Sources/busybox/*

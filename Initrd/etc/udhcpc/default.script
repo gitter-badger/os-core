@@ -9,14 +9,16 @@ case $1 in
 	/sbin/ifconfig $interface $ip $BROADCAST $NETMASK
 
 	if [ -n "$router" ]; then
-	    echo "$0: Resetting default routes"
-	    while /sbin/route del default gw 0.0.0.0 dev $interface; do :; done
-
 	    metric=0
 	    for i in $router; do
 		/sbin/route add default gw $i dev $interface metric $metric
 		metric=$(($metric + 1))
 	    done
+	fi
+
+	# Update Hostname
+	if [ -n "$hostname" ]; then
+	        echo $hostname > /etc/hostname
 	fi
 
 	# Update resolver configuration file

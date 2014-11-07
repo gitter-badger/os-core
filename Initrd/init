@@ -60,8 +60,12 @@ else
     $figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
 fi
 
-# rum mdev
-mdev -s && echo "/dev...set up by ${BLUE}mdev${NORMAL}"
+
+depmod -a
+for m in $(detect_nic) aufs nfs squashfs loop;
+do
+    modprobe $m
+done
 
 ip addr add 127.0.0.1/8 dev lo
 ip link set dev lo up
@@ -73,7 +77,7 @@ DHCP=""
 for i in $nic; do
     echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
     ip link set dev eth$i up
-    udhcpc -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
+    udhcpc -a -q -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
     [ -n "$DHCP" ] && break
     echo "${RED}No answer from network.${NORMAL}"
     debugshell
@@ -95,12 +99,6 @@ else
   debugshell
 fi
  
-##################################
-# get the splashscreen running
- 
-fbsplash  -silent -s /tcos/link/custom/splashscreens/${splashImage} 
-
-
 # SFS
 # base.sfs
 #
