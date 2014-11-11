@@ -1,42 +1,60 @@
 #!/bin/sh
-
-
 RESOLV_CONF="/etc/resolv.conf"
 
-[ -n "$broadcast" ] && BROADCAST="$broadcast"
-[ -n "$subnet" ] && CIDR=`echo $subnet | mask2cidr`
-
 case $1 in
- deconfig)
-     echo "$0: Set default config."
-	 ip addr add 0.0.0.0/24 dev $interface; ip link set dev $interface up
-	 #ip link set dev $interface up
-	 ;;
- renew|bound)
-     echo "$0: Renew/Rebound $interface."
-	 ip addr add $ip/$CIDR dev $interface
+    bound|renew)
+	[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
+	[ -n "$subnet" ] && NETMASK="netmask $subnet"
 
-	 if [ -n "$router" ]; then
-		 ip route add default via $router dev $interface
-	 fi
-	 if [ -n "$hostname" ]; then
-		 echo $hostname > /etc/hostname
-	 fi
+	/sbin/ifconfig $interface $ip $BROADCAST $NETMASK
 
-	 :> $RESOLV_CONF
-  	 [ -n "$domain" ] && echo search $domain >> $RESOLV_CONF
-         for i in $dns ; do
-                   echo adding dns $i
-                   echo nameserver $i >> $RESOLV_CONF
-               done
-	 ;;
- leasefail)
-     echo "$0: Lease failed: $message"
-     ;;
- nak)
-     echo "$0: Received a NAK: $message"
-     ;;
- *)
-     echo "$0: Unknown udhcpc command $1";
-     ;;
+	if [ -n "$router" ]; then
+	    metric=0
+	    for i in $router; do
+		/sbin/route add default gw $i dev $interface metric $metric
+		metric=$(($metric + 1))
+	    done
+	fi
+
+	# Update Hostname
+	if [ -n "$hostname" ]; then
+	        echo $hostname > /etc/hostname
+	fi
+
+	# Update resolver configuration file
+	R=""
+	[ -n "$domain" ] && R="domain $domain
+"
+	for i in $dns; do
+	    echo "$0: Adding DNS $i"
+	    R="${R}nameserver $i
+"
+	done
+
+	if [ -x /sbin/resolvconf ]; then
+	    echo -n "$R" | resolvconf -a "${interface}.udhcpc"
+	else
+	    echo -n "$R" > "$RESOLV_CONF"
+	fi
+	;;
+
+    deconfig)
+	if [ -x /sbin/resolvconf ]; then
+	    resolvconf -d "${interface}.udhcpc"
+	fi
+	/sbin/ifconfig $interface 0.0.0.0
+	;;
+
+    leasefail)
+	echo "$0: Lease failed: $message"
+	;;
+
+    nak)
+	echo "$0: Received a NAK: $message"
+	;;
+
+    *)
+	echo "$0: Unknown udhcpc command: $1";
+	exit 1;
+	;;
 esac
