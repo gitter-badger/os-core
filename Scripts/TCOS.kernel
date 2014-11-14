@@ -8,6 +8,7 @@
 # License: GPL V2
 
 set -e  -f
+
 #set -x 
 
 if [ -z "$KVERS" -o -z "$ARCH" ]; then
@@ -64,10 +65,11 @@ fi
   [ -d aufs-linux-${KVERS}_transmeta ] || (echo "Copying kernel source for transmeta kernel"; cp -al aufs-linux-${KVERS}_normal aufs-linux-${KVERS}_transmeta);
 )
 
-# for CPU_TYPE in normal non-pae transmeta; do
+#for CPU_TYPE in normal non-pae transmeta; do
 # for CPU_TYPE in non-pae transmeta; do
 # for CPU_TYPE in non-pae; do
 for CPU_TYPE in normal; do
+# for CPU_TYPE in transmeta; do
     mkpkgParms="--revision=1 --append-to-version=+tcos-${CPU_TYPE}"
     tcosKernelConf=Sources/kernel${MAJOR}-${ARCH}-${CPU_TYPE}.config
     if [ -e $tcosKernelConf ]; then

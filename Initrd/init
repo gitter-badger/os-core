@@ -48,24 +48,19 @@ read CMDLINE < /proc/cmdline
 getbootparams
 
 # Shut up or display figlet logo if not in quiet mode.
-grep -wq quiet /proc/cmdline 
+grep -vwq quiet /proc/cmdline 
 if [ $? = 0 ]; then
-#    echo "Going to be silent ...."
-#    sleep 2
-#    clear
-    sleep 2
-#    exec 1>/dev/null 2>/dev/null # THERE WILL BE NO OUTPUT ON tty1 ANY LONGER AFTER THIS LINE!
-else
     echo "Not going to be silent ...."
     $figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
 fi
 
 
-depmod -a
-for m in $(detect_nic) aufs nfs squashfs loop;
-do
-    modprobe $m
-done
+# This is going to be part of base 2.0-23
+#depmod -a
+#for m in $(detect_nic) aufs nfs squashfs loop;
+#do
+#    modprobe $m
+#done
 
 ip addr add 127.0.0.1/8 dev lo
 ip link set dev lo up
@@ -98,7 +93,17 @@ else
   echo "${RED} could not mount $NFSD - exiting. ${NORMAL}"
   debugshell
 fi
+
+##################################
+# get the splashscreen running
  
+#grep -wq quiet /proc/cmdline &&
+
+echo "slpash now?"
+sleep 2
+fbsplash -silent -s /tcos/link/custom/splashscreens/${splashImage} 
+sleep 20
+
 # SFS
 # base.sfs
 #
@@ -210,7 +215,6 @@ fi
 #    done
 #fi
 
-
 exec /sbin/init "$@" </dev/console >/dev/console 2>&1
 
-#exec 1>/dev/null 2>/dev/null # THERE WILL BE NO OUTPUT ON tty1 ANY LONGER AFTER THIS LINE!
+
