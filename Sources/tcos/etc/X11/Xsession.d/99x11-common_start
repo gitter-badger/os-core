@@ -7,13 +7,11 @@
 
 tcos-mount-nfs-home
 
-# trigger display setup
-tcos-xrandr # will write $HOME/.tcos_displayrc
-
 # bring in tcos display settings variables
-[ -f $HOME/.tcos_displayrc ] && . $HOME/.tcos_displayrc
+# the file .tcos_displayrc is written by /usr/local/bin/tcos-xrandr
+# /usr/local/bin/tcos-xrandr is triggerd by lightdm as session-setup-script
+[ -f /tmp/.tcos_displayrc ] && . /tmp/.tcos_displayrc
 
-#. $HOME/.tcos_displayrc
 
 # populate desktop icons
 tcos-desktop-populate

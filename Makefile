@@ -38,7 +38,8 @@ export BASE_VERSION ?= 2.0-xx(minor_unknown)
 # 
 # These are the packages from debian wheezy 
 #
-export PACKAGES = dialog libpam-ldap alsa-utils aptitude atril ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dos2unix dosfstools e2fsprogs eject engrampa eom ethtool file flashplugin-nonfree fontconfig gdevilspie gvfs gvfs-backends hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libacsccid1 libccid libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libglib2.0-bin libgtk2.0-bin libgtk-3-bin libmotif4 libpopt0 libqt4-qt3support libqt4-sql libssl1.0.0 libstdc++5 libx11-6 lightdm lightdm-gtk-greeter man marco mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes mc mozo net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils  pluma python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev usbip usbutils util-linux vim vim-tiny wget x11vnc  xdg-utils xfonts-base xinetd xinit zenity caja mate-utils-common mate-utils mate-media-gstreamer pulseaudio pavucontrol strace fxcyberjack libifd-cyberjack6 xtightvncviewer dnsutils dmidecode lshw hwinfo libsasl2-modules libsasl2-modules-gssapi-mit libxerces-c3.1 libcurl3 libwebkitgtk-1.0-0 libgssglue1
+export PACKAGES = dialog libpam-ldap alsa-utils aptitude atril ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dos2unix dosfstools e2fsprogs eject engrampa eom ethtool file flashplugin-nonfree fontconfig gdevilspie gvfs gvfs-backends hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libacsccid1 libccid libglib2.0-bin libgtk2.0-bin libgtk-3-bin libmotif4 libpopt0 libqt4-qt3support libqt4-sql libssl1.0.0 libstdc++5 libx11-6 lightdm lightdm-gtk-greeter man marco mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes mc mozo net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils  pluma python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev usbip usbutils util-linux vim vim-tiny wget x11vnc  xdg-utils xfonts-base xinetd xinit zenity caja mate-utils-common mate-utils mate-media-gstreamer pulseaudio pavucontrol strace fxcyberjack libifd-cyberjack6 xtightvncviewer dnsutils dmidecode lshw hwinfo libsasl2-modules libsasl2-modules-gssapi-mit libxerces-c3.1 libcurl3 libwebkitgtk-1.0-0 libgssglue1 
+
 
 # mate-media-pulse causes mate-mixer to crash
 
@@ -46,7 +47,7 @@ export PACKAGES = dialog libpam-ldap alsa-utils aptitude atril ca-certificates c
 ##################################################################
 # These are the packages from debian sid/unstable. We need some newer stuff in some cases.  
 #
-export PACKAGES_UNSTABLE = mesa-vdpau-drivers vdpauinfo x11-xserver-utils xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-ati xserver-xorg-video-geode xserver-xorg-video-glide xserver-xorg-video-amd libgl1-mesa-dri arandr libglew1.10 libvdpau1 freerdp-X11 xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom mesa-utils libc6-dev
+export PACKAGES_UNSTABLE = mesa-vdpau-drivers vdpauinfo x11-xserver-utils xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-ati xserver-xorg-video-geode xserver-xorg-video-glide xserver-xorg-video-amd libgl1-mesa-dri arandr libglew1.10 libvdpau1 freerdp-X11 xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom mesa-utils libc6-dev libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx locales locales-all 
 
 
 ##################################################################
@@ -120,11 +121,9 @@ chroot: filesystem-stamp ./Scripts/LINBO.chroot
 	rm -f clean-stamp
 	sudo Scripts/LINBO.chroot ./Filesystem
 
-all: 
-	make initrd 
-	make final-clean
-	make compressed 
-#	-rm -f kernel-install-stamp 
+all: 	initrd-stamp compressed-stamp
+#	make initrd 
+#	make compressed 
 
 # Build-Targets
 #
@@ -249,7 +248,7 @@ kernel-install: update-stamp kernel-stamp
 
 kernel-install-stamp: Scripts/LINBO.chroot 
 	@echo "[1m Target kernel-install-stamp: Install the kernel[0m"
-	-rm -f compressed-stamp commercial-module-stamp final-clean-stamp
+	-rm -f compressed-stamp commercial-module-stamp clean-stamp
 	-mkdir -p Image/boot/syslinux
 	for debFile in Kernel/linux-image-$(KVERS)*.deb Kernel/linux-headers-$(KVERS)*.deb ; do sudo ln -nf $$debFile Filesystem/tmp/ ; done
 	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; dpkg -i /tmp/linux-*$(KVERS)*.deb; rm -rf /tmp/*.deb"
@@ -261,23 +260,39 @@ commercial-module: kernel-install-stamp
 
 commercial-module-stamp: 
 	@echo "[1m Target commercial-module-stamp: Build commercial module inside the filsystem[0m"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends $(PACKAGES_COMMERCIAL_BUILD)"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends -t unstable $(PACKAGES_COMMERCIAL)"
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "aptitude update; apt-get install -y --force-yes --no-install-recommends $(PACKAGES_COMMERCIAL_BUILD)"
+#	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends -t unstable $(PACKAGES_COMMERCIAL)"
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends  $(PACKAGES_COMMERCIAL)"
+#	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "/usr/sbin/update-flashplugin-nonfree --install"
+
 	#### FGLRX
 	# This script ensures, that the fglrx kernel module is build for all kernel versions.
 	# The package itself doesn't do this job right.
 	sudo KVERS=$(KVERS) Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.fglrx_install 
 
 	# This script compiles and installs the usbrdr kernel modules
-	sudo KVERS=$(KVERS) Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.usbrdr_install
+#	sudo KVERS=$(KVERS) Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.usbrdr_install
 
 	#### NVIDIA
-	# -mkdir -p Filesystem/tmp/NvidiaSources NvidiaModules Filesystem/tmp/NvidiaModules
+	#
+	# CAVEATS:
+	#	Does the nvidia installer eat the original xserver-xorg-core file
+	#       /usr/lib/xorg/modules/libglamoregl.so ? I missed it after installing nvidia.
+	#
+	#	The origal file /usr/lib/xorg/modules/extensions/libglx.so from xserver-xorg-core
+	#	will be overwritten with a link to libglx.so.340.58 .
+	#
+	#	ToDo: Have a workaround for this!
+	# 	
+	# We don't need the mounts as long as we use only one nvidia driver.
+	#
+	# -sudo mkdir -p Filesystem/tmp/NvidiaSources NvidiaModules Filesystem/tmp/NvidiaModules
+	# -sudo rm -rf Filesystem/tmp/NvidiaSources/* NvidiaModules/* Filesystem/tmp/NvidiaModules/*
 	# -sudo umount Filesystem/tmp/NvidiaSources &> /dev/null
 	# -sudo umount Filesystem/tmp/NvidiaModules &> /dev/null
 	# sudo mount -o bind Sources/Nvidia Filesystem/tmp/NvidiaSources
 	# sudo mount -o bind NvidiaModules Filesystem/tmp/NvidiaModules
-	# sudo KVERS=$(KVERS) Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.nvidia_install
+	 sudo KVERS=$(KVERS) Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.nvidia_install
 	# -sudo umount Filesystem/tmp/NvidiaSources &> /dev/null
 	# -sudo umount Filesystem/tmp/NvidiaModules &> /dev/null
 	touch $@
@@ -299,24 +314,13 @@ clean: commercial-module-stamp
 
 clean-stamp: ./Scripts/TCOS.tcosify-clean 
 	@echo "[1m Target clean-stamp: Clean up the filesystem[0m"
+	-rm -f kernel-install-stamp
+	-sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get --purge remove -y linux-headers-\* $(PACKAGES_COMMERCIAL_BUILD)"
 	-sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-clean
-	touch $@
-
-final-clean: clean-stamp
-	make final-clean-stamp
-
-final-clean-stamp:
-	@echo "[1m Target final-clean: Clean all useless stuff before shipping.[0m"
-	# This target should run just before a new base-package is finnaly build.
-	# Get rid of stuff you don't really need after the build process
-	@echo "[1m Target final-clean-stamp: Remove [0m"
 	-sudo rm -f Filesystem/boot/*
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get --purge remove -y linux-headers-\* $(PACKAGES_COMMERCIAL_BUILD)"
 	touch $@
 
-
-#compressed: filesystem-stamp update-stamp kernel-install-stamp commercial-module-stamp clean-stamp
-compressed: final-clean
+compressed: clean-stamp
 	make compressed-stamp
 
 compressed-stamp: 
@@ -331,7 +335,7 @@ compressed-stamp:
 ##################################################
 # Install-Targets
 
-local-test: initrd-stamp compressed-stamp commercial-module-stamp
+local-test: initrd-stamp compressed-stamp 
 	make local-test-stamp
 
 local-test-stamp:
@@ -345,10 +349,6 @@ package-prepare: all
 
 package-prepare-stamp:
 	@echo "[1m Target package-prepare-stamp: Copy base.sfs, kernel, etc. to package build folder.[0m"
-	# /usr/src/* and /boot/* are not needed to run a client
-	# Target "all" calls target "final-clean". We consider the kernel stuff as removed once
-	# we have prepared for packaging.
-	 -rm -f kernel-install-stamp 
 	rsync Image/boot/syslinux/vmlinuz*     $(BASE_PACKAGE_PATH)/debian/base/tftp/
 	rsync Image/boot/syslinux/initrd.xz $(BASE_PACKAGE_PATH)/debian/base/tftp/initrd.img
 	rsync Image/base.sfs	       $(BASE_PACKAGE_PATH)/debian/base/sfs/

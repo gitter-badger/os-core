@@ -15,12 +15,13 @@ if $(echo $KVERS | grep -q 3.17); then
 fi
 
 for fglrxmodule_version in $(ls -1 /usr/src/ | grep fglrx | sed 's/fglrx-//'); do
-    for kernel in $(ls -1 /usr/src/ | grep $KVERS | sed 's/linux-headers-//'); do
+    for kernel in $(ls -1 /usr/src/ | grep $KVERS | grep normal | sed 's/linux-headers-//'); do
+    	  dkms uninstall -m fglrx -v ${fglrxmodule_version} -k ${kernel}
     	  dkms install -m fglrx -v ${fglrxmodule_version} -k ${kernel}
     done 
 done
 
-# Roll back unecesarry things.
+# Roll back unnecessary things.
 # We'll decide this dynamically in initrd (init)
 
 rm -f /etc/modprobe.d/fglrx-blacklists-radeon.conf

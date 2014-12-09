@@ -1,27 +1,27 @@
 #! /bin/bash
 
-for kernel in $(ls -1 /usr/src/ | grep $KVERS | sed 's/linux-headers-//'); do
+for kernel in $(ls -1 /usr/src/ | grep $KVERS | grep normal | sed 's/linux-headers-//'); do
     for nvidia_driver in $(ls -1 /tmp/NvidiaSources/); do
+	rm /usr/lib/nvidia/alternate-install-present 
 	DST="/tmp/NvidiaModules/$kernel/$nvidia_driver"
 	mkdir -p $DST || exit 1
 	cd /tmp/NvidiaSources/$nvidia_driver
 	echo "####################################################################"
 	echo "######### Starting build for $nvidia_driver/$kernel"
+	# installer_params="-z -b --ui=none \
+	# 		   --accept-license --no-x-check --no-cc-version-check -k $kernel \
+        #                    --no-distro-scripts \
+	# 		   --no-questions --x-prefix=$DST/usr --opengl-prefix=$DST/usr \
+	# 		   --utility-prefix=$DST/usr \
+	# 		   --kernel-install-path=$DST/lib/modules/$kernel/kernel/drivers/video"
 
 	installer_params="-z -b --ui=none \
 			   --accept-license --no-x-check --no-cc-version-check -k $kernel \
-                           --no-distro-scripts \
-			   --no-questions --x-prefix=$DST/usr --opengl-prefix=$DST/usr \
-			   --utility-prefix=$DST/usr \
-			   --kernel-install-path=$DST/lib/modules/$kernel/kernel/drivers/video"
+                           --no-distro-scripts"
 
 	echo $nvidia_driver | grep -vq nvidia256 && installer_params="$installer_params --no-nvidia-modprobe "
 	# --no-check-for-alternate-installs "
-	#	set -x
-	./nvidia-installer $installer_params #|| exit 1
-	
-	#	set +x
-	mv $DST ${DST}build
+	./nvidia-installer $installer_params || exit 1
     done 
 done
 
