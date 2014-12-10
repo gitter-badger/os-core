@@ -27,8 +27,10 @@ CUSTOM="$LINK/custom"
 # Values can be overwritten in kernel commandline - Key=Value
 #
 fglrx=false
+nvidia=false
 figlet=true
 splashImage=openthinclient.ppm
+glamor=false
 
 
 ## MAIN ####################################################
@@ -38,34 +40,30 @@ export PATH=/bin:/usr/bin:/sbin:/usr/sbin
 # create essential folders
 for folder in /dev/pts home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $SHADOW $CUSTOM proc sys; do mkdir -p $folder ; done
 
-mount -t devpts devpts /dev/pts
 mount -t proc proc /proc
 mount -t sysfs sys /sys
 mount -t tmpfs none /tmp
+
+mount -t devtmpfs devtmpfs /dev # We noticed that this was not automatically done in kernel 3.14. Why?
+mkdir -p /dev/pts && mount -t devpts devpts /dev/pts
 
 # Get Key=Value pairs from kernel commandline and overwrite defaults.
 read CMDLINE < /proc/cmdline
 getbootparams
 
 # Shut up or display figlet logo if not in quiet mode.
-grep -wq quiet /proc/cmdline 
+# Use "vga=791 console=tty2 quiet" as kernel paramter to get it absolutely quiet.
+grep -vwq quiet /proc/cmdline 
 if [ $? = 0 ]; then
-#    echo "Going to be silent ...."
-#    sleep 2
-#    clear
-    sleep 2
-#    exec 1>/dev/null 2>/dev/null # THERE WILL BE NO OUTPUT ON tty1 ANY LONGER AFTER THIS LINE!
-else
-    echo "Not going to be silent ...."
     $figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
 fi
 
-
-depmod -a
-for m in $(detect_nic) aufs nfs squashfs loop;
-do
-    modprobe $m
-done
+# This is going to be part of base 2.0-24
+# depmod -a
+# for m in $(detect_nic) aufs nfs squashfs loop;
+# do
+#     modprobe $m
+# done
 
 ip addr add 127.0.0.1/8 dev lo
 ip link set dev lo up
@@ -98,7 +96,15 @@ else
   echo "${RED} could not mount $NFSD - exiting. ${NORMAL}"
   debugshell
 fi
- 
+
+###############################################################
+# get the splashscreen running if some framebuffer is enabled
+# 
+
+[ -c /dev/fb0 ] || mknod /dev/fb0 c 29 0               # ensure framebuffer device exists
+echo 0 > /sys/class/graphics/fbcon/cursor_blink        # prevent cursor blinking
+grep -q "vga=" /proc/cmdline && fbsplash -silent -s /tcos/link/custom/splashscreens/${splashImage} 
+
 # SFS
 # base.sfs
 #
@@ -183,24 +189,74 @@ for service in /tcos/package/*/etc/init.d/*; do
 done
 
 
+# ToDo: Source the graphics card stuff out in a separate file.
+
+# Check if acceleration glamor should be used.
+# This does not work with proprietary drivers at the moment, but we don't check this here.
+# It's the admins decision.
+#
+if $glamor ; then 
+    echo "${GREEN}Enabling xorg acceleration glamor.${NORMAL}"
+    echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tOption "AccelMethod" "glamor"\nEndSection' > /etc/X11/xorg.conf.d/21-glamor.conf
+fi
+
 # Check if fglrx drivers for radeon cards should be used.
 # Prevent using fglrx in case of non existing AMD hardware.
 # 
 if $fglrx && $(/usr/bin/lspci | /bin/grep -q AMD); then 
     echo "${GREEN}Switching client to use proprietary fglrx drivers.${NORMAL}"
-    echo "blacklist radeon" >> /etc/modprobe.d/tcos-blacklist.conf
     mkdir -p /etc/X11/xorg.conf.d &> /dev/null
     echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tDriver "fglrx"\nEndSection' > /etc/X11/xorg.conf.d/20-fglrx.conf
-    update-alternatives --set glx /usr/lib/fglrx
+    # Xorg will load necesarry kernel modules itself. There is no need to do this by hand.
+    update-alternatives --set glx /usr/lib/fglrx # will also do the blacklisting
 else
     echo "blacklist fglrx" >> /etc/modprobe.d/tcos-blacklist.conf
 fi
+
+
+# Check if nvidia driver for nvidia cards should be used.
+# Prevent using nvidia in case of non existing Nvidia hardware.
+# 
+if $nvidia && $(/usr/bin/lspci | /bin/grep -q NVIDIA); then 
+    echo "${GREEN}Switching client to use proprietary nvidia drivers.${NORMAL}"
+    echo "blacklist nouveau" >> /etc/modprobe.d/tcos-blacklist.conf 
+    mkdir -p /etc/X11/xorg.conf.d &> /dev/null
+
+    # write xorg.conf  snippet
+    echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tDriver "nvidia"\nEndSection' > /etc/X11/xorg.conf.d/20-nvidia.conf
+
+    # link libglx.so to the nvidia libglx.so.XXX.XX - we assume there is only one 
+    nvidia_glx_so=$(grep -l nvidia /usr/lib/xorg/modules/extensions/libglx.* | tail -n 1)
+    rm -f /usr/lib/xorg/modules/extensions/libglx.so
+    ln -s  $nvidia_glx_so /usr/lib/xorg/modules/extensions/libglx.so
+    
+    #####################################################################################
+    # Some workaround, because the nvidia module sometimes fails to initialize propperly.
+    # But if it is loaded/initialized a second time, it works. Strange, but this is a fact.
+    # Kick it!
+    # 
+    modprobe nvidia
+    /usr/bin/X :5 -novtswitch -configdir /etc/X11/xorg.conf.d &> /dev/null &
+    sleep 10;
+    kill -9 $!
+    rmmod nvidia
+    #
+    # Xorg will load the module again itself.
+    # End of workaround.
+    #####################################################################################
+    
+else
+    echo "blacklist nvidia" >> /etc/modprobe.d/tcos-blacklist.conf
+fi
+
+#######################################################
+# Try to automatically use swap devices.
 
 # mdev does not know about blockdevices, 
 # this should become a device
 
 # activate swap
-# lsblk read old MBR and new GPT tables
+# lsblk reads old MBR and new GPT tables
 #
 #if $autoswap ; then
 #    lsblk -P -o NAME,FSTYPE 2> /dev/null | grep swap | while read line; do 
@@ -210,7 +266,6 @@ fi
 #    done
 #fi
 
-
 exec /sbin/init "$@" </dev/console >/dev/console 2>&1
 
-#exec 1>/dev/null 2>/dev/null # THERE WILL BE NO OUTPUT ON tty1 ANY LONGER AFTER THIS LINE!
+
