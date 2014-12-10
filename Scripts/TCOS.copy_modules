@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+#
+# parse modules.dep of Kernel and copy files recursively to destination folder
+#
+
+KERNELDIR="${KERNELDIR-/lib/modules/$(uname -r)}"
+MODULES_LIST="${MODULES_LIST-./Sources/modules.list}"
+MODULES_DEP=$KERNELDIR/modules.dep
+TEMP_DIR=/tmp/.tcos_tmp
+DEST_DIR="${DEST_DIR-/tmp/sandbox}"
+
+trap 'rm -rf $TEMP_DIR' EXIT TERM INT
+[ ! -d $TEMP_DIR ] && mkdir $TEMP_DIR
+
+function parse_modulesdep(){
+    [ -n "$1" ] || exit 1
+    local module=$1
+    module_xp="(.*\/${module}):(.*)"
+
+    while read line; do
+        if [[ $line =~ $module_xp ]]; then
+            module_done=$KERNELDIR/${BASH_REMATCH[1]}
+	    [ -f ${TEMP_DIR}/${module_done//\//_} ] && continue
+	    echo $module_done
+            touch ${TEMP_DIR}/${module_done//\//_}
+
+            # check for nested dependencies, the one right to the colon and recurse the call
+            if [ ! ${#BASH_REMATCH[2]} -eq 0 ];then
+		for module_dep in $(echo ${BASH_REMATCH[2]});do
+		    parse_modulesdep $(basename $module_dep)
+		done
+            fi
+        fi
+    done < $MODULES_DEP
+}
+
+# Let's roll!
+
+declare -a modules_path
+
+while read -r line; do
+    echo -e "processing: $line"
+    # is directory? ends with "/"?
+    if [ ${line:${#line}-1} == "/" ];then
+	declare -a modules_from_dir
+	modules_from_dir+=( $(find $KERNELDIR/$line -exec basename {} \; | grep .ko) )
+	echo ${modules_from_dir[@]}
+	for m in ${modules_from_dir[@]};do
+	    modules_path+=( $(parse_modulesdep $m) )
+	done
+    # single module
+    else
+	modules_path+=( $(parse_modulesdep $line) )
+    fi
+done < $MODULES_LIST
+
+echo ${modules_path[@]}
+rsync -vaR ${modules_path[@]} $DEST_DIR
