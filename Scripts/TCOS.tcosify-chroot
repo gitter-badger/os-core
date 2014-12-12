@@ -14,7 +14,7 @@ locale-gen
 
 
 # delete and recreate the user everytime the script is called
-# this will ensure, that modifications in /etc/skel are appllied
+# this will ensure, that modifications in /etc/skel are applied
 
 # delete the user
 userdel $AutoLoginUser &> /dev/null || :

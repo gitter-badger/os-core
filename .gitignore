@@ -1,8 +1,15 @@
-/Base
-/BACKUPS
+/Base/
+/BACKUPS/
 !/Base/base-2.0/
 /Base/base-2.0/debian/*
 !/Base/build-howto/
+
+/Initrd/
+!/Initrd/init
+!/Initrd/init_functions
+!/Initrd/bin/mask2cidr
+!/Initrd/etc/udhcpc/default.script
+!/Initrd/lib/consus.figlet
 
 /Bbox-build-chroot/*
 
@@ -11,7 +18,7 @@
 /Image/*
 .SyncID
 .SyncIgnore
-/Sources/busybox/*
+/Sources/busybox/
 /Packages/Incoming/*
 *~
 .~*

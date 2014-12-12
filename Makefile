@@ -13,7 +13,8 @@ SHELL := /bin/bash
 # make commercial-module OK
 
 # Define which kernel to download and compile for TCOS
-export KVERS	  = 3.14.5
+# export KVERS	  = 3.14.5
+export KVERS	  = 3.2.0-4-486
 export BUSYBOX_VERSION = 1.22.1
 export X86	  = CFLAGS="-m32" LDFLAGS="-m32" ARCH="i386"
 export X86_64	  = CFLAGS="-m64" LDFLAGS="-m64" ARCH="x86_64"
@@ -38,16 +39,19 @@ export BASE_VERSION ?= 2.0-xx(minor_unknown)
 # 
 # These are the packages from debian wheezy 
 #
-export PACKAGES = dialog libpam-ldap alsa-utils aptitude atril ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dos2unix dosfstools e2fsprogs eject engrampa eom ethtool file flashplugin-nonfree fontconfig gdevilspie gvfs gvfs-backends hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libacsccid1 libccid libglib2.0-bin libgtk2.0-bin libgtk-3-bin libmotif4 libpopt0 libqt4-qt3support libqt4-sql libssl1.0.0 libstdc++5 libx11-6 lightdm lightdm-gtk-greeter man marco mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes mc mozo net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils  pluma python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev usbip usbutils util-linux vim vim-tiny wget x11vnc  xdg-utils xfonts-base xinetd xinit zenity caja mate-utils-common mate-utils mate-media-gstreamer pulseaudio pavucontrol strace fxcyberjack libifd-cyberjack6 xtightvncviewer dnsutils dmidecode lshw hwinfo libsasl2-modules libsasl2-modules-gssapi-mit libxerces-c3.1 libcurl3 libwebkitgtk-1.0-0 libgssglue1 
-
+export PACKAGES = dialog apt-utils libpam-ldap alsa-utils aptitude atril ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dos2unix dosfstools e2fsprogs eject engrampa eom ethtool file flashplugin-nonfree fontconfig gdevilspie gvfs gvfs-backends hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libacsccid1 libccid libglib2.0-bin libgtk2.0-bin libgtk-3-bin libmotif4 libpopt0 libqt4-qt3support libqt4-sql libssl1.0.0 libstdc++5 libx11-6 lightdm lightdm-gtk-greeter man marco mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes mc mozo net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils  pluma python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev usbip usbutils util-linux vim vim-tiny wget x11vnc  xdg-utils xfonts-base xinetd xinit zenity caja mate-utils-common mate-utils mate-media-gstreamer pulseaudio pavucontrol strace fxcyberjack libifd-cyberjack6 xtightvncviewer dnsutils dmidecode lshw hwinfo libsasl2-modules libsasl2-modules-gssapi-mit libxerces-c3.1 libcurl3 libwebkitgtk-1.0-0 libgssglue1 
 
 # mate-media-pulse causes mate-mixer to crash
-
 
 ##################################################################
 # These are the packages from debian sid/unstable. We need some newer stuff in some cases.  
 #
 export PACKAGES_UNSTABLE = mesa-vdpau-drivers vdpauinfo x11-xserver-utils xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-video-all xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-ati xserver-xorg-video-geode xserver-xorg-video-glide xserver-xorg-video-amd libgl1-mesa-dri arandr libglew1.10 libvdpau1 freerdp-X11 xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom mesa-utils libc6-dev libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx locales locales-all 
+
+##################################################################
+# These are the kernel packages 
+#
+export PACKAGES_KERNEL = linux-image-3.2.0-4-486 
 
 
 ##################################################################
@@ -76,7 +80,7 @@ export PACKAGES_AFTER_EXTRAS = pcsc-tools
 # kernel build
 #
 #export PACKAGES_COMMERCIAL_BUILD = cpp-4.7 dkms gcc-4.7 make patch
-export PACKAGES_COMMERCIAL_BUILD = build-essential
+export PACKAGES_COMMERCIAL_BUILD = build-essential linux-headers-486
 
 # do we really need this packages? libgcc-4.7-dev nvidia-installer-cleanup
 
@@ -133,6 +137,7 @@ filesystem:
 filesystem-stamp: ./Scripts/TCOS.mkfilesystem
 	@echo "[1m Target filesystem-stamp: Creating an initial filesystem[0m"
 	-rm -f tcosify-stamp update-stamp clean-stamp
+        # The script TCOS.mkfilesystem also creates the Bbox-build-chroot
 	./Scripts/TCOS.mkfilesystem $(DEB_MIRROR)
 	touch $@
 
@@ -153,7 +158,7 @@ busybox: Sources/busybox.config Sources/busybox busybox-build-chroot-stamp
 
 busybox-stamp:
 	@echo "[1m Target busybox-stamp: Create the busybox[0m"
-	# check if there is already a busybox source and download/extract it if not
+        # check if there is already a busybox source and download/extract it if not
 	test -r Sources/busybox/Makefile || \
 		(cd Sources && \
 		wget -O - http://busybox.net/downloads/busybox-$(BUSYBOX_VERSION).tar.bz2  | tar -xjf - && \
@@ -204,17 +209,21 @@ update-stamp:
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -y --force-yes --no-install-recommends wget sudo"	
 	# sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "wget -qO - http://mirror1.mate-desktop.org/debian/mate-archive-keyring.gpg | sudo apt-key add -"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends $(PACKAGES)"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends -t unstable $(PACKAGES_UNSTABLE)"
+	# sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends -t unstable $(PACKAGES_UNSTABLE)"
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends $(PACKAGES_UNSTABLE)"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends  -t wheezy-backports $(PACKAGES_BACKPORTS)"
 
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get dist-upgrade -y --force-yes --no-install-recommends ; apt-get autoremove"
 	for debFile in $(EXTRAS); do ln -nf Packages/$$debFile Filesystem/tmp/$$debFile ; done
-	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -i /tmp/*.deb ; rm -rf /tmp/*.deb"
+#	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -i /tmp/*.deb ; rm -f /tmp/*.deb"
+	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -i /tmp/*.deb ;"
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends $(PACKAGES_AFTER_EXTRAS)"
 	touch $@
 
 kernel: busybox-build-chroot-stamp
-	make kernel-stamp
+	@echo "[1m Target kernel is obsolete. Skipping[0m"
+	# make kernel-stamp
+	touch kernel-stamp
 
 kernel-stamp: ./Scripts/TCOS.kernel 
 	@echo "[1m Target kernel-stamp: Build the kernel[0m"
@@ -249,9 +258,12 @@ kernel-install: update-stamp kernel-stamp
 kernel-install-stamp: Scripts/LINBO.chroot 
 	@echo "[1m Target kernel-install-stamp: Install the kernel[0m"
 	-rm -f compressed-stamp commercial-module-stamp clean-stamp
-	-mkdir -p Image/boot/syslinux
-	for debFile in Kernel/linux-image-$(KVERS)*.deb Kernel/linux-headers-$(KVERS)*.deb ; do sudo ln -nf $$debFile Filesystem/tmp/ ; done
-	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; dpkg -i /tmp/linux-*$(KVERS)*.deb; rm -rf /tmp/*.deb"
+#	-mkdir -p Image/boot/syslinux
+#	for debFile in Kernel/linux-image-$(KVERS)*.deb Kernel/linux-headers-$(KVERS)*.deb ; do sudo ln -nf $$debFile Filesystem/tmp/ ; done
+#	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; dpkg -i /tmp/linux-*$(KVERS)*.deb; rm -rf /tmp/*.deb"
+
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends linux-image-$(KVERS)"
+
 	touch $@
 
 
@@ -297,12 +309,14 @@ commercial-module-stamp:
 	# -sudo umount Filesystem/tmp/NvidiaModules &> /dev/null
 	touch $@
 
-initrd: busybox-stamp
+initrd: busybox-stamp update-stamp
 	make initrd-stamp
 
 initrd-stamp:
 	@echo "[1m Target initrd-stamp: Create the initrd[0m"
 	-mkdir -p Image/boot/syslinux
+	DEST_DIR=Initrd/lib/modules/ KERNELDIR=Filesystem/lib/modules/$(KVERS)/  Scripts/TCOS.copy_modules
+
 	# *** CAVEAT ***
 	# If xz is used for initrd compression, lzma format must be used. Either pxelinux (bootloader) 
 	# or the kernel itself can't handle other formats.
