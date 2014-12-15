@@ -222,11 +222,11 @@ update-stamp:
 
 kernel: busybox-build-chroot-stamp
 	@echo "[1m Target kernel is obsolete. Skipping[0m"
-	# make kernel-stamp
-	touch kernel-stamp
+	make kernel-stamp
 
 kernel-stamp: ./Scripts/TCOS.kernel 
 	@echo "[1m Target kernel-stamp: Build the kernel[0m"
+	exit 0
 	rm -f kernel-install-stamp compressed-stamp 
 
 	# just to be sure, unmount it
