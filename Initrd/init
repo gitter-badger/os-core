@@ -37,15 +37,39 @@ glamor=false
 
 export PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
-# create essential folders
-for folder in /dev/pts home root media mnt run tmp $LINK $WRITE $BASE $PACKAGE $SHADOW $CUSTOM proc sys; do mkdir -p $folder ; done
 
-mount -t proc proc /proc
-mount -t sysfs sys /sys
-mount -t tmpfs none /tmp
+echo "Loading, please wait..."
 
-mount -t devtmpfs devtmpfs /dev # We noticed that this was not automatically done in kernel 3.14. Why?
-mkdir -p /dev/pts && mount -t devpts devpts /dev/pts
+[ -d /dev ] || mkdir -m 0755 /dev
+[ -d /root ] || mkdir -m 0700 /root
+[ -d /sys ] || mkdir /sys
+[ -d /proc ] || mkdir /proc
+[ -d /tmp ] || mkdir /tmp
+[ -d /run ] || mkdir /run
+
+mkdir -p /var/lock
+mount -t sysfs -o nodev,noexec,nosuid sysfs /sys
+mount -t proc -o nodev,noexec,nosuid proc /proc
+
+# Note that this only becomes /dev on the real filesystem if udev's scripts
+# are used; which they will be, but it's worth pointing out
+tmpfs_size="10M"
+if [ -e /etc/udev/udev.conf ]; then
+        . /etc/udev/udev.conf
+fi
+if ! mount -t devtmpfs -o size=$tmpfs_size,mode=0755 udev /dev; then
+        echo "W: devtmpfs not available, falling back to tmpfs for /dev"
+        mount -t tmpfs -o size=$tmpfs_size,mode=0755 udev /dev
+        [ -e /dev/console ] || mknod -m 0600 /dev/console c 5 1 
+        [ -e /dev/null ] || mknod /dev/null c 1 3 
+fi
+mkdir /dev/pts
+mount -t devpts -o noexec,nosuid,gid=5,mode=0620 devpts /dev/pts || true
+mount -t tmpfs -o "nosuid,size=20%,mode=0755" tmpfs /run
+mkdir -m 0755 /run/initramfs
+
+# create TCOS essential folders
+for folder in $LINK $WRITE $BASE $PACKAGE $SHADOW $CUSTOM; do mkdir -p $folder ; done
 
 # Get Key=Value pairs from kernel commandline and overwrite defaults.
 read CMDLINE < /proc/cmdline
@@ -59,11 +83,11 @@ if [ $? = 0 ]; then
 fi
 
 # This is going to be part of base 2.0-24
-# depmod -a
-# for m in $(detect_nic) aufs nfs squashfs loop;
-# do
-#     modprobe $m
-# done
+depmod -a
+for m in $(detect_nic) aufs nfs squashfs loop;
+do
+     modprobe $m
+done
 
 ip addr add 127.0.0.1/8 dev lo
 ip link set dev lo up
@@ -72,6 +96,7 @@ ip link set dev lo up
 [ -z $nic ] && nic=0
 DHCP=""
 
+set -x
 for i in $nic; do
     echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
     ip link set dev eth$i up
@@ -80,6 +105,7 @@ for i in $nic; do
     echo "${RED}No answer from network.${NORMAL}"
     debugshell
 done
+set +x
 
 # NFS (or local link #future)
 MOUNTED=""
@@ -146,46 +172,22 @@ mount -t aufs -o noplink,br:${WRITE}=rw:${TREE} unionfs $SHADOW  && AUFS="true"
 # LINKS
 #
 
-PATH="$PATH:/busybox/bin:${SHADOW}/bin:${SHADOW}/sbin"
-export PATH
+#PATH="$PATH:/busybox/bin:${SHADOW}/busybox/bin:${SHADOW}/bin:${SHADOW}/sbin:${SHADOW}/usr/bin"
+#export PATH
 
 # save resolv.conf
 cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
 [ -e /etc/hostname ] && cp /etc/hostname ${SHADOW}/etc/hostname
 
-# dirs that have symlinks to $SHADOW
-mkdir /busybox
-for l in boot etc lib bin usr var opt sbin; do
-    if [ -d /$l ]; then
-        mv /$l /busybox/$l
-        ln -s ${SHADOW}/$l /$l
-    elif [ -d ${SHADOW}/$l ]; then
-        ln -snf ${SHADOW}/$l /$l
-    fi
-done
-
-# dirs that have bind mounts to $SHADOW (e.G. /home has to be a mountpoint )
-
-for l in home root; do
-    if [ -d "${SHADOW}/$l" ]; then
-        rm -rf /$l && mkdir -m 755 /$l
-        mount -o bind "${SHADOW}/$l" $l
-    fi
-done
-
 # enables additional packages (in  bz2, gz. tar, plain, format)
 mountcustom $CUSTOM
-
-# INIT
-#
-
 
 # modify /etc/init.d/.depend.* with insserv
 # enables custom LSB
 #
 for service in /tcos/package/*/etc/init.d/*; do
   servicefilename=$(basename $service);
-  insserv /etc/init.d/$servicefilename
+  ${SHADOW}/sbin/insserv ${SHADOW}/etc/init.d/$servicefilename
 done
 
 
@@ -197,38 +199,38 @@ done
 #
 if $glamor ; then 
     echo "${GREEN}Enabling xorg acceleration glamor.${NORMAL}"
-    echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tOption "AccelMethod" "glamor"\nEndSection' > /etc/X11/xorg.conf.d/21-glamor.conf
+    echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tOption "AccelMethod" "glamor"\nEndSection' > ${SHADOW}/etc/X11/xorg.conf.d/21-glamor.conf
 fi
 
 # Check if fglrx drivers for radeon cards should be used.
 # Prevent using fglrx in case of non existing AMD hardware.
 # 
-if $fglrx && $(/usr/bin/lspci | /bin/grep -q AMD); then 
+if $fglrx && $(lspci | grep -q AMD); then 
     echo "${GREEN}Switching client to use proprietary fglrx drivers.${NORMAL}"
-    mkdir -p /etc/X11/xorg.conf.d &> /dev/null
-    echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tDriver "fglrx"\nEndSection' > /etc/X11/xorg.conf.d/20-fglrx.conf
+    mkdir -p ${SHADOW}/etc/X11/xorg.conf.d &> /dev/null
+    echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tDriver "fglrx"\nEndSection' > ${SHADOW}/etc/X11/xorg.conf.d/20-fglrx.conf
     # Xorg will load necesarry kernel modules itself. There is no need to do this by hand.
     update-alternatives --set glx /usr/lib/fglrx # will also do the blacklisting
 else
-    echo "blacklist fglrx" >> /etc/modprobe.d/tcos-blacklist.conf
+    echo "blacklist fglrx" >> ${SHADOW}/etc/modprobe.d/tcos-blacklist.conf
 fi
 
 
 # Check if nvidia driver for nvidia cards should be used.
 # Prevent using nvidia in case of non existing Nvidia hardware.
 # 
-if $nvidia && $(/usr/bin/lspci | /bin/grep -q NVIDIA); then 
+if $nvidia && $(lspci | grep -q NVIDIA); then 
     echo "${GREEN}Switching client to use proprietary nvidia drivers.${NORMAL}"
-    echo "blacklist nouveau" >> /etc/modprobe.d/tcos-blacklist.conf 
-    mkdir -p /etc/X11/xorg.conf.d &> /dev/null
+    echo "blacklist nouveau" >> ${SHADOW}/etc/modprobe.d/tcos-blacklist.conf 
+    mkdir -p ${SHADOW}/etc/X11/xorg.conf.d &> /dev/null
 
     # write xorg.conf  snippet
-    echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tDriver "nvidia"\nEndSection' > /etc/X11/xorg.conf.d/20-nvidia.conf
+    echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tDriver "nvidia"\nEndSection' > ${SHADOW}/etc/X11/xorg.conf.d/20-nvidia.conf
 
-    # link libglx.so to the nvidia libglx.so.XXX.XX - we assume there is only one 
-    nvidia_glx_so=$(grep -l nvidia /usr/lib/xorg/modules/extensions/libglx.* | tail -n 1)
-    rm -f /usr/lib/xorg/modules/extensions/libglx.so
-    ln -s  $nvidia_glx_so /usr/lib/xorg/modules/extensions/libglx.so
+    # todo: link libglx.so to the nvidia libglx.so.XXX.XX - we assume there is only one 
+    nvidia_glx_so=$(grep -l nvidia ${SHADOW}/usr/lib/xorg/modules/extensions/libglx.* | tail -n 1)
+    rm -f ${SHADOW}/usr/lib/xorg/modules/extensions/libglx.so
+    ln -s  $nvidia_glx_so ${SHADOW}/usr/lib/xorg/modules/extensions/libglx.so
     
     #####################################################################################
     # Some workaround, because the nvidia module sometimes fails to initialize propperly.
@@ -236,7 +238,7 @@ if $nvidia && $(/usr/bin/lspci | /bin/grep -q NVIDIA); then
     # Kick it!
     # 
     modprobe nvidia
-    /usr/bin/X :5 -novtswitch -configdir /etc/X11/xorg.conf.d &> /dev/null &
+    X :5 -novtswitch -configdir ${SHADOW}/etc/X11/xorg.conf.d &> /dev/null &
     sleep 10;
     kill -9 $!
     rmmod nvidia
@@ -246,7 +248,7 @@ if $nvidia && $(/usr/bin/lspci | /bin/grep -q NVIDIA); then
     #####################################################################################
     
 else
-    echo "blacklist nvidia" >> /etc/modprobe.d/tcos-blacklist.conf
+    echo "blacklist nvidia" >> ${SHADOW}/etc/modprobe.d/tcos-blacklist.conf
 fi
 
 #######################################################
@@ -265,7 +267,24 @@ fi
 #	[ $? -eq 0 ] && echo -e "activate swap on ${NAME} \t ${GREEN}OK${NORMAL}"
 #    done
 #fi
+mkdir -p ${SHADOW}/tcos/base
+mkdir -p ${SHADOW}/tcos/package
+mkdir -p ${SHADOW}/tcos/link
+mkdir -p ${SHADOW}/tcos/write
 
-exec /sbin/init "$@" </dev/console >/dev/console 2>&1
+mount --bind /tcos/package /tcos/package
+mount --bind /tcos/base /tcos/base
+mount -n -o move /tcos/package ${SHADOW}/tcos/package
+mount -n -o move /tcos/base ${SHADOW}/tcos/base
+mount -n -o move /tcos/link ${SHADOW}/tcos/link
+mount -n -o move /tcos/write ${SHADOW}/tcos/write
+
+#debugshell
+mount -n -o move /sys ${SHADOW}/sys
+mount -n -o move /dev ${SHADOW}/dev
+mount -n -o move /proc ${SHADOW}/proc
+
+
+exec switch_root ${SHADOW} /sbin/init "$@" </dev/console >/dev/console 2>&1
 
 

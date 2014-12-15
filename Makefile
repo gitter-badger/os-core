@@ -90,7 +90,10 @@ export PACKAGES_COMMERCIAL_BUILD = build-essential linux-headers-486
 # with kernel-headers within.
 # used from SID/unstable
 #
-export PACKAGES_COMMERCIAL = fglrx-modules-dkms fglrx-driver glx-alternative-fglrx glx-alternative-mesa glx-diversions xvba-va-driver amd-opencl-icd libfglrx libgl1-fglrx-glx	libcilkrts5 libasan1 libatomic1 libubsan0 libitm1 libfglrx-amdxvba1 ocl-icd-libopencl1 amd-opencl-icd
+# export PACKAGES_COMMERCIAL = fglrx-modules-dkms fglrx-driver glx-alternative-fglrx glx-alternative-mesa glx-diversions xvba-va-driver amd-opencl-icd libfglrx libgl1-fglrx-glx	libcilkrts5 libasan1 libatomic1 libubsan0 libitm1 libfglrx-amdxvba1 ocl-icd-libopencl1 amd-opencl-icd
+
+export PACKAGES_COMMERCIAL = fglrx-modules-dkms fglrx-driver glx-alternative-fglrx glx-alternative-mesa glx-diversions xvba-va-driver amd-opencl-icd libfglrx libgl1-fglrx-glx	libitm1 libfglrx-amdxvba1 ocl-icd-libopencl1 amd-opencl-icd
+
 
 help:
 	@echo "[1mWELCOME TO THE TCOS BUILD SYSTEM"
@@ -148,8 +151,8 @@ busybox-build-chroot-stamp: Scripts/LINBO.chroot filesystem-stamp
         # the initial content of Bbox-build-chroot is a copy of folder Filesystem
 	@echo "[1m Target busybox-build-chroot-stamp: Create a changeroot to build busybox inside[0m"
 	sudo Scripts/LINBO.chroot Bbox-build-chroot /bin/bash -c "apt-get install -y --force-yes --no-install-recommends  $(PACKAGES_BUSYBOXBUILD)"
-	sudo Scripts/LINBO.chroot Bbox-build-chroot /bin/bash -c "ln -sf /bin/bash /bin/sh; mkdir /busybox /Initrd"
-	sudo Scripts/LINBO.chroot Bbox-build-chroot /bin/bash -c  "cd /usr/bin; ln -s gcc-4.7 i486-linux-gcc; ln -s ar i486-linux-ar; ln -s strip i486-linux-strip"
+	# sudo Scripts/LINBO.chroot Bbox-build-chroot /bin/bash -c "ln -sf /bin/bash /bin/sh; mkdir /busybox /Initrd"
+	sudo Scripts/LINBO.chroot Bbox-build-chroot /bin/bash -c  "ln -sf /bin/bash /bin/sh; mkdir /busybox /Initrd; cd /usr/bin; ln -s gcc-4.7 i486-linux-gcc; ln -s ar i486-linux-ar; ln -s strip i486-linux-strip"
 	touch $@ 
 
 busybox: Sources/busybox.config Sources/busybox busybox-build-chroot-stamp
@@ -226,29 +229,28 @@ kernel: busybox-build-chroot-stamp
 
 kernel-stamp: ./Scripts/TCOS.kernel 
 	@echo "[1m Target kernel-stamp: Build the kernel[0m"
-	exit 0
-	rm -f kernel-install-stamp compressed-stamp 
 
-	# just to be sure, unmount it
-	-sudo umount Bbox-build-chroot/Kernel &> /dev/null; sudo umount Bbox-build-chroot/Sources &> /dev/null
+	# rm -f kernel-install-stamp compressed-stamp 
+	# # just to be sure, unmount it
+	# -sudo umount Bbox-build-chroot/Kernel &> /dev/null; sudo umount Bbox-build-chroot/Sources &> /dev/null
 
-	# we need to bind mount it, softlinks won't work
-	-sudo mkdir -p Bbox-build-chroot/Sources Bbox-build-chroot/Kernel
-	sudo mount -o bind Sources Bbox-build-chroot/Sources
-	sudo mount -o bind Kernel Bbox-build-chroot/Kernel
+	# # we need to bind mount it, softlinks won't work
+	# -sudo mkdir -p Bbox-build-chroot/Sources Bbox-build-chroot/Kernel
+	# sudo mount -o bind Sources Bbox-build-chroot/Sources
+	# sudo mount -o bind Kernel Bbox-build-chroot/Kernel
 
-	# Let's compile inside the busybox changeroot.
-	# This ensures to have the kernel compiled with the systems libs and compilers
-	# and gives us a better 32 bit environment.
-	sudo CPU_CORES=$(CPU_CORES) KVERS=$(KVERS) ARCH=$(ARCH) Scripts/LINBO.chroot Bbox-build-chroot /bin/bash < Scripts/TCOS.kernel
+	# # Let's compile inside the busybox changeroot.
+	# # This ensures to have the kernel compiled with the systems libs and compilers
+	# # and gives us a better 32 bit environment.
+	# sudo CPU_CORES=$(CPU_CORES) KVERS=$(KVERS) ARCH=$(ARCH) Scripts/LINBO.chroot Bbox-build-chroot /bin/bash < Scripts/TCOS.kernel
 
-	# get rid of the bind mounts
-	sudo umount Bbox-build-chroot/Kernel &> /dev/null; sudo umount Bbox-build-chroot/Sources &> /dev/null
+	# # get rid of the bind mounts
+	# sudo umount Bbox-build-chroot/Kernel &> /dev/null; sudo umount Bbox-build-chroot/Sources &> /dev/null
 
-	-mkdir -p Image/boot/syslinux
-	-cp Kernel/aufs-linux-$(KVERS)_normal/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz
-	-cp Kernel/aufs-linux-$(KVERS)_non-pae/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz_non-pae
-	-cp Kernel/aufs-linux-$(KVERS)_transmeta/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz_transmeta
+	# -mkdir -p Image/boot/syslinux
+	# -cp Kernel/aufs-linux-$(KVERS)_normal/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz
+	# -cp Kernel/aufs-linux-$(KVERS)_non-pae/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz_non-pae
+	# -cp Kernel/aufs-linux-$(KVERS)_transmeta/arch/$(ARCH)/boot/bzImage Image/boot/syslinux/vmlinuz_transmeta
 
 	touch $@
 
@@ -263,7 +265,7 @@ kernel-install-stamp: Scripts/LINBO.chroot
 #	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -l libncursesw5 | grep -q '^i' || { apt-get update; apt-get install libncursesw5; } ; dpkg -i /tmp/linux-*$(KVERS)*.deb; rm -rf /tmp/*.deb"
 
 	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends linux-image-$(KVERS)"
-
+	cp Filesystem/boot/vmlinuz-$(KVERS) Image/boot/syslinux/vmlinuz
 	touch $@
 
 
@@ -272,9 +274,9 @@ commercial-module: kernel-install-stamp
 
 commercial-module-stamp: 
 	@echo "[1m Target commercial-module-stamp: Build commercial module inside the filsystem[0m"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "aptitude update; apt-get install -y --force-yes --no-install-recommends $(PACKAGES_COMMERCIAL_BUILD)"
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends $(PACKAGES_COMMERCIAL_BUILD)"
 #	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends -t unstable $(PACKAGES_COMMERCIAL)"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends  $(PACKAGES_COMMERCIAL)"
+	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends  $(PACKAGES_COMMERCIAL); /usr/sbin/update-flashplugin-nonfree --install"
 #	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "/usr/sbin/update-flashplugin-nonfree --install"
 
 	#### FGLRX
@@ -304,7 +306,7 @@ commercial-module-stamp:
 	# -sudo umount Filesystem/tmp/NvidiaModules &> /dev/null
 	# sudo mount -o bind Sources/Nvidia Filesystem/tmp/NvidiaSources
 	# sudo mount -o bind NvidiaModules Filesystem/tmp/NvidiaModules
-	 sudo KVERS=$(KVERS) Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.nvidia_install
+#	 sudo KVERS=$(KVERS) Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.nvidia_install
 	# -sudo umount Filesystem/tmp/NvidiaSources &> /dev/null
 	# -sudo umount Filesystem/tmp/NvidiaModules &> /dev/null
 	touch $@
@@ -329,7 +331,7 @@ clean: commercial-module-stamp
 clean-stamp: ./Scripts/TCOS.tcosify-clean 
 	@echo "[1m Target clean-stamp: Clean up the filesystem[0m"
 	-rm -f kernel-install-stamp
-	-sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get --purge remove -y linux-headers-\* $(PACKAGES_COMMERCIAL_BUILD)"
+	-sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get --purge remove -y linux-headers-\* $(PACKAGES_COMMERCIAL_BUILD); apt-get autoremove"
 	-sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-clean
 	-sudo rm -f Filesystem/boot/*
 	touch $@
@@ -349,7 +351,7 @@ compressed-stamp:
 ##################################################
 # Install-Targets
 
-local-test: initrd-stamp compressed-stamp 
+local-test: initrd-stamp clean-stamp compressed-stamp 
 	make local-test-stamp
 
 local-test-stamp:

@@ -1,3 +1,7 @@
 kernel/drivers/net/ethernet/intel/
 usbhid.ko
 vboxpci.ko
+aufs.ko
+nfs.ko
+squashfs.ko
+loop.ko
