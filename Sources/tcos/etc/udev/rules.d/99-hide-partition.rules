@@ -1,0 +1,4 @@
+ACTION!="add|change", GOTO="hide_partition_end"
+SUBSYSTEM!="block", GOTO="hide_partition_end"
+KERNEL=="loop*", ENV{UDISKS_PRESENTATION_HIDE}="1"
+LABEL="hide_partition_end"
