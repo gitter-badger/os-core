@@ -83,11 +83,13 @@ if [ $? = 0 ]; then
 fi
 
 # This is going to be part of base 2.0-24
-depmod -a
-for m in $(detect_nic) aufs nfs squashfs loop;
-do
-     modprobe $m
-done
+if [ -d /lib/modules/`uname -r` ];then
+    depmod -a
+    for m in $(detect_nic) aufs nfs squashfs loop;
+    do
+	 modprobe $m
+    done
+fi
 
 ip addr add 127.0.0.1/8 dev lo
 ip link set dev lo up
