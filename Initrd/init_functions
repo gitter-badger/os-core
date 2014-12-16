@@ -83,7 +83,7 @@ mountsfs(){
  for s in `ls $LINK/sfs/$1/*.sfs 2> /dev/null`; do
 	target="`basename $s | sed 's/\.sfs$//g'`"
 	[ -d "$TCOS/$1/$target" ] || mkdir "$TCOS/$1/$target"
-	if mount -t squashfs -o loop,ro "$s" "$TCOS/$1/$target" >/dev/null 2>&1; then
+	if mount -n -t squashfs -o loop,ro "$s" "$TCOS/$1/$target" >/dev/null 2>&1; then
 	   echo "$target mounted...${GREEN}yes${NORMAL}"
 	else
 	   echo "$target mounted...${RED}no${NORMAL}"

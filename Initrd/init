@@ -22,6 +22,7 @@ BASE="$TCOS/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.
 PACKAGE="$TCOS/package"
 SHADOW="$TCOS/shadow"
 CUSTOM="$LINK/custom"
+# SWITCH_ROOT_PACKAGE="$SHADOW/$PACKAGE"
 
 # Some more default variables here.
 # Values can be overwritten in kernel commandline - Key=Value
@@ -69,7 +70,8 @@ mount -t tmpfs -o "nosuid,size=20%,mode=0755" tmpfs /run
 mkdir -m 0755 /run/initramfs
 
 # create TCOS essential folders
-for folder in $LINK $WRITE $BASE $PACKAGE $SHADOW $CUSTOM; do mkdir -p $folder ; done
+# for folder in $LINK $WRITE $BASE $PACKAGE $SHADOW $SHADOW $CUSTOM $SWITCH_ROOT_PACKAGE; do mkdir -p $folder ; done
+for folder in $LINK $WRITE $BASE $PACKAGE $SHADOW $SHADOW $CUSTOM ; do mkdir -p $folder ; done
 
 # Get Key=Value pairs from kernel commandline and overwrite defaults.
 read CMDLINE < /proc/cmdline
@@ -143,7 +145,7 @@ TREE=""
 
 # mount base and packages sfs files
 [ -f "$LINK/sfs/base.sfs" ] || (echo "${RED} could not find $LINK/sfs/base.sfs - exiting. ${NORMAL}" && exit 1)
-if mount -t squashfs -o loop,ro "$LINK/sfs/base.sfs" $BASE 2>/dev/null; then
+if mount -n -t squashfs -o loop,ro "$LINK/sfs/base.sfs" $BASE 2>/dev/null; then
     echo "base.sfs mounted...${GREEN}yes${NORMAL}"
     TREE="$BASE=ro"
 else
@@ -156,6 +158,8 @@ fi
 echo "0" >/proc/sys/kernel/printk
 
 mountsfs package
+
+# debugshell
 
 # AUFS
 #
@@ -191,9 +195,10 @@ mountcustom $CUSTOM
 #
 for service in /tcos/package/*/etc/init.d/*; do
   servicefilename=$(basename $service);
-  ${SHADOW}/sbin/insserv ${SHADOW}/etc/init.d/$servicefilename
+#  ${SHADOW}/sbin/insserv ${SHADOW}/etc/init.d/$servicefilename
 done
 
+# debugshell
 
 # ToDo: Source the graphics card stuff out in a separate file.
 
@@ -271,24 +276,41 @@ fi
 #	[ $? -eq 0 ] && echo -e "activate swap on ${NAME} \t ${GREEN}OK${NORMAL}"
 #    done
 #fi
-mkdir -p ${SHADOW}/tcos/base
-mkdir -p ${SHADOW}/tcos/package
-mkdir -p ${SHADOW}/tcos/link
-mkdir -p ${SHADOW}/tcos/write
 
-mount --bind /tcos/package /tcos/package
-mount --bind /tcos/base /tcos/base
-mount -n -o move /tcos/package ${SHADOW}/tcos/package
-mount -n -o move /tcos/base ${SHADOW}/tcos/base
-mount -n -o move /tcos/link ${SHADOW}/tcos/link
-mount -n -o move /tcos/write ${SHADOW}/tcos/write
+
+############################################################
+
+#mkdir -p ${SHADOW}/tcos/base
+#mkdir -p ${SHADOW}/tcos/package
+#mkdir -p ${SHADOW}/tcos/link
+#mkdir -p ${SHADOW}/tcos/write
 
 #debugshell
-mount -n -o move /sys ${SHADOW}/sys
-mount -n -o move /dev ${SHADOW}/dev
-mount -n -o move /proc ${SHADOW}/proc
 
+#mount --bind /tcos/package /tcos/package
+#mount --bind /tcos/base /tcos/base
+#mount -n -o move /tcos/package ${SHADOW}/tcos/package
+#mount -n -o move /tcos/base ${SHADOW}/tcos/base
+#mount -n -o move /tcos/link ${SHADOW}/tcos/link
+#mount -n -o move /tcos/write ${SHADOW}/tcos/write
+
+#debugshell
+#mount -n -o move /sys ${SHADOW}/sys
+#mount -n -o move /dev ${SHADOW}/dev
+#mount -n -o move /proc ${SHADOW}/proc
+
+mount -o bind /sys ${SHADOW}/sys
+mount -o bind /dev ${SHADOW}/dev
+mount -o bind /proc ${SHADOW}/proc
+
+# busybox' mount can't bindmount folder which are no mountpoints
+# mount -o bind /tcos/package ${SHADOW}/tcos/package
+
+rm ${SHADOW}/lib/init/mount-functions.sh
+
+# grep -v tcos /proc/mounts >  ${SHADOW}/etc/mtab
+# echo doof >>  ${SHADOW}/etc/mtab
+
+debugshell
 
 exec switch_root ${SHADOW} /sbin/init "$@" </dev/console >/dev/console 2>&1
-
-

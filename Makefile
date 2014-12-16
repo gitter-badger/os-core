@@ -317,7 +317,7 @@ initrd: busybox-stamp update-stamp
 initrd-stamp:
 	@echo "[1m Target initrd-stamp: Create the initrd[0m"
 	-mkdir -p Image/boot/syslinux
-	DEST_DIR=Initrd/lib/modules/ KERNELDIR=Filesystem/lib/modules/$(KVERS)/  Scripts/TCOS.copy_modules
+#	DEST_DIR=Initrd/lib/modules/ KERNELDIR=Filesystem/lib/modules/$(KVERS)/  Scripts/TCOS.copy_modules
 
 	# *** CAVEAT ***
 	# If xz is used for initrd compression, lzma format must be used. Either pxelinux (bootloader) 
