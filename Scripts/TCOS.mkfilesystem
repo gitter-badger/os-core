@@ -4,14 +4,14 @@
 # (C) Klaus Knopper 2013
 # License: GPL V2
 
-set -f 
+set -f
 
 . ./Scripts/LINBO.common
 
 check_commands sudo chroot debootstrap
 
-if ls -d ./Filesystem/.??* ./Filesystem/* >/dev/null 2>&1; then
- echo -e "\e[1mLINBO Filesystem directory exists and is not empty.\e0m"
+if ls -A ./Filesystem/ >/dev/null 2>&1; then
+ echo -e "\e[1mTCOS Filesystem directory exists and is not empty.\e[0m"
  if ask "Really remove directory \"Filesystem\" and all of its contents? [y/N] "; then
   sudo rm -rf ./Filesystem
   [ -d ./Filesystem ] && echo -e "\e[1mDirectory could not be deleted!\e[0m" || echo -e "\e[1mDeleted.\e[0m"
@@ -23,8 +23,3 @@ fi
 
 # We use "stable" for our base system
 sudo debootstrap --arch=i386 --variant=minbase --include=locales,locales-all stable ./Filesystem  $1
-
-
-echo -e "\e[1mCopying the filesystem to Bbox-build-chroot ... \e[0m"
-sudo rm -rf ./Bbox-build-chroot
-sudo cp -ar ./Filesystem ./Bbox-build-chroot
