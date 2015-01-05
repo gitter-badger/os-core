@@ -43,6 +43,9 @@ rm -f /etc/ifstate /etc/X11/XF86Config /etc/X11/XF86Config-4 /etc/X11/xorg.conf 
 
 [ -d /var/lib/dhcp3 ] && touch /var/lib/dhcp3/dhcpd.leases
 
+# Remove the kernel files in /boot
+nuke /boot
+
 # Remove Changelogs
 rm -f /usr/share/doc/*/[Cc][Hh][Aa][Nn][Gg][Ee][Ll][Oo][Gg]*
 

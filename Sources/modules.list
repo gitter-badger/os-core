@@ -1,6 +1,11 @@
-kernel/drivers/net/ethernet/intel/
+kernel/drivers/net/ethernet/via/
+kernel/drivers/net/ethernet/realtek/
+pcnet32.ko
+e1000e.ko
+e100.ko
+e1000.ko
+ohci-hcd.ko
 usbhid.ko
-vboxpci.ko
 aufs.ko
 nfs.ko
 squashfs.ko

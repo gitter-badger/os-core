@@ -14,121 +14,136 @@ endif
 ifeq (x86-64,$(findstring x86-64,$(HOST_ARCH)))
         HOST_ARCH=x86_64
 endif
+TARGET_ARCH := i386
+TOP_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-BUSYBOX_VERSION = 1.22.1
+BASE_VERSION := 2.1
+BUSYBOX_VERSION := 1.22.1
 DEB_MIRROR = http://http.debian.net/debian
-TARGET_KERNEL := 3.2.0-4-486
-TARGET_PACKAGES := dialog apt-utils libpam-ldap alsa-utils aptitude atril ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dos2unix dosfstools e2fsprogs eject engrampa eom ethtool file flashplugin-nonfree fontconfig gdevilspie gvfs gvfs-backends hdparm htop iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython kmod ldap-utils less libacsccid1 libccid libglib2.0-bin libgtk2.0-bin libgtk-3-bin libmotif4 libpopt0 libqt4-qt3support libqt4-sql libssl1.0.0 libstdc++5 libx11-6 lightdm lightdm-gtk-greeter man marco mc mozo net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils pcsc-tools pluma python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client sudo syslog-ng tcpdump ttf-dejavu udev usbip usbutils util-linux vim vim-tiny wget x11vnc  xdg-utils xfonts-base xinetd xinit zenity caja mate-utils-common mate-utils mate-media-gstreamer pulseaudio pavucontrol strace fxcyberjack libifd-cyberjack6 xtightvncviewer dnsutils dmidecode lshw hwinfo libsasl2-modules libsasl2-modules-gssapi-mit libxerces-c3.1 libcurl3 libwebkitgtk-1.0-0 libgssglue1
-TARGET_PACKAGES_BACKPORTS := mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes
-TARGET_PACKAGES_FGLRX := fglrx-modules-dkms fglrx-driver glx-alternative-fglrx glx-alternative-mesa glx-diversions xvba-va-driver amd-opencl-icd libfglrx libgl1-fglrx-glx  libitm1 libfglrx-amdxvba1 ocl-icd-libopencl1 amd-opencl-icd
-TARGET_PACKAGES_BUSYBOXBUILD := build-essential fakeroot kernel-package bc git cpio distcc dkms wget ca-certificates
+TARGET_KERNEL := 3.2.0-4-486 3.2.0-4-686-pae
+TARGET_PACKAGES := alsa-utils apt-utils arandr ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dialog dmidecode dnsutils dos2unix dosfstools e2fsprogs eject ethtool file firmware-linux flashplugin-nonfree fontconfig freerdp-X11 gdevilspie gvfs gvfs-backends htop hwinfo iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython ldap-utils less libacsccid1 libc6-dev libcurl3 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 libgl1-mesa-dri libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libglib2.0-bin libgssglue1 libgtk-3-bin libgtk2.0-bin libmotif4 libpam-ldap libpopt0 libqt4-qt3support libqt4-sql libsasl2-modules libsasl2-modules-gssapi-mit libssl1.0.0 libstdc++5 libvdpau1 libwebkitgtk-1.0-0 libx11-6 libxerces-c3.1 lightdm lightdm-gtk-greeter locales locales-all lshw mesa-utils net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync smplayer strace sudo syslog-ng ttf-dejavu udev usbutils util-linux vim-tiny wget x11-xserver-utils x11vnc xdg-utils xfonts-base xinetd xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom xserver-xorg-video-all xserver-xorg-video-ati xserver-xorg-video-geode xserver-xorg-video-glide xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xtightvncviewer zenity
+TARGET_PACKAGES_BACKPORTS := caja pluma eom atril engrampa fglrx-driver xvba-va-driver mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes
+TARGET_PACKAGES_BUSYBOXBUILD := build-essential
 TARGET_PACKAGES_EXTERNAL := openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb pcscd_1.8.11-3~tcos20+3_i386.deb libpcsclite1_1.8.11-3~tcos20+3_i386.deb libpcsclite-dev_1.8.11-3~tcos20+3_i386.deb
 
+# Meta-Targets
+#
+
+all: compressed-stamp base upload
+
+chroot:
+	@sudo BIND_ROOT=./ Scripts/TCOS.chroot ./Filesystem /bin/bash
+
 help:
-	@echo "^[[1mWELCOME TO THE TCOS BUILD SYSTEM"
+	@echo "[1mWELCOME TO THE TCOS BUILD SYSTEM[0m"
 	@echo ""
-	@echo "make all			Metatarget: create the whole system"
-	@echo "make local-test          Metatarget: + copy everthing to local test server"
-	@echo "make package-prepare     Metatarget: + copy everthing to package build directory"
+	@echo "make all		Metatarget: create the whole system"
 	@echo ""
-	@echo "make kernel              (Re-)Build Kernel packages"
-	@echo "make kernel-install      (Re-)Install Kernel packages"
-	@echo "make initrd              (Re-)Build Initramfs"
-	@echo "make chroot              Work inside Filesystem"
-	@echo "make filesystem          Bootstrap and fill the TCOS ./Filesystem directory"
-	@echo "make update              Install or update required packages in TCOS ./Filesystem"
-	@echo "make compressed          Compress base filesystem image."
-	@echo "make distclean           Remove all resources that can be recreated."
+	@echo "make filesystem		Bootstrap and fill the TCOS ./Filesystem directory"
+	@echo "make busybox		(Re-)Build Busybox"
+	@echo "make kernel		(Re-)Build Kernel packages"
+	@echo "make initrd		(Re-)Build Initramfs"
+	@echo "make chroot		Work inside Filesystem"
+	@echo "make update		Install or update required packages in TCOS ./Filesystem"
+	@echo "make compressed		Compress base filesystem image."
 	@echo
 	@echo "Don't worry about the sequence of build commands, this Makefile will tell you"
 	@echo "what to do first, in case anything is missing."
 	@echo
-	@echo "Have a lot of fun. ;-)"
-	@echo "^[[0m"
+	@echo "Have a lot of [36mfun[0m. ;-)"
 
+# Build-Targets
+#
 filesystem:
 	make $@-stamp
 filesystem-stamp:
-	@echo "^[[1m Target filesystem-stamp: Creating an initial filesystem^[[0m"
-	-rm -f tcosify-stamp update-stamp clean-stamp
-	# The script TCOS.mkfilesystem also creates the Bbox-build-chroot
-	./Scripts/TCOS.mkfilesystem $(DEB_MIRROR)
+	@echo "[1m Target filesystem-stamp: Creating an initial filesystem[0m"
+	-rm -f tcosify-stamp update-stamp kernel-stamp clean-stamp
+	TARGET_ARCH=$(TARGET_ARCH) ./Scripts/TCOS.mkfilesystem $(DEB_MIRROR)
 	@touch $@
 
 busybox:
 	make $@-stamp
 busybox-stamp:Sources/busybox.config filesystem-stamp
-	@echo "^[[1m Target busybox-stamp: Create the busybox^[[0m"
+	@echo "[1m Target busybox-stamp: Create the busybox[0m"
 	test -r Sources/busybox/Makefile || \
 	    (cd Sources && \
 	    wget -O - http://busybox.net/downloads/busybox-$(BUSYBOX_VERSION).tar.bz2  | tar -xjf - && \
 	    rm -rf busybox && \
 	    mv busybox-$(BUSYBOX_VERSION) busybox)
-	# get config in place
-	sudo cp Sources/busybox.config Sources/busybox/.config
-	# needs to be deleted later on!
-	-sudo mkdir Filesystem/build
-	sudo mount --bind . Filesystem/build
 	# open the Filesystem and install the development tools temporarily
-	sudo Scripts/LINBO.chroot Filesystem ro /bin/bash -c "apt-get install -y --force-yes $(TARGET_PACKAGES_BUSYBOXBUILD); cd /build/Sources/busybox; make clean; make install"
-	#clean it up
-	sudo umount Filesystem/build
-	sudo rm -rf Filesystem/build
-	touch $@
+	sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "echo \"APT::Install-Recommends \"0\";\nAPT::Install-Suggests \"0\";\" > /etc/apt/apt.conf.d/01apt-get-install;DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes $(TARGET_PACKAGES_BUSYBOXBUILD); cd /TCOS/Sources/busybox; make clean; make install"
+	@touch $@
 
 tcosify:
 	make $@-stamp
-tcosify-stamp:filesystem-stamp
-	@echo "^[[1m Target tcosify-stamp: Applying TCOS specific changes^[[0m"
+tcosify-stamp:filesystem-stamp busybox-stamp
+	@echo "[1m Target tcosify-stamp: Applying TCOS specific changes[0m"
+	-rm -f update-stamp kernel-stamp clean-stamp
 	Scripts/LINBO.apply-configs Sources/tcos Filesystem
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "ln -snf /bin/bash /bin/sh;"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "[ ! -f  /etc/issue.debian ] && cp /etc/issue /etc/issue.debian;" 
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "[ ! -f  /etc/motd.debian ] && cp /etc/motd /etc/motd.debian;"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-chroot
-	touch $@
+	sudo BASE_VERSION=$(BASE_VERSION) Scripts/TCOS.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-chroot
+	@touch $@
 
 update:
 	make $@-stamp
 update-stamp:tcosify-stamp
-	@echo "^[[1m Target update-stamp: Installing packages from TARGET_PACKAGES list and updating the filesystem ^[[0m"
-	-rm -f clean-stamp compressed-stamp
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get update; apt-get install -y --force-yes --no-install-recommends wget sudo"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends $(TARGET_PACKAGES)"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends  -t wheezy-backports $(TARGET_PACKAGES_BACKPORTS)"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get dist-upgrade -y --force-yes --no-install-recommends ; apt-get autoremove"
-	for debFile in $(TERGET_PACKAGES_EXTERNAL); do ln -nf Packages/$$debFile Filesystem/tmp/$$debFile ; done
-	sudo Scripts/LINBO.chroot Filesystem bash -c "dpkg -i /tmp/*.deb ;"
-	touch $@
+	@echo "[1m Target update-stamp: Installing packages from TARGET_PACKAGES list and updating the filesystem [0m"
+	-rm -f clean-stamp
+	sudo Scripts/TCOS.chroot Filesystem /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get update"
+	sudo Scripts/TCOS.chroot Filesystem /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES)"
+	sudo Scripts/TCOS.chroot Filesystem /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES_BACKPORTS)"
+	sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem bash -c "for deb in $(TARGET_PACKAGES_EXTERNAL); do dpkg -i /TCOS/Packages/\$$deb; done"
+	@touch $@
 
 kernel:
 	make $@-stamp
 kernel-stamp:update-stamp
-	@echo "^[[1m Target kernel-install-stamp: Install the kernel^[[0m"
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends linux-image-$(TARGET_KERNEL)"
-	touch $@
+	@echo "[1m Target kernel-install-stamp: Install the kernel[0m"
+	for kernel in $(TARGET_KERNEL); do \
+	    sudo Scripts/TCOS.chroot Filesystem /bin/bash -c \
+	    "apt-get install -y --force-yes --no-install-recommends linux-image-$$kernel" ; \
+	    sudo cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/debian/base/tftp/ ; \
+	done
+	@touch $@
 
 initrd:
 	make $@-stamp
 initrd-stamp:busybox-stamp kernel-stamp Sources/modules.list
-	DEST_DIR=Initrd/lib/modules/ KERNELDIR=Filesystem/lib/modules/$(TARGET_KERNEL)/  Scripts/TCOS.copy_modules
-	( cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > ../Image/boot/syslinux/initrd.xz )
-	touch $@
+	-sudo rm -rf Initrd/lib/modules/$(TARGET_KERNEL)
+	sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "\
+	    DEST_DIR=/TCOS/Initrd \
+	    KERNELDIR=/lib/modules/$(TARGET_KERNEL) \
+	    MODULES_LIST=/TCOS/Sources/modules.list \
+	    TCOS/Scripts/TCOS.copy_modules"
+	sudo sh -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.xz; cd ..'
+	@touch $@
 
 clean:
 	make $@-stamp
 clean-stamp: initrd-stamp
-	@echo "^[[1m Target clean-stamp: Clean up the filesystem^[[0m"
+	@echo "[1m Target clean-stamp: Clean up the filesystem[0m"
 	-rm -f kernel-install-stamp
-	-sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get --purge remove -y linux-headers-\* $(PACKAGES_COMMERCIAL_BUILD); apt-get autoremove"
-	-sudo Scripts/LINBO.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-clean
-	-sudo rm -f Filesystem/boot/*
-	touch $@
+	-sudo Scripts/TCOS.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-clean
+	@touch $@
 compressed:
 	make $@-stamp
 compressed-stamp: clean-stamp
-	@echo "^[[1m Target compressed-stamp: Create the base.sfs container^[[0m"
+	@echo "[1m Target compressed-stamp: Create the base.sfs container[0m"
 	-mkdir -p Image
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS base $(BASE_VERSION) \nbuild: `date`\nbased on and credits to" > /etc/issue; cat /etc/issue.debian >> /etc/issue'
-	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c 'echo -e "openthinclient OS base $(BASE_VERSION) \nbuild: `date`\nbased on and credits to Debian" > /etc/motd; cat /etc/motd.debian >> /etc/motd'
-	nice -10 ionice -c 3 sudo XZ_OPT="-6 -t 2" mksquashfs Filesystem Image/base.sfs -noappend -always-use-fragments -comp xz
-	touch $@
+	nice -10 ionice -c 3 sudo XZ_OPT="-6 -t 2" mksquashfs Filesystem Base/base-$(BASE_VERSION)/debian/base/sfs/base.sfs -noappend -always-use-fragments -comp xz
+	@touch $@
+
+# Install-Targets
+# todo: upload needs to be more plattform agnostic
+
+base:
+	sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "echo \"deb http://packages.openthinclient.org/openthinclient/v2/devel ./\" > /etc/apt/sources.list.d/tcos.list; apt-get update; \
+	    DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends tcos-dev; \
+	    cd TCOS/Base/base-$(BASE_VERSION); \
+	    dch -l autobuild \"autobuild as of `date`\"; \
+	    tcos build ."
+	touch $@-stamp
+
+upload:
+	tcos upload Base/base_$(shell sed -n '2p' Base/base-2.1/debian/base/DEBIAN/control | cut -d " " -f 2)_$(TARGET_ARCH).deb
+

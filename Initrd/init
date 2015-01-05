@@ -52,15 +52,10 @@ mkdir -p /var/lock
 mount -t sysfs -o nodev,noexec,nosuid sysfs /sys
 mount -t proc -o nodev,noexec,nosuid proc /proc
 
-# Note that this only becomes /dev on the real filesystem if udev's scripts
-# are used; which they will be, but it's worth pointing out
 tmpfs_size="10M"
-if [ -e /etc/udev/udev.conf ]; then
-        . /etc/udev/udev.conf
-fi
-if ! mount -t devtmpfs -o size=$tmpfs_size,mode=0755 udev /dev; then
+if ! mount -t devtmpfs -o size=$tmpfs_size,mode=0755 devtmpfs /dev; then
         echo "W: devtmpfs not available, falling back to tmpfs for /dev"
-        mount -t tmpfs -o size=$tmpfs_size,mode=0755 udev /dev
+        mount -t tmpfs -o size=$tmpfs_size,mode=0755 tmpfs /dev
         [ -e /dev/console ] || mknod -m 0600 /dev/console c 5 1 
         [ -e /dev/null ] || mknod /dev/null c 1 3 
 fi
@@ -68,6 +63,16 @@ mkdir /dev/pts
 mount -t devpts -o noexec,nosuid,gid=5,mode=0620 devpts /dev/pts || true
 mount -t tmpfs -o "nosuid,size=20%,mode=0755" tmpfs /run
 mkdir -m 0755 /run/initramfs
+
+# mdev or detect_nic
+depmod -a
+if [ -f /sbin/mdev ]; then
+    echo /sbin/mdev > /proc/sys/kernel/hotplug
+    mdev -s
+fi
+for m in $(detect_nic) aufs nfs squashfs loop;do
+    modprobe $m
+done
 
 # create TCOS essential folders
 # for folder in $LINK $WRITE $BASE $PACKAGE $SHADOW $SHADOW $CUSTOM $SWITCH_ROOT_PACKAGE; do mkdir -p $folder ; done
@@ -79,20 +84,16 @@ getbootparams
 
 # Shut up or display figlet logo if not in quiet mode.
 # Use "vga=791 console=tty2 quiet" as kernel paramter to get it absolutely quiet.
-grep -vwq quiet /proc/cmdline 
+grep -vwq quiet /proc/cmdline
 if [ $? = 0 ]; then
     $figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
 fi
 
-# This is going to be part of base 2.0-24
-
-if [ -d /lib/modules/`uname -r` ];then
-    depmod -a
-    for m in $(detect_nic) aufs nfs squashfs loop;
-    do
-	 modprobe $m
-    done
+if grep -vwq debug /proc/cmdline;then
+    set -x
 fi
+
+# This is going to be part of base 2.0-24
 
 
 ip addr add 127.0.0.1/8 dev lo
@@ -102,7 +103,6 @@ ip link set dev lo up
 [ -z $nic ] && nic=0
 DHCP=""
 
-set -x
 for i in $nic; do
     echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
     ip link set dev eth$i up
@@ -111,7 +111,6 @@ for i in $nic; do
     echo "${RED}No answer from network.${NORMAL}"
     debugshell
 done
-set +x
 
 # NFS (or local link #future)
 MOUNTED=""
@@ -190,15 +189,6 @@ cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
 # enables additional packages (in  bz2, gz. tar, plain, format)
 mountcustom $CUSTOM
 
-# modify /etc/init.d/.depend.* with insserv
-# enables custom LSB
-#
-for service in /tcos/package/*/etc/init.d/*; do
-  servicefilename=$(basename $service);
-#  ${SHADOW}/sbin/insserv ${SHADOW}/etc/init.d/$servicefilename
-done
-
-# debugshell
 
 # ToDo: Source the graphics card stuff out in a separate file.
 
@@ -280,28 +270,10 @@ fi
 
 ############################################################
 
-#mkdir -p ${SHADOW}/tcos/base
-#mkdir -p ${SHADOW}/tcos/package
-#mkdir -p ${SHADOW}/tcos/link
-#mkdir -p ${SHADOW}/tcos/write
-
-#debugshell
-
-#mount --bind /tcos/package /tcos/package
-#mount --bind /tcos/base /tcos/base
-#mount -n -o move /tcos/package ${SHADOW}/tcos/package
-#mount -n -o move /tcos/base ${SHADOW}/tcos/base
-#mount -n -o move /tcos/link ${SHADOW}/tcos/link
-#mount -n -o move /tcos/write ${SHADOW}/tcos/write
-
-#debugshell
-#mount -n -o move /sys ${SHADOW}/sys
-#mount -n -o move /dev ${SHADOW}/dev
-#mount -n -o move /proc ${SHADOW}/proc
-
-mount -o bind /sys ${SHADOW}/sys
-mount -o bind /dev ${SHADOW}/dev
-mount -o bind /proc ${SHADOW}/proc
+mount --bind /sys ${SHADOW}/sys
+mount --bind /dev ${SHADOW}/dev
+mount --bind /dev/pts ${SHADOW}/dev/pts
+mount --bind /proc ${SHADOW}/proc
 
 # busybox' mount can't bindmount folder which are no mountpoints
 # mount -o bind /tcos/package ${SHADOW}/tcos/package
@@ -310,7 +282,5 @@ rm ${SHADOW}/lib/init/mount-functions.sh
 
 # grep -v tcos /proc/mounts >  ${SHADOW}/etc/mtab
 # echo doof >>  ${SHADOW}/etc/mtab
-
-debugshell
 
 exec switch_root ${SHADOW} /sbin/init "$@" </dev/console >/dev/console 2>&1
