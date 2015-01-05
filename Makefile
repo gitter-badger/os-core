@@ -21,6 +21,7 @@ BASE_VERSION := 2.1
 BUSYBOX_VERSION := 1.22.1
 DEB_MIRROR = http://http.debian.net/debian
 TARGET_KERNEL := 3.2.0-4-486 3.2.0-4-686-pae
+TARGET_KERNEL_DEFAULT := 3.2.0-4-686-pae
 TARGET_PACKAGES := alsa-utils apt-utils arandr ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dialog dmidecode dnsutils dos2unix dosfstools e2fsprogs eject ethtool file firmware-linux flashplugin-nonfree fontconfig freerdp-X11 gdevilspie gvfs gvfs-backends htop hwinfo iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython ldap-utils less libacsccid1 libc6-dev libcurl3 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 libgl1-mesa-dri libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libglib2.0-bin libgssglue1 libgtk-3-bin libgtk2.0-bin libmotif4 libpam-ldap libpopt0 libqt4-qt3support libqt4-sql libsasl2-modules libsasl2-modules-gssapi-mit libssl1.0.0 libstdc++5 libvdpau1 libwebkitgtk-1.0-0 libx11-6 libxerces-c3.1 lightdm lightdm-gtk-greeter locales locales-all lshw mesa-utils net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync smplayer strace sudo syslog-ng ttf-dejavu udev usbutils util-linux vim-tiny wget x11-xserver-utils x11vnc xdg-utils xfonts-base xinetd xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom xserver-xorg-video-all xserver-xorg-video-ati xserver-xorg-video-geode xserver-xorg-video-glide xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xtightvncviewer zenity
 TARGET_PACKAGES_BACKPORTS := caja pluma eom atril engrampa fglrx-driver xvba-va-driver mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes
 TARGET_PACKAGES_BUSYBOXBUILD := build-essential
@@ -104,17 +105,20 @@ kernel-stamp:update-stamp
 	    "apt-get install -y --force-yes --no-install-recommends linux-image-$$kernel" ; \
 	    sudo cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/debian/base/tftp/ ; \
 	done
+	(cd Base/base-$(BASE_VERSION)/debian/base/tftp/; sudo ln -snf vmlinuz-$(TARGET_KERNEL_DEFAULT) vmlinuz)
 	@touch $@
 
 initrd:
 	make $@-stamp
 initrd-stamp:busybox-stamp kernel-stamp Sources/modules.list
-	-sudo rm -rf Initrd/lib/modules/$(TARGET_KERNEL)
-	sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "\
-	    DEST_DIR=/TCOS/Initrd \
-	    KERNELDIR=/lib/modules/$(TARGET_KERNEL) \
+	for kernel in $(TARGET_KERNEL); do \
+	    sudo rm -rf Initrd/lib/modules/$$kernel; \
+	    sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c \
+	    "DEST_DIR=/TCOS/Initrd \
+	    KERNELDIR=/lib/modules/$$kernel \
 	    MODULES_LIST=/TCOS/Sources/modules.list \
-	    TCOS/Scripts/TCOS.copy_modules"
+	    TCOS/Scripts/TCOS.copy_modules"; \
+	done
 	sudo sh -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.xz; cd ..'
 	@touch $@
 
