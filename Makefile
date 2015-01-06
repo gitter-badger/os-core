@@ -105,7 +105,7 @@ kernel-stamp:update-stamp
 	    "apt-get install -y --force-yes --no-install-recommends linux-image-$$kernel" ; \
 	    sudo cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/debian/base/tftp/ ; \
 	done
-	(cd Base/base-$(BASE_VERSION)/debian/base/tftp/; sudo ln -snf vmlinuz-$(TARGET_KERNEL_DEFAULT) vmlinuz)
+	(cd Base/base-$(BASE_VERSION)/debian/base/tftp/; sudo mv vmlinuz-$(TARGET_KERNEL_DEFAULT) vmlinuz)
 	@touch $@
 
 initrd:
@@ -126,7 +126,6 @@ clean:
 	make $@-stamp
 clean-stamp: initrd-stamp
 	@echo "[1m Target clean-stamp: Clean up the filesystem[0m"
-	-rm -f kernel-install-stamp
 	-sudo Scripts/TCOS.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-clean
 	@touch $@
 compressed:
@@ -134,7 +133,8 @@ compressed:
 compressed-stamp: clean-stamp
 	@echo "[1m Target compressed-stamp: Create the base.sfs container[0m"
 	-mkdir -p Image
-	nice -10 ionice -c 3 sudo XZ_OPT="-6 -t 2" mksquashfs Filesystem Base/base-$(BASE_VERSION)/debian/base/sfs/base.sfs -noappend -always-use-fragments -comp xz
+#	nice -10 ionice -c 3 sudo XZ_OPT="-6 -t 2" mksquashfs Filesystem Base/base-$(BASE_VERSION)/debian/base/sfs/base.sfs -noappend -always-use-fragments -comp xz
+	nice -10 ionice -c 3 sudo mksquashfs Filesystem Base/base-$(BASE_VERSION)/debian/base/sfs/base.sfs -comp lzo
 	@touch $@
 
 # Install-Targets
