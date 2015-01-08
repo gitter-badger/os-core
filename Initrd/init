@@ -89,7 +89,7 @@ if [ $? = 0 ]; then
     $figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
 fi
 
-if grep -vwq debug /proc/cmdline;then
+if grep -wq debug /proc/cmdline;then
     set -x
 fi
 
@@ -230,7 +230,6 @@ if $nvidia && $(lspci | grep -q NVIDIA); then
     nvidia_glx_so=$(grep -l nvidia ${SHADOW}/usr/lib/xorg/modules/extensions/libglx.* | tail -n 1)
     rm -f ${SHADOW}/usr/lib/xorg/modules/extensions/libglx.so
     ln -s  $nvidia_glx_so ${SHADOW}/usr/lib/xorg/modules/extensions/libglx.so
-    
     #####################################################################################
     # Some workaround, because the nvidia module sometimes fails to initialize propperly.
     # But if it is loaded/initialized a second time, it works. Strange, but this is a fact.
@@ -245,7 +244,7 @@ if $nvidia && $(lspci | grep -q NVIDIA); then
     # Xorg will load the module again itself.
     # End of workaround.
     #####################################################################################
-    
+
 else
     echo "blacklist nvidia" >> ${SHADOW}/etc/modprobe.d/tcos-blacklist.conf
 fi
@@ -280,7 +279,9 @@ mount --bind /proc ${SHADOW}/proc
 
 rm ${SHADOW}/lib/init/mount-functions.sh
 
-# grep -v tcos /proc/mounts >  ${SHADOW}/etc/mtab
-# echo doof >>  ${SHADOW}/etc/mtab
+# debug the initrd if needed
+if grep -wq debugshell /proc/cmdline;then
+   debugshell
+fi
 
 exec switch_root ${SHADOW} /sbin/init "$@" </dev/console >/dev/console 2>&1
