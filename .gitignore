@@ -19,6 +19,7 @@
 .SyncID
 .SyncIgnore
 /Sources/busybox/
+!/Sources/busybox/.config
 /Packages/Incoming/*
 *~
 .~*

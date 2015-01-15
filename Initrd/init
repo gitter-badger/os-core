@@ -15,14 +15,15 @@
 
 . /init_functions
 
-TCOS="/tcos"
-LINK="$TCOS/link"       # nfs             OTC-Server:/openthinclient # the initial one!
-WRITE="$TCOS/write"     # for aufs to write this is just a folder inside the /
-BASE="$TCOS/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.sfs
-PACKAGE="$TCOS/package"
-SHADOW="$TCOS/shadow"
-CUSTOM="$LINK/custom"
-# SWITCH_ROOT_PACKAGE="$SHADOW/$PACKAGE"
+export TCOS="/tcos"
+export LINK="$TCOS/link"       # nfs             OTC-Server:/openthinclient # the initial one!
+export WRITE="$TCOS/write"     # for aufs to write this is just a folder inside the /
+export BASE="$TCOS/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.sfs
+export PACKAGE="$TCOS/package"
+export SHADOW="$TCOS/shadow"
+export CUSTOM="$LINK/custom"
+
+#export SWITCH_ROOT_PACKAGE="$SHADOW/$PACKAGE"
 
 # Some more default variables here.
 # Values can be overwritten in kernel commandline - Key=Value
@@ -33,11 +34,9 @@ figlet=true
 splashImage=openthinclient.ppm
 glamor=false
 
-
 ## MAIN ####################################################
 
 export PATH=/bin:/usr/bin:/sbin:/usr/sbin
-
 
 echo "Loading, please wait..."
 
@@ -83,11 +82,9 @@ read CMDLINE < /proc/cmdline
 getbootparams
 
 # Shut up or display figlet logo if not in quiet mode.
-# Use "vga=791 console=tty2 quiet" as kernel paramter to get it absolutely quiet.
-grep -vwq quiet /proc/cmdline
-if [ $? = 0 ]; then
-    $figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
-fi
+# 
+grep -vwq quiet /proc/cmdline && $figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
+
 
 if grep -wq debug /proc/cmdline;then
     set -x
@@ -158,11 +155,8 @@ echo "0" >/proc/sys/kernel/printk
 
 mountsfs package
 
-# debugshell
-
 # AUFS
 #
-
 AUFS=""
 mount -t tmpfs -o mode=0755 none $WRITE # links writing branch to ram!
 
@@ -174,13 +168,6 @@ mount -t tmpfs -o mode=0755 none $WRITE # links writing branch to ram!
 
 #mount -t aufs -o noplink,br=/tcos/write1=rw:${TREE} unionfs $SHADOW  && AUFS="true"
 mount -t aufs -o noplink,br:${WRITE}=rw:${TREE} unionfs $SHADOW  && AUFS="true"
-
-
-# LINKS
-#
-
-#PATH="$PATH:/busybox/bin:${SHADOW}/busybox/bin:${SHADOW}/bin:${SHADOW}/sbin:${SHADOW}/usr/bin"
-#export PATH
 
 # save resolv.conf
 cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
@@ -269,19 +256,19 @@ fi
 
 ############################################################
 
+# Kepp in mind ......
+# busybox' mount can't bindmount folder which are no mountpoints
+
 mount --bind /sys ${SHADOW}/sys
 mount --bind /dev ${SHADOW}/dev
 mount --bind /dev/pts ${SHADOW}/dev/pts
 mount --bind /proc ${SHADOW}/proc
 
-# busybox' mount can't bindmount folder which are no mountpoints
-# mount -o bind /tcos/package ${SHADOW}/tcos/package
-
-rm ${SHADOW}/lib/init/mount-functions.sh
-
 # debug the initrd if needed
-if grep -wq debugshell /proc/cmdline;then
-   debugshell
-fi
+grep -wq debugshell /proc/cmdline && debugshell
 
+# ToDo: find a way to prevent mtab looking for /dev/loop* after switchroot
+# See: /lib/init/mount-functions.sh
+
+# go ahead
 exec switch_root ${SHADOW} /sbin/init "$@" </dev/console >/dev/console 2>&1

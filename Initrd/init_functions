@@ -60,14 +60,16 @@ bailout(){
 }
 
 debugshell(){
+ modprobe ohci-hcd &>/dev/null || modprobe uhci-hcd &>/dev/null
+ # source this file again via .bashrc to have access to functions
+ # (i.e. runbasecmd), once we have been called from outside
+ #
+echo ". /init_functions" >> /root/.bashrc
  [ -n "$1" ] && echo "$1"
- if ping -c 1 8.8.8.8 > /dev/null 2>&1; then
-  echo "${BLUE}Starting sshd.${NORMAL}"
-  dropbear -E
- fi
- echo "${RED}A debugshell was called.${NORMAL}"
- modprobe ohci-hcd 1&2>/dev/null || modprobe uhci-hcd 1&2>/dev/null
- /bin/busybox sh
+ # dropbear is still not working
+ # [ -x /usr/bin/dropbear ] && echo "${BLUE}Starting sshd.${NORMAL}" && ../../usr/bin/dropbear -E
+ echo "${RED}A debugshell will be called now ... ${NORMAL}"
+ ENV=/root/.bashrc /bin/bash
  return 0
 }
 
@@ -115,3 +117,15 @@ mountcustom(){
  # TODO: works only for folder which are linked from $SHADOW back to /
  [ -d "$1"/rootfs ] && (cd "$1"/rootfs ; cp -a * $SHADOW) && echo "plain files ${GREEN}copied${NORMAL}"
  }
+
+runbasecmd(){
+ # runs a binary from busybox with libs from inside of base
+ # Thanks to Klaus Knopper for his explanations.
+ #
+ # set -x
+ [ -z $1 ] && echo "${RED}ERROR:${NORMAL} No command given." && return 1
+ local cmd="$1"; shift
+ echo "Running command from (and with libs from) $SHADOW ...."
+ [ -r $SHADOW/lib/ld-linux.so.2 -a -x $SHADOW/"$cmd" ] && $SHADOW/lib/ld-linux.so.2 --library-path "$SHADOW/lib:$SHADOW/usr/lib:$SHADOW/lib/i386-linux-gnu" $SHADOW/"$cmd" "$@"
+ return "$?"
+ } 

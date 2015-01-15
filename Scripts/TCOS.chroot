@@ -43,6 +43,7 @@ pre_chroot(){
  if [ -n "$BIND_ROOT" ] && $(! grep -qs ${CHROOT_DIR}/TCOS /proc/mounts); then
      [ ! -d ${CHROOT_DIR}/TCOS ] && mkdir ${CHROOT_DIR}/TCOS
      for i in $DEV_DIRS; do
+ 	 [ ! -d  ${i} ] && mkdir ${i}
 	 [ ! -d  ${CHROOT_DIR}/${i} ] && mkdir ${CHROOT_DIR}/TCOS/${i}
 	 mount --bind $(realpath ${BIND_ROOT}/${i}) $CHROOT_DIR/TCOS/${i}
 	[ $? != 0 ] && exit 1
@@ -53,8 +54,7 @@ fi
 
 post_chroot(){
     if $(grep -qs $CHROOT_DIR/TCOS /proc/mounts); then
-	sudo umount -r $CHROOT_DIR/TCOS/*
-	[ $? != 0 ] && exit 1
+	sudo umount $CHROOT_DIR/TCOS/* || exit 1
 	sudo rm -rf $CHROOT_DIR/TCOS
     fi
     for i in $MOUNTED_DIRS; do umount -l "$(realpath $CHROOT_DIR)/$i"; done
