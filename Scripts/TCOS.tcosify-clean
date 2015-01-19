@@ -416,3 +416,6 @@ done
 echo -n "Fix permissions for sudoers"
 chmod 440 /etc/sudoers
 chown root:root /etc/sudoers
+
+echo -n "Set mesa-glx to default glx provider"
+if dpkg -l glx-alternative-mesa &>/dev/null;then update-alternatives --set glx /usr/lib/mesa-diverted;fi
