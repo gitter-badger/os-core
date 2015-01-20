@@ -5,6 +5,9 @@ e1000e.ko
 e100.ko
 e1000.ko
 ohci-hcd.ko
+uhci-hcd.ko
+ehci-hcd.ko
+xhci-hcd.ko
 usbhid.ko
 aufs.ko
 nfs.ko
