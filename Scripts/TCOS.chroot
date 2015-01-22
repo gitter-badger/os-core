@@ -1,0 +1,82 @@
+#!/bin/bash
+# TCOS chroot to Filesystem
+# (C) Steffen Hoenig 2014
+# + added AUFS option, set AUFS=1 (environmental variable) to enable the aufs layer
+# + added BIND option, set BIND_ROOT (environmental variable) to the root directory
+# and DEV_DIRS to the directories you want to bind
+#
+# example:
+# AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash
+# License: GPL V2
+#
+# set -x
+
+CHROOT_DIR="$1"
+
+[ -d "$CHROOT_DIR" ] || { echo "Usage: $0 DIRECTORY"; exit 1; }
+
+[ "`id -u`" = "0" ] || { echo "Must be root to run $0." >&2; exit 1; }
+
+MOUNTED_DIRS="proc sys dev/pts"
+DEV_DIRS="Packages Sources Scripts Kernel Initrd Base"
+RW_BRANCH=/tmp/.tmp-tcos-`id -u`-`date +%F-%N`
+
+shift
+
+trap post_chroot 1 2 3 10 15
+
+pre_chroot(){
+ echo -e "\033[1mPreparing $CHROOT_DIR...\033[0m"
+ # add a aufs-layer for non-permanent changes
+ if [ -n "$AUFS" ]; then
+     echo -e "\033[1mAUFS enabled: Changes to chroot are not permanent.\033[0m"
+     mkdir -p $RW_BRANCH
+     mount -t aufs -o br=$RW_BRANCH=rw:$CHROOT_DIR=ro aufs $CHROOT_DIR
+     [ $? != 0 ] && exit 1
+ fi
+ # Get net
+ if [ -L $CHROOT_DIR/etc/resolv.conf -o -f $CHROOT_DIR/etc/resolv.conf ] && [ ! -e $CHROOT_DIR/etc/resolv.conf.before-chroot ]; then
+  mv -f $CHROOT_DIR/etc/resolv.conf $CHROOT_DIR/etc/resolv.conf.before-chroot
+  cp -f /etc/resolv.conf $CHROOT_DIR/etc/resolv.conf
+ fi
+ for i in $MOUNTED_DIRS; do mount --bind /$i "$(realpath $CHROOT_DIR)"/"$i"; done
+ # mount current dev-environment to chroot
+ if [ -n "$BIND_ROOT" ] && $(! grep -qs ${CHROOT_DIR}/TCOS /proc/mounts); then
+     [ ! -d ${CHROOT_DIR}/TCOS ] && mkdir ${CHROOT_DIR}/TCOS
+     for i in $DEV_DIRS; do
+ 	 [ ! -d  ${i} ] && mkdir ${i}
+	 [ ! -d  ${CHROOT_DIR}/${i} ] && mkdir ${CHROOT_DIR}/TCOS/${i}
+	 mount --bind $(realpath ${BIND_ROOT}/${i}) $CHROOT_DIR/TCOS/${i}
+	[ $? != 0 ] && exit 1
+    done
+fi
+}
+
+
+post_chroot(){
+    if $(grep -qs $CHROOT_DIR/TCOS /proc/mounts); then
+	sudo umount $CHROOT_DIR/TCOS/* || exit 1
+	sudo rm -rf $CHROOT_DIR/TCOS
+    fi
+    for i in $MOUNTED_DIRS; do umount -l "$(realpath $CHROOT_DIR)/$i"; done
+    #umount -l -R "$(realpath $CHROOT_DIR)"  
+    # Restore old resolv.conf
+    if [ -f $CHROOT_DIR/etc/resolv.conf.before-chroot -o -L $CHROOT_DIR/etc/resolv.conf.before-chroot ]; then
+	mv -f $CHROOT_DIR/etc/resolv.conf.before-chroot $CHROOT_DIR/etc/resolv.conf
+    fi
+    # umount aufs-layer for non-permanent changes
+    [ -n "$AUFS" ] && umount $CHROOT_DIR
+    rm -rf $RW_BRANCH
+    exit 0
+}
+
+### MAIN
+pre_chroot
+ echo -e "\033[1mChrooting into $CHROOT_DIR...\033[0m" >&2
+export MAIL=/var/mail/root HOME=/root XAUTHORITY=/root/.Xauthority debian_chroot=TCOS
+chroot "$CHROOT_DIR" "$@"; RC="$?"
+[ "$RC" = "0" ] || echo "Last command in chroot returned $RC"
+echo -e "\033[1mLeaving $CHROOT_DIR.\033[0m" >&2
+post_chroot
+exit $RC
+>>>>>>> 2b38bee56d473c176a7f2462a7c80abe33913318
