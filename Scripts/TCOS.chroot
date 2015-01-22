@@ -19,6 +19,7 @@ CHROOT_DIR="$1"
 
 MOUNTED_DIRS="proc sys dev/pts"
 DEV_DIRS="Packages Sources Scripts Kernel Initrd Base"
+RW_BRANCH=/tmp/.tmp-tcos-`id -u`-`date +%F-%N`
 
 shift
 
@@ -29,8 +30,8 @@ pre_chroot(){
  # add a aufs-layer for non-permanent changes
  if [ -n "$AUFS" ]; then
      echo -e "\033[1mAUFS enabled: Changes to chroot are not permanent.\033[0m"
-     mkdir -p /tmp/.tmp-tcos-$CHROOT_DIR
-     mount -t aufs -o br=/tmp/.tmp-tcos-$CHROOT_DIR=rw:$CHROOT_DIR=ro aufs $CHROOT_DIR
+     mkdir -p $RW_BRANCH
+     mount -t aufs -o br=$RW_BRANCH=rw:$CHROOT_DIR=ro aufs $CHROOT_DIR
      [ $? != 0 ] && exit 1
  fi
  # Get net
@@ -58,13 +59,14 @@ post_chroot(){
 	sudo rm -rf $CHROOT_DIR/TCOS
     fi
     for i in $MOUNTED_DIRS; do umount -l "$(realpath $CHROOT_DIR)/$i"; done
+    #umount -l -R "$(realpath $CHROOT_DIR)"  
     # Restore old resolv.conf
     if [ -f $CHROOT_DIR/etc/resolv.conf.before-chroot -o -L $CHROOT_DIR/etc/resolv.conf.before-chroot ]; then
 	mv -f $CHROOT_DIR/etc/resolv.conf.before-chroot $CHROOT_DIR/etc/resolv.conf
     fi
     # umount aufs-layer for non-permanent changes
     [ -n "$AUFS" ] && umount $CHROOT_DIR
-    rm -rf /tmp/.tmp-tcos-$CHROOT_DIR
+    rm -rf $RW_BRANCH
     exit 0
 }
 
