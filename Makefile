@@ -28,7 +28,13 @@ TARGET_PACKAGES := alsa-utils apt-utils aptitude arandr ca-certificates cifs-uti
 
 # qemu qemu-system-i386 strace ltrace
 
-TARGET_PACKAGES_BACKPORTS :=atril caja engrampa eom fglrx-driver fglrx-modules-dkms freerdp-x11 mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes nvidia-driver nvidia-legacy-173xx-driver pluma xserver-xorg-video-nvidia xserver-xorg-video-nvidia-legacy-173xx xvba-va-driver
+TARGET_PACKAGES_BACKPORTS :=atril caja engrampa eom fglrx-driver fglrx-modules-dkms freerdp-x11 mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes nvidia-driver pluma xvba-va-driver xserver-xorg-video-nvidia xserver-xorg-video-nvidia-legacy-173xx nvidia-legacy-173xx-driver
+
+# nvidia-legacy-304xx-driver
+# xserver-xorg-video-nvidia-legacy-304xx
+
+# nvidia-legacy-96xx-driver
+# xserver-xorg-video-nvidia-legacy-96xx
 
 TARGET_PACKAGES_BUSYBOXBUILD := build-essential
 TARGET_PACKAGES_EXTERNAL := openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb libpcsclite1_1.8.11-3~tcos20+3_i386.deb pcscd_1.8.11-3~tcos20+3_i386.deb libpcsclite-dev_1.8.11-3~tcos20+3_i386.deb via-chrome9-dkms_20091016_all.deb xserver-xorg-video-chrome9_5.76.52.92-1_i386.deb
