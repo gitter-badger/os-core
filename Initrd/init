@@ -33,6 +33,7 @@ nvidia=false
 figlet=true
 splashImage=openthinclient.ppm
 glamor=false
+via=false
 
 ## MAIN ####################################################
 
@@ -176,6 +177,11 @@ cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
 # enables additional packages (in  bz2, gz. tar, plain, format)
 mountcustom $CUSTOM
 
+mount --bind /sys ${SHADOW}/sys
+mount --bind /dev ${SHADOW}/dev
+mount --bind /dev/pts ${SHADOW}/dev/pts
+mount --bind /proc ${SHADOW}/proc
+mkdir -p ${SHADOW}/tcos/link &>/dev/null && mount --bind /tcos/link ${SHADOW}/tcos/link
 
 # ToDo: Source the graphics card stuff out in a separate file.
 
@@ -191,12 +197,15 @@ fi
 # Check if fglrx drivers for radeon cards should be used.
 # Prevent using fglrx in case of non existing AMD hardware.
 # 
-if $fglrx && $(lspci | grep -q AMD); then 
+if $fglrx && $(lspci | grep -q 1002); then
     echo "${GREEN}Switching client to use proprietary fglrx drivers.${NORMAL}"
+    chroot ${SHADOW} update-alternatives --set glx /usr/lib/fglrx
+
     mkdir -p ${SHADOW}/etc/X11/xorg.conf.d &> /dev/null
+
+    # write xorg.conf  snippet
     echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tDriver "fglrx"\nEndSection' > ${SHADOW}/etc/X11/xorg.conf.d/20-fglrx.conf
-    # Xorg will load necesarry kernel modules itself. There is no need to do this by hand.
-    update-alternatives --set glx /usr/lib/fglrx # will also do the blacklisting
+    chroot ${SHADOW} modprobe fglrx
 else
     echo "blacklist fglrx" >> ${SHADOW}/etc/modprobe.d/tcos-blacklist.conf
 fi
@@ -204,36 +213,35 @@ fi
 
 # Check if nvidia driver for nvidia cards should be used.
 # Prevent using nvidia in case of non existing Nvidia hardware.
-# 
-if $nvidia && $(lspci | grep -q NVIDIA); then 
+#
+if $nvidia && $(lspci | grep -q -i 10DE); then
     echo "${GREEN}Switching client to use proprietary nvidia drivers.${NORMAL}"
-    echo "blacklist nouveau" >> ${SHADOW}/etc/modprobe.d/tcos-blacklist.conf 
+    chroot ${SHADOW} /usr/sbin/update-alternatives --set glx /usr/lib/nvidia
+    chroot ${SHADOW} /usr/sbin/update-alternatives --set nvidia /usr/lib/nvidia/current
+
     mkdir -p ${SHADOW}/etc/X11/xorg.conf.d &> /dev/null
 
     # write xorg.conf  snippet
     echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tDriver "nvidia"\nEndSection' > ${SHADOW}/etc/X11/xorg.conf.d/20-nvidia.conf
 
-    # todo: link libglx.so to the nvidia libglx.so.XXX.XX - we assume there is only one 
-    nvidia_glx_so=$(grep -l nvidia ${SHADOW}/usr/lib/xorg/modules/extensions/libglx.* | tail -n 1)
-    rm -f ${SHADOW}/usr/lib/xorg/modules/extensions/libglx.so
-    ln -s  $nvidia_glx_so ${SHADOW}/usr/lib/xorg/modules/extensions/libglx.so
-    #####################################################################################
-    # Some workaround, because the nvidia module sometimes fails to initialize propperly.
-    # But if it is loaded/initialized a second time, it works. Strange, but this is a fact.
-    # Kick it!
-    # 
-    modprobe nvidia
-    X :5 -novtswitch -configdir ${SHADOW}/etc/X11/xorg.conf.d &> /dev/null &
-    sleep 10;
-    kill -9 $!
-    rmmod nvidia
-    #
-    # Xorg will load the module again itself.
-    # End of workaround.
-    #####################################################################################
+    # force the use of 173xx for very old cards
+    if $(lspci | grep -q -i 10de:032a);then
+	# path seems to be missing, upstream bug?
+	echo -e '/usr/lib/i386-linux-gnu/nvidia/legacy-173xx/\n' > ${SHADOW}/etc/ld.so.conf.d/legacy-173xx.conf
+	chroot ${SHADOW} ldconfig
+	chroot ${SHADOW} /usr/sbin/update-alternatives --set nvidia /usr/lib/nvidia/legacy-173xx
+    fi
+    chroot ${SHADOW} modprobe nvidia
 
 else
     echo "blacklist nvidia" >> ${SHADOW}/etc/modprobe.d/tcos-blacklist.conf
+fi
+
+if $via && $(lspci | grep -q -i 1106);then
+    "${GREEN}Switching client to use chrome9 drivers.${NORMAL}"
+    # write xorg.conf snippet
+    echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tDriver "via"\nEndSection' > ${SHADOW}/etc/X11/xorg.conf.d/20-via.conf
+    chroot ${SHADOW} modprobe via_chrome9
 fi
 
 #######################################################
@@ -259,10 +267,6 @@ fi
 # Kepp in mind ......
 # busybox' mount can't bindmount folder which are no mountpoints
 
-mount --bind /sys ${SHADOW}/sys
-mount --bind /dev ${SHADOW}/dev
-mount --bind /dev/pts ${SHADOW}/dev/pts
-mount --bind /proc ${SHADOW}/proc
 
 # debug the initrd if needed
 grep -wq debugshell /proc/cmdline && debugshell

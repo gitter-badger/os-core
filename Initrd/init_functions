@@ -60,7 +60,11 @@ bailout(){
 }
 
 debugshell(){
- modprobe ohci-hcd &>/dev/null || modprobe uhci-hcd &>/dev/null
+ modprobe ohci-hcd &>/dev/null
+ modprobe uhci-hcd &>/dev/null
+ modprobe ehci-hcd &>/dev/null
+ modprobe xhci-hcd &>/dev/null
+ modprobe usbhid &>/dev/null
  # source this file again via .bashrc to have access to functions
  # (i.e. runbasecmd), once we have been called from outside
  #

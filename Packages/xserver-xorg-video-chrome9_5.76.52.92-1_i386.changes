@@ -1,0 +1,31 @@
+Format: 1.8
+Date: Tue, 20 Jan 2015 21:11:14 +0100
+Source: xserver-xorg-video-chrome9
+Binary: xserver-xorg-video-chrome9
+Architecture: source i386
+Version: 5.76.52.92-1
+Distribution: unstable
+Urgency: low
+Maintainer: Steffen Hoenig <s.hoenig@openthinclient.com>
+Changed-By: Steffen Hoenig <s.hoenig@openthinclient.com>
+Description: 
+ xserver-xorg-video-chrome9 - <insert up to 60 chars description>
+Changes: 
+ xserver-xorg-video-chrome9 (5.76.52.92-1) unstable; urgency=low
+ .
+   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+Checksums-Sha1: 
+ 065d688a3f4989c260d8d2f6fef8fdb4f4cb54d7 1252 xserver-xorg-video-chrome9_5.76.52.92-1.dsc
+ 7b7f43b80c0210d633e819f2d8a7ed97ee0558ef 2101963 xserver-xorg-video-chrome9_5.76.52.92.orig.tar.gz
+ d727b66f22efc59ede20e29105d5faf1d2731b79 41784 xserver-xorg-video-chrome9_5.76.52.92-1.debian.tar.gz
+ 589d62c49e7b90ec806556ef7f5ee2419d9ed4e0 250388 xserver-xorg-video-chrome9_5.76.52.92-1_i386.deb
+Checksums-Sha256: 
+ 98e7ac05495575d8a6a780350b6b54155ea0c80d7675982720df73cd348d148a 1252 xserver-xorg-video-chrome9_5.76.52.92-1.dsc
+ cc58b3a016dc5a6abcbc7821900147fd27979f4a7f3f99314b2d9d510d4787a1 2101963 xserver-xorg-video-chrome9_5.76.52.92.orig.tar.gz
+ ba9c41db24e75dc444498ed50cd985e5ce2818f89f46fb70a90c664819266036 41784 xserver-xorg-video-chrome9_5.76.52.92-1.debian.tar.gz
+ e61d7ada6c8c21ca03a9344e00f31a7ae08535907dee840ac6e0dbf68060fa8a 250388 xserver-xorg-video-chrome9_5.76.52.92-1_i386.deb
+Files: 
+ e78c104f311fa5c160cdcb0575efd1a1 1252 unknown optional xserver-xorg-video-chrome9_5.76.52.92-1.dsc
+ a084d121ba9c3126e44dd96535531e90 2101963 unknown optional xserver-xorg-video-chrome9_5.76.52.92.orig.tar.gz
+ d5b1f952f73ae68f2598de2f2d0724d6 41784 unknown optional xserver-xorg-video-chrome9_5.76.52.92-1.debian.tar.gz
+ 9b3687996b1bf23737ff0a96bb8a2a6e 250388 unknown optional xserver-xorg-video-chrome9_5.76.52.92-1_i386.deb

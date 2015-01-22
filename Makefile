@@ -19,22 +19,19 @@ TOP_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
 BASE_VERSION := 2.1
 BUSYBOX_VERSION := 1.22.1
-DEB_MIRROR := http://otc-dd-01/debian
-# DEB_MIRROR := http://http.debian.net/debian
-# LOCAL_TEST_PATH := vagrant@otc-dd-dev4:/opt/openthinclient/server/default/data/nfs/root
-LOCAL_TEST_PATH := root@otc-dd-dev2:/opt/openthinclient/server/default/data/nfs/root
-#TARGET_KERNEL := 3.2.0-4-486 3.2.0-4-686-pae
+DEB_MIRROR := http://http.debian.net/debian
+LOCAL_TEST_PATH := $(shell /usr/share/tcos-dev/functions/ini_parser -r ~/.tcosconfig):/opt/openthinclient/server/default/data/nfs/root
 TARGET_KERNEL_DEFAULT := 3.2.0-4-686-pae
-TARGET_KERNEL_NON-PAE := 3.2.0-4-486
+TARGET_KERNEL_NONPAE := 3.2.0-4-486
 
-TARGET_PACKAGES := alsa-utils apt-utils aptitude arandr ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dialog dmidecode dnsutils dos2unix dosfstools e2fsprogs eject ethtool file firmware-linux flashplugin-nonfree fontconfig freerdp-X11 gdevilspie gvfs gvfs-backends htop hwinfo iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython ldap-utils less libacsccid1 libc6-dev libcurl3 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 libgl1-mesa-dri libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libglib2.0-bin libgssglue1 libgtk-3-bin libgtk2.0-bin libmotif4 libpam-ldap libpopt0 libqt4-qt3support libqt4-sql libsasl2-modules libsasl2-modules-gssapi-mit libssl1.0.0 libstdc++5 libvdpau1 libwebkitgtk-1.0-0 libx11-6 libxerces-c3.1 lightdm lightdm-gtk-greeter locales locales-all lshw mesa-utils net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync smplayer strace ltrace sudo syslog-ng ttf-dejavu udev mc usbutils util-linux vim-tiny vim wget x11-xserver-utils x11vnc xdg-utils xfonts-base xinetd xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom xserver-xorg-video-ati xserver-xorg-video-fbdev xserver-xorg-video-geode xserver-xorg-video-glide xserver-xorg-video-intel xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-savage xserver-xorg-video-vesa xserver-xorg-video-vmware xtightvncviewer zenity xserver-xorg-video-modesetting 
+TARGET_PACKAGES := alsa-utils apt-utils aptitude arandr ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dialog dmidecode dnsutils dos2unix dosfstools e2fsprogs eject ethtool file firmware-linux flashplugin-nonfree fontconfig freerdp-X11 gdevilspie gvfs gvfs-backends htop hwinfo iceweasel iceweasel-l10n-de iceweasel-l10n-es-ar iceweasel-l10n-es-cl iceweasel-l10n-es-es iceweasel-l10n-es-mx iceweasel-l10n-fr iceweasel-l10n-uk iproute iputils-ping ipython ldap-utils less libacsccid1 libc6-dev libcurl3 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 libgl1-mesa-dri libgl1-mesa-dri libgl1-mesa-dri-experimental libgl1-mesa-glx libglib2.0-bin libgssglue1 libgtk-3-bin libgtk2.0-bin libmotif4 libpam-ldap libpopt0 libqt4-qt3support libqt4-sql libsasl2-modules libsasl2-modules-gssapi-mit libssl1.0.0 libstdc++5 libvdpau1 libwebkitgtk-1.0-0 libx11-6 libxerces-c3.1 lightdm lightdm-gtk-greeter linux-headers-$(TARGET_KERNEL_DEFAULT) linux-headers-$(TARGET_KERNEL_NONPAE) locales locales-all lshw ltrace mc mesa-utils net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils python python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync smplayer strace sudo syslog-ng ttf-dejavu udev usbutils util-linux vim vim-tiny wget x11-xserver-utils x11vnc xdg-utils xfonts-base xinetd xinit xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-kbd xserver-xorg-input-mouse xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom xserver-xorg-video-ati xserver-xorg-video-fbdev xserver-xorg-video-geode xserver-xorg-video-glide xserver-xorg-video-intel xserver-xorg-video-modesetting xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-savage xserver-xorg-video-vesa xserver-xorg-video-vmware xtightvncviewer zenity
 
 # qemu qemu-system-i386 strace ltrace
 
-TARGET_PACKAGES_BACKPORTS := atril caja engrampa eom fglrx-driver mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes pluma xserver-xorg-video-nvidia-legacy-173xx xvba-va-driver
+TARGET_PACKAGES_BACKPORTS :=atril caja engrampa eom fglrx-driver fglrx-modules-dkms freerdp-x11 mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes nvidia-driver nvidia-legacy-173xx-driver pluma xserver-xorg-video-nvidia xserver-xorg-video-nvidia-legacy-173xx xvba-va-driver
 
 TARGET_PACKAGES_BUSYBOXBUILD := build-essential
-TARGET_PACKAGES_EXTERNAL := openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb libpcsclite1_1.8.11-3~tcos20+3_i386.deb pcscd_1.8.11-3~tcos20+3_i386.deb libpcsclite-dev_1.8.11-3~tcos20+3_i386.deb
+TARGET_PACKAGES_EXTERNAL := openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb libpcsclite1_1.8.11-3~tcos20+3_i386.deb pcscd_1.8.11-3~tcos20+3_i386.deb libpcsclite-dev_1.8.11-3~tcos20+3_i386.deb via-chrome9-dkms_20091016_all.deb xserver-xorg-video-chrome9_5.76.52.92-1_i386.deb
 
 # Meta-Targets
 #
@@ -104,8 +101,6 @@ update-stamp:tcosify-stamp
 	sudo Scripts/TCOS.chroot Filesystem /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get update"
 	sudo Scripts/TCOS.chroot Filesystem /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES)"
 	sudo Scripts/TCOS.chroot Filesystem /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES_BACKPORTS)"
-        # Have mesa back in game for default glx
-	sudo Scripts/TCOS.chroot Filesystem bash -c "update-alternatives --set glx /usr/lib/mesa-diverted"
 	sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem bash -c "for deb in $(TARGET_PACKAGES_EXTERNAL); do dpkg -i /TCOS/Packages/\$$deb; done"
 	@touch $@
 
@@ -115,20 +110,19 @@ kernel-stamp:update-stamp
 	@echo "[1m Target kernel-install-stamp: Install the kernel[0m"
 	-rm initrd-stamp clean-stamp
 	-sudo mkdir -p Base/base-$(BASE_VERSION)/tftp/
-	for kernel in $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NON-PAE); do \
+	for kernel in $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE); do \
 	    sudo Scripts/TCOS.chroot Filesystem /bin/bash -c \
 	    "apt-get install -y --force-yes --no-install-recommends linux-image-$$kernel" ; \
 	    sudo cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/tftp/ ; \
 	done
-        # sudo cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/debian/base/tftp/ ; 
 	(cd Base/base-$(BASE_VERSION)/debian/base/tftp/; sudo mv vmlinuz-$(TARGET_KERNEL_DEFAULT) vmlinuz)
-	(cd Base/base-$(BASE_VERSION)/debian/base/tftp/; sudo mv vmlinuz-$(TARGET_KERNEL_NON-PAE) vmlinuz_non-pae)
+	(cd Base/base-$(BASE_VERSION)/debian/base/tftp/; sudo mv vmlinuz-$(TARGET_KERNEL_NONPAE) vmlinuz_non-pae)
 	@touch $@
 
 initrd:
 	make $@-stamp
 initrd-stamp:busybox-stamp kernel-stamp Sources/modules.list
-	for kernel in $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NON-PAE); do \
+	for kernel in $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE); do \
 	    sudo rm -rf Initrd/lib/modules/$$kernel; \
 	    sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c \
 	    "DEST_DIR=/TCOS/Initrd \
@@ -151,7 +145,7 @@ compressed:
 
 compressed-stamp: clean-stamp
 	@echo "[1m Target compressed-stamp: Create the base.sfs container[0m"
-	-sudo mkdir -p Base/base-$(BASE_VERSION)/sfs/ 
+	-sudo mkdir -p Base/base-$(BASE_VERSION)/sfs/
 #	nice -10 ionice -c 3 sudo XZ_OPT="-6 -t 2" mksquashfs Filesystem Base/base-$(BASE_VERSION)/debian/base/sfs/base.sfs -noappend -always-use-fragments -comp xz
 	nice -10 ionice -c 3 sudo mksquashfs Filesystem Base/base-$(BASE_VERSION)/sfs/base.sfs -noappend -always-use-fragments -comp lzo
 	@touch $@
@@ -159,7 +153,7 @@ compressed-stamp: clean-stamp
 # Install-Targets
 # todo: upload needs to be more plattform agnostic
 
-base: compressed-stamp
+base:
 	sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "echo \"deb http://packages.openthinclient.org/openthinclient/v2/devel ./\" > /etc/apt/sources.list.d/tcos.list; apt-get update; \
 	    DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends tcos-dev; \
 	    cd TCOS/Base/base-$(BASE_VERSION); \
@@ -167,10 +161,10 @@ base: compressed-stamp
 	    tcos build ."
 	touch $@-stamp
 
-upload: base-stamp
+upload:
 	tcos upload Base/base_$(shell sed -n '2p' Base/base-2.1/debian/base/DEBIAN/control | cut -d " " -f 2)_$(TARGET_ARCH).deb
 
-upload-test: compressed-stamp
+upload-test:
 	@echo "[1m Target test: Copy base.sfs, kernel, etc. to development server for testing.[0m"
 	rsync Base/base-$(BASE_VERSION)/tftp/vmlinuz*  Base/base-$(BASE_VERSION)/tftp/initrd* $(LOCAL_TEST_PATH)/tftp/
 	rsync Base/base-$(BASE_VERSION)/sfs/*.sfs     $(LOCAL_TEST_PATH)/sfs/
