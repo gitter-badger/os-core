@@ -146,7 +146,8 @@ driver:
 	make $@-stamp
 
 driver-stamp:kernel-stamp
-	@echo "[1m Target driver-stamp: Compile external modules for the kernel[0m"
+	echo "[1m Target driver-stamp: Compile external modules for the kernel[0m"
+	-sudo mkdir -p Driver
 	sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "\
 	DEBIAN_FRONTEND=noninteractive \
 	apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES_BACKPORTS_DKMS) linux-headers-$(TARGET_KERNEL_DEFAULT) linux-headers-$(TARGET_KERNEL_NONPAE); \
@@ -156,11 +157,12 @@ driver-stamp:kernel-stamp
 	done; \
         # \
         # Install usbrd, unfurtunately there is no dkms support for this. \
-        /TCOS/Scripts/TCOS.usbrdr_install " 
-	rsync -vaRP Drivers/lib/modules TCOS/Filesystem/lib/ 
-#	rsync -vaP /lib/modules/$(TARGET_KERNEL_DEFAULT)/updates /TCOS/Filesystem/lib/modules/$(TARGET_KERNEL_DEFAULT)/; \
-#	rsync -vaP /lib/modules/$(TARGET_KERNEL_NONPAE)/updates /TCOS/Filesystem/lib/modules/$(TARGET_KERNEL_NONPAE)/"; \
-#	bash
+        /TCOS/Scripts/TCOS.usbrdr_install; \ 
+        # sync build driver to persistent part of chroot
+	rsync -vaR /lib/modules/*/updates /TCOS/Driver/;"
+        # sync build drivers back to Filsystem
+	rsync -vaP Driver/lib/modules/* TCOS/Filesystem/lib/modules/
+	-sudo rm -rf Driver
 	@touch $@
 
 initrd:
@@ -209,7 +211,7 @@ compressed-stamp: clean-stamp
 # todo: upload needs to be more plattform agnostic
 
 base:
-	sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "echo \"deb http://packages.openthinclient.org/openthinclient/v2/devel ./\" > /etc/apt/sources.list.d/tcos.list; apt-get update; \
+	sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "echo \"deb http://packages.openthinclient.org/openthinclient/v2/devel ./\" > /etc/apt/sources.list.d/tcos.list; apt-get update; \
 	    DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends tcos-dev; \
 	    cd TCOS/Base/base-$(BASE_VERSION); \
 	    dch -l autobuild \"autobuild as of `date`\"; \
