@@ -1,0 +1,4 @@
+# for our latest kernel (3.14)
+deb http://snapshot.debian.org/archive/debian/20140825T161217Z/ wheezy main contrib non-free
+deb http://snapshot.debian.org/archive/debian/20140825T161217Z/ wheezy-updates main contrib non-free
+deb http://snapshot.debian.org/archive/debian/20140825T161217Z/ wheezy-backports main contrib non-free
