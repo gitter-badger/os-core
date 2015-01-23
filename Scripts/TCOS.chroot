@@ -43,9 +43,11 @@ pre_chroot(){
  # mount current dev-environment to chroot
  if [ -n "$BIND_ROOT" ] && $(! grep -qs ${CHROOT_DIR}/TCOS /proc/mounts); then
      [ ! -d ${CHROOT_DIR}/TCOS ] && mkdir ${CHROOT_DIR}/TCOS
+     # experimental: if kernel-stamp exists, bind-mount it as well
+     [ -f ./kernel-stamp ] && DEV_DIRS="$DEV_DIRS Filesystem/lib/modules"
      for i in $DEV_DIRS; do
- 	 [ ! -d  ${i} ] && mkdir ${i}
-	 [ ! -d  ${CHROOT_DIR}/${i} ] && mkdir ${CHROOT_DIR}/TCOS/${i}
+ 	 [ ! -d  ${i} ] && mkdir -p ${i}
+	 [ ! -d  ${CHROOT_DIR}/${i} ] && mkdir -p ${CHROOT_DIR}/TCOS/${i}
 	 mount --bind $(realpath ${BIND_ROOT}/${i}) $CHROOT_DIR/TCOS/${i}
 	[ $? != 0 ] && exit 1
     done
@@ -55,7 +57,9 @@ fi
 
 post_chroot(){
     if $(grep -qs $CHROOT_DIR/TCOS /proc/mounts); then
-	sudo umount $CHROOT_DIR/TCOS/* || exit 1
+	for i in $DEV_DIRS; do
+	    sudo umount $CHROOT_DIR/TCOS/${i} || exit 1
+	done
 	sudo rm -rf $CHROOT_DIR/TCOS
     fi
     for i in $MOUNTED_DIRS; do umount -l "$(realpath $CHROOT_DIR)/$i"; done
