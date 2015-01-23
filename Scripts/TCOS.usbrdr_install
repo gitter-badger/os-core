@@ -11,10 +11,9 @@ cd ${Source}/files/modules/src/tusbd/
 #
 for kernel in $(ls -1 /usr/src/ | grep $KVERS | sed 's/linux-headers-//'); do
     # echo "Building $Source for $kernel, press any key."
-    sleep 10
     KERNELDIR="/lib/modules/${kernel}/build" make clean 
     KERNELDIR="/lib/modules/${kernel}/build" make
-    mkdir -p /lib/modules/${kernel}/updates/
-    cp tusbd.ko /lib/modules/${kernel}/updates/
+    # smuggle out the extract
+    mkdir -p /TCOS/Drivers/lib/modules/${kernel}/updates/
+    cp tusbd.ko /TCOS/Drivers/lib/modules/${kernel}/updates/
 done 
-
