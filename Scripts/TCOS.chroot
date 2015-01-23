@@ -9,7 +9,7 @@
 # AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash
 # License: GPL V2
 #
-# set -x
+set -x
 
 CHROOT_DIR="$1"
 
@@ -41,7 +41,7 @@ pre_chroot(){
  fi
  for i in $MOUNTED_DIRS; do mount --bind /$i "$(realpath $CHROOT_DIR)"/"$i"; done
  # mount current dev-environment to chroot
- if [ -n "$BIND_ROOT" ] && $(! grep -qs ${CHROOT_DIR}/TCOS /proc/mounts); then
+ if [ -n "$BIND_ROOT" ] && $(! grep -qs $(realpath $CHROOT_DIR)/TCOS /proc/mounts); then
      [ ! -d ${CHROOT_DIR}/TCOS ] && mkdir ${CHROOT_DIR}/TCOS
      # experimental: if kernel-stamp exists, bind-mount it as well
      [ -f ./kernel-stamp ] && DEV_DIRS="$DEV_DIRS Filesystem/lib/modules"
@@ -56,14 +56,14 @@ fi
 
 
 post_chroot(){
-    if $(grep -qs $CHROOT_DIR/TCOS /proc/mounts); then
+    if $(grep -qs $(realpath $CHROOT_DIR)/TCOS /proc/mounts); then
 	for i in $DEV_DIRS; do
 	    sudo umount $CHROOT_DIR/TCOS/${i} || exit 1
 	done
 	sudo rm -rf $CHROOT_DIR/TCOS
     fi
     for i in $MOUNTED_DIRS; do umount -l "$(realpath $CHROOT_DIR)/$i"; done
-    #umount -l -R "$(realpath $CHROOT_DIR)"  
+    #umount -l -R "$(realpath $CHROOT_DIR)"
     # Restore old resolv.conf
     if [ -f $CHROOT_DIR/etc/resolv.conf.before-chroot -o -L $CHROOT_DIR/etc/resolv.conf.before-chroot ]; then
 	mv -f $CHROOT_DIR/etc/resolv.conf.before-chroot $CHROOT_DIR/etc/resolv.conf
