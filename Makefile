@@ -24,34 +24,18 @@ LOCAL_TEST_PATH := $(shell /usr/share/tcos-dev/functions/ini_parser -r ~/.tcosco
 TARGET_KERNEL_DEFAULT := 3.14-0.bpo.2-686-pae
 TARGET_KERNEL_NONPAE := 3.14-0.bpo.2-486
 
-# qemu qemu-system-i386 strace ltrace
-
-TARGET_PACKAGES_BACKPORTS :=atril caja engrampa eom fglrx-driver fglrx-modules-dkms freerdp-x11 mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes nvidia-driver pluma xvba-va-driver xserver-xorg-video-nvidia xserver-xorg-video-nvidia-legacy-173xx nvidia-legacy-173xx-driver 
-
-# nvidia-legacy-304xx-driver
-# xserver-xorg-video-nvidia-legacy-304xx
-
-# nvidia-legacy-96xx-driver
-# xserver-xorg-video-nvidia-legacy-96xx
-
-TARGET_PACKAGES_BUSYBOXBUILD := build-essential
-
-TARGET_PACKAGES_EXTERNAL := linux-kbuild-3.10_3.10-3~bpo70+1_i386.deb linux-headers-3.10-0.bpo.2-common_3.10.5-1~bpo70+1_i386.deb linux-headers-3.10-0.bpo.2-686-pae_3.10.5-1~bpo70+1_i386.deb linux-headers-3.10-0.bpo.2-486_3.10.5-1~bpo70+1_i386.deb openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb libpcsclite1_1.8.11-3~tcos20+3_i386.deb pcscd_1.8.11-3~tcos20+3_i386.deb libpcsclite-dev_1.8.11-3~tcos20+3_i386.deb via-chrome9-dkms_20091016-2_all.deb xserver-xorg-video-chrome9_5.76.52.92-1_i386.deb
-
 # run-time packages
-#
+
 TARGET_PACKAGES := alsa-utils apt-utils aptitude arandr ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dialog dmidecode dnsutils dos2unix dosfstools e2fsprogs ethtool file firmware-linux flashplugin-nonfree fontconfig freerdp-X11 gdevilspie gvfs gvfs-backends htop hwinfo iceweasel iceweasel-l10n-de ipython ldap-utils less libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 libgl1-mesa-dri libgl1-mesa-dri libgl1-mesa-glx libgssglue1 libpam-ldap libsasl2-modules libsasl2-modules-gssapi-mit libssl1.0.0 libstdc++5 libvdpau1 libwebkitgtk-1.0-0 libx11-6 libxerces-c3.1 lightdm lightdm-gtk-greeter locales locales-all lshw ltrace mc mesa-utils nfs-common ntp numlockx openssh-client openssh-server pciutils python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync smplayer strace sudo syslog-ng ttf-dejavu udhcpc usbutils util-linux vim wget x11-xserver-utils x11vnc xdg-utils xfonts-base xinetd xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom xserver-xorg-video-ati xserver-xorg-video-fbdev xserver-xorg-video-geode xserver-xorg-video-intel xserver-xorg-video-modesetting xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-savage xserver-xorg-video-vesa xtightvncviewer zenity
-
+TARGET_PACKAGES_BACKPORTS := atril caja engrampa eom glx-alternative-fglrx glx-alternative-nvidia glx-alternative-mesa libfglrx libgl1-nvidia-glx libgl1-nvidia-legacy-173xx-glx mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes nvidia-alternative nvidia-alternative-legacy-173xx nvidia-driver-bin nvidia-vdpau-driver pluma xserver-xorg-video-nvidia xserver-xorg-video-nvidia-legacy-173xx xvba-va-driver
 TARGET_PACKAGES_DEB := openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb libpcsclite1_1.8.11-3~tcos20+3_i386.deb pcscd_1.8.11-3~tcos20+3_i386.deb libpcsclite-dev_1.8.11-3~tcos20+3_i386.deb xserver-xorg-video-chrome9_5.76.52.92-1_i386.deb libfglrx_14.12-1_i386.deb libgl1-fglrx-glx_14.12-1_i386.deb libgl1-fglrx-glx-i386_14.12-1_i386.deb libfglrx-amdxvba1_14.12-1_i386.deb
-
 # build packages
 #
 TARGET_PACKAGES_BUSYBOXBUILD := make gcc bzip2 libc6-dev perl
 TARGET_PACKAGES_BACKPORTS_DKMS :=nvidia-kernel-common dkms gcc gcc-4.7 libitm1 make patch nvidia-kernel-dkms nvidia-legacy-173xx-kernel-dkms
 TARGET_PACKAGES_DEB_DKMS := via-chrome9-dkms_5.76.52.92-3_all.deb fglrx-modules-dkms_14.12-1_i386.deb
 
-
-# Meta-Targets
+# meta-targets
 #
 
 all: compressed-stamp base upload
@@ -79,7 +63,7 @@ help:
 	@echo
 	@echo "Have a lot of [36mfun[0m. ;-)"
 
-# Build-Targets
+# build-targets
 #
 filesystem:
 	make $@-stamp
@@ -92,14 +76,13 @@ filesystem-stamp:
 busybox:
 	make $@-stamp
 
-busybox-stamp: Sources/busybox.config filesystem-stamp
+busybox-stamp: filesystem-stamp
 	@echo "[1m Target busybox-stamp: Create the busybox[0m"
 	test -r Sources/busybox/Makefile || \
 	    (cd Sources && \
 	    wget -O - http://busybox.net/downloads/busybox-$(BUSYBOX_VERSION).tar.bz2  | tar -xjf - && \
 	    rm -rf busybox && \
 	    mv busybox-$(BUSYBOX_VERSION) busybox)
-        # open the Filesystem and install the development tools temporarily
 	(test -r Initrd/bin/busybox && test Sources/busybox/.config -ot Initrd/bin/busybox) || \
 	    sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c \
 	    "DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes make gcc bzip2 libc6-dev perl; \
@@ -121,12 +104,11 @@ update:
 update-stamp:tcosify-stamp
 	@echo "[1m Target update-stamp: Installing packages from TARGET_PACKAGES list and updating the filesystem [0m"
 	-rm -f clean-stamp
-	sudo Scripts/TCOS.chroot Filesystem /bin/bash -c "export DEBIAN_FRONTEND=noninteractive; \
+	sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "export DEBIAN_FRONTEND=noninteractive; \
 		apt-get update; \
 		apt-get install -y --force-yes -o Dpkg::Options::=\"--force-confold\" $(TARGET_PACKAGES); \
 	        apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::=\"--force-confold\" $(TARGET_PACKAGES_BACKPORTS); \
-	        for deb in $(TARGET_PACKAGES_DEB); do dpkg -i /TCOS/Packages/\$$deb; done; \
-	        apt-get install -y --force-yes --no-install-recommends  $(PACKAGES_COMMERCIAL); /usr/sbin/update-flashplugin-nonfree --install "
+	        for deb in $(TARGET_PACKAGES_DEB); do dpkg -i /TCOS/Packages/\$$deb; done;"
 	@touch $@
 
 kernel:
@@ -136,7 +118,7 @@ kernel-stamp:update-stamp
 	-sudo mkdir -p Base/base-$(BASE_VERSION)/tftp/
 	for kernel in $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE); do \
 	    sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c \
-	    "apt-get install -y --force-yes -t wheezy-backports linux-image-$$kernel" ; \
+	    "cp /bin/true /tmp/update-initramfs;PATH=/tmp:$$PATH;apt-get update;apt-get install -y --force-yes -t wheezy-backports linux-image-$$kernel" ; \
 	    sudo cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/tftp/ ; \
 	done
 	(cd Base/base-$(BASE_VERSION)/debian/base/tftp/; sudo mv vmlinuz-$(TARGET_KERNEL_DEFAULT) vmlinuz)
@@ -149,19 +131,18 @@ driver-stamp:kernel-stamp
 	echo "[1m Target driver-stamp: Compile external modules for the kernel[0m"
 	-sudo mkdir -p Driver
 	sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "\
+	cp /bin/true /tmp/update-initramfs;\
+	apt-get update;\
 	DEBIAN_FRONTEND=noninteractive \
-	apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES_BACKPORTS_DKMS) linux-headers-$(TARGET_KERNEL_DEFAULT) linux-headers-$(TARGET_KERNEL_NONPAE); \
+	PATH=/tmp:$$PATH apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES_BACKPORTS_DKMS) linux-headers-$(TARGET_KERNEL_DEFAULT) linux-headers-$(TARGET_KERNEL_NONPAE); \
 	for deb in $(TARGET_PACKAGES_DEB_DKMS); \
 	do \
-	   dpkg -i /TCOS/Packages/\$$deb; \
-	done; \
-        # \
-        # Install usbrd, unfurtunately there is no dkms support for this. \
-        /TCOS/Scripts/TCOS.usbrdr_install; \ 
-        # sync build driver to persistent part of chroot
-	rsync -vaR /lib/modules/*/updates /TCOS/Driver/;"
-        # sync build drivers back to Filsystem
-	rsync -vaP Driver/lib/modules/* TCOS/Filesystem/lib/modules/
+	   dpkg -i /TCOS/Packages/\$$deb;\
+	done;\
+        /TCOS/Scripts/TCOS.usbrdr_install;\
+	rsync -vaR /lib/modules/*/updates /TCOS/Driver/;\
+	"
+	sudo rsync -vaP Driver/lib/modules/* Filesystem/lib/modules/
 	-sudo rm -rf Driver
 	@touch $@
 
@@ -180,16 +161,6 @@ initrd-stamp:busybox-stamp driver-stamp Sources/modules.list
 	@touch $@
 
 
-#commercial-module-stamp: 
-#	@echo "[1m Target commercial-module-stamp: Build commercial module inside the filsystem[0m"
-#	sudo AUFS=1 BIND_ROOT=./ DEV_DIR="Filesystem/lib/modules"  Scripts/TCOS.chroot Filesystem /bin/bash 
-#
-##        #-c "echo \"APT::Install-Recommends \"0\";\nAPT::Install-Suggests \"0\";\" > /etc/apt/apt.conf.d/01apt-get-install;DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes $(TARGET_PACKAGES_BUSYBOXBUILD); cd /TCOS/Sources/busybox; make clean; make install"
-#
-#	sudo Scripts/LINBO.chroot Filesystem /bin/bash -c "apt-get install -y --force-yes --no-install-recommends  $(PACKAGES_COMMERCIAL); /usr/sbin/update-flashplugin-nonfree --install"
-
-
-
 clean:
 	make $@-stamp
 clean-stamp: initrd-stamp
@@ -203,11 +174,10 @@ compressed:
 compressed-stamp: clean-stamp
 	@echo "[1m Target compressed-stamp: Create the base.sfs container[0m"
 	-sudo mkdir -p Base/base-$(BASE_VERSION)/sfs/
-#	nice -10 ionice -c 3 sudo XZ_OPT="-6 -t 2" mksquashfs Filesystem Base/base-$(BASE_VERSION)/debian/base/sfs/base.sfs -noappend -always-use-fragments -comp xz
 	nice -10 ionice -c 3 sudo mksquashfs Filesystem Base/base-$(BASE_VERSION)/sfs/base.sfs -noappend -always-use-fragments -comp lzo
 	@touch $@
 
-# Install-Targets
+# install-targets
 # todo: upload needs to be more plattform agnostic
 
 base:
