@@ -78,7 +78,7 @@ post_chroot(){
 pre_chroot
  echo -e "\033[1mChrooting into $CHROOT_DIR...\033[0m" >&2
 export MAIL=/var/mail/root HOME=/root XAUTHORITY=/root/.Xauthority debian_chroot=TCOS
-chroot "$CHROOT_DIR" "$@"; RC="$?"
+PATH="$PATH" chroot "$CHROOT_DIR" "$@"; RC="$?"
 [ "$RC" = "0" ] || echo "Last command in chroot returned $RC"
 echo -e "\033[1mLeaving $CHROOT_DIR.\033[0m" >&2
 post_chroot

@@ -24,6 +24,8 @@ LOCAL_TEST_PATH := $(shell /usr/share/tcos-dev/functions/ini_parser -r ~/.tcosco
 TARGET_KERNEL_DEFAULT := 3.14-0.bpo.2-686-pae
 TARGET_KERNEL_NONPAE := 3.14-0.bpo.2-486
 
+CHROOT_PATH := /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+
 # run-time packages
 
 TARGET_PACKAGES := alsa-utils apt-utils aptitude arandr ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dialog dmidecode dnsutils dos2unix dosfstools e2fsprogs ethtool file firmware-linux flashplugin-nonfree fontconfig freerdp-X11 gdevilspie gvfs gvfs-backends htop hwinfo iceweasel iceweasel-l10n-de ipython ldap-utils less libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 libgl1-mesa-dri libgl1-mesa-dri libgl1-mesa-glx libgssglue1 libpam-ldap libsasl2-modules libsasl2-modules-gssapi-mit libssl1.0.0 libstdc++5 libvdpau1 libwebkitgtk-1.0-0 libx11-6 libxerces-c3.1 lightdm lightdm-gtk-greeter locales locales-all lshw ltrace mc mesa-utils nfs-common ntp numlockx openssh-client openssh-server pciutils python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync smplayer strace sudo syslog-ng ttf-dejavu udhcpc usbutils util-linux vim wget x11-xserver-utils x11vnc xdg-utils xfonts-base xinetd xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom xserver-xorg-video-ati xserver-xorg-video-fbdev xserver-xorg-video-geode xserver-xorg-video-intel xserver-xorg-video-modesetting xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-savage xserver-xorg-video-vesa xtightvncviewer zenity
@@ -116,9 +118,9 @@ kernel:
 kernel-stamp:update-stamp
 	@echo "[1m Target kernel-install-stamp: Install the kernel[0m"
 	-sudo mkdir -p Base/base-$(BASE_VERSION)/tftp/
-	sudo Scripts/TCOS.chroot Filesystem /bin/bash -c "apt-get update; cp /bin/true /tmp/update-initramfs; "
+	PATH=$(CHROOT_PATH) sudo Scripts/TCOS.chroot Filesystem /bin/bash -c "apt-get update; cp /bin/true /tmp/update-initramfs; "
 	for KERNEL in $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE); do \
-	    sudo Scripts/TCOS.chroot Filesystem /bin/bash -c 'PATH=/tmp:$$PATH; apt-get install -y --force-yes --reinstall -t wheezy-backports linux-image-'$$KERNEL ; \
+	    PATH=/tmp:$(CHROOT_PATH) sudo Scripts/TCOS.chroot Filesystem /bin/bash -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --reinstall -t wheezy-backports linux-image-'$$KERNEL ; \
 	done
 	sudo cp Filesystem/boot/vmlinuz-$(TARGET_KERNEL_DEFAULT) Base/base-$(BASE_VERSION)/debian/base/tftp/vmlinuz
 	sudo cp Filesystem/boot/vmlinuz-$(TARGET_KERNEL_NONPAE) Base/base-$(BASE_VERSION)/debian/base/tftp/vmlinuz_non-pae
@@ -129,11 +131,12 @@ driver:
 driver-stamp:kernel-stamp
 	echo "[1m Target driver-stamp: Compile external modules for the kernel[0m"
 	-sudo mkdir -p Driver
-	sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "\
+	PATH=/tmp:$(CHROOT_PATH) sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "\
 	cp /bin/true /tmp/update-initramfs;\
-	true apt-get update;\
+	apt-get update;\
 	DEBIAN_FRONTEND=noninteractive \
-	PATH=/tmp:$$PATH apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES_BACKPORTS_DKMS) linux-headers-$(TARGET_KERNEL_DEFAULT) linux-headers-$(TARGET_KERNEL_NONPAE); \
+	apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES_BACKPORTS_DKMS) \
+	linux-headers-$(TARGET_KERNEL_DEFAULT) linux-headers-$(TARGET_KERNEL_NONPAE); \
 	for deb in $(TARGET_PACKAGES_DEB_DKMS); \
 	do \
 	   dpkg -i /TCOS/Packages/\$$deb;\
@@ -143,10 +146,7 @@ driver-stamp:kernel-stamp
 	"
 	sudo rsync -vaP Driver/lib/modules/* Filesystem/lib/modules/
 	-sudo rm -rf Driver
-	@touch $@y
-
-#        /TCOS/Scripts/TCOS.usbrdr_install;\
-
+	@touch $@
 
 initrd:
 	make $@-stamp
