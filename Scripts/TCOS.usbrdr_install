@@ -1,19 +1,20 @@
 #! /bin/bash
+set -x
 
 Source="usb-redirector-linux-i386"
 
-wget http://www.incentivespro.com/usb-redirector-linux-i386.tar.gz -O /tmp/${Source}.tar.gz 
-cd /tmp/ 
-tar -xzf ${Source}.tar.gz 
+wget http://www.incentivespro.com/usb-redirector-linux-i386.tar.gz -O /tmp/${Source}.tar.gz
+cd /tmp/
+tar -xzf ${Source}.tar.gz
 cd ${Source}/files/modules/src/tusbd/
 
 # build it for all installed kernels
 #
-for kernel in $(ls -1 /usr/src/ | grep $KVERS | sed 's/linux-headers-//'); do
+for kernel in $(ls -1 /lib/modules); do
     # echo "Building $Source for $kernel, press any key."
-    KERNELDIR="/lib/modules/${kernel}/build" make clean 
+    KERNELDIR="/lib/modules/${kernel}/build" make clean
     KERNELDIR="/lib/modules/${kernel}/build" make
     # smuggle out the extract
     mkdir -p /TCOS/Driver/lib/modules/${kernel}/updates/
     cp tusbd.ko /TCOS/Driver/lib/modules/${kernel}/updates/
-done 
+done

@@ -10,6 +10,6 @@ ehci-hcd.ko
 xhci-hcd.ko
 usbhid.ko
 aufs.ko
-nfs.ko
+nfsv2.ko
 squashfs.ko
 loop.ko
