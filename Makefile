@@ -116,23 +116,22 @@ kernel:
 kernel-stamp:update-stamp
 	@echo "[1m Target kernel-install-stamp: Install the kernel[0m"
 	-sudo mkdir -p Base/base-$(BASE_VERSION)/tftp/
-	for kernel in $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE); do \
-	    sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c \
-	    "cp /bin/true /tmp/update-initramfs;PATH=/tmp:$$PATH;apt-get update;apt-get install -y --force-yes -t wheezy-backports linux-image-$$kernel" ; \
-	    sudo cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/tftp/ ; \
+	sudo Scripts/TCOS.chroot Filesystem /bin/bash -c "apt-get update; cp /bin/true /tmp/update-initramfs; "
+	for KERNEL in $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE); do \
+	    sudo Scripts/TCOS.chroot Filesystem /bin/bash -c 'PATH=/tmp:$$PATH; apt-get install -y --force-yes --reinstall -t wheezy-backports linux-image-'$$KERNEL ; \
 	done
-	(cd Base/base-$(BASE_VERSION)/debian/base/tftp/; sudo mv vmlinuz-$(TARGET_KERNEL_DEFAULT) vmlinuz)
-	(cd Base/base-$(BASE_VERSION)/debian/base/tftp/; sudo mv vmlinuz-$(TARGET_KERNEL_NONPAE) vmlinuz_non-pae)
+	sudo cp Filesystem/boot/vmlinuz-$(TARGET_KERNEL_DEFAULT) Base/base-$(BASE_VERSION)/debian/base/tftp/vmlinuz
+	sudo cp Filesystem/boot/vmlinuz-$(TARGET_KERNEL_NONPAE) Base/base-$(BASE_VERSION)/debian/base/tftp/vmlinuz_non-pae
 	@touch $@
+
 driver:
 	make $@-stamp
-
 driver-stamp:kernel-stamp
 	echo "[1m Target driver-stamp: Compile external modules for the kernel[0m"
 	-sudo mkdir -p Driver
 	sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "\
 	cp /bin/true /tmp/update-initramfs;\
-	apt-get update;\
+	true apt-get update;\
 	DEBIAN_FRONTEND=noninteractive \
 	PATH=/tmp:$$PATH apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES_BACKPORTS_DKMS) linux-headers-$(TARGET_KERNEL_DEFAULT) linux-headers-$(TARGET_KERNEL_NONPAE); \
 	for deb in $(TARGET_PACKAGES_DEB_DKMS); \
@@ -144,7 +143,10 @@ driver-stamp:kernel-stamp
 	"
 	sudo rsync -vaP Driver/lib/modules/* Filesystem/lib/modules/
 	-sudo rm -rf Driver
-	@touch $@
+	@touch $@y
+
+#        /TCOS/Scripts/TCOS.usbrdr_install;\
+
 
 initrd:
 	make $@-stamp
@@ -157,7 +159,7 @@ initrd-stamp:busybox-stamp driver-stamp Sources/modules.list
 	    MODULES_LIST=/TCOS/Sources/modules.list \
 	    TCOS/Scripts/TCOS.copy_modules"; \
 	done
-	sudo sh -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.img; cd ..'
+	sudo bash -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.img; cd ..'
 	@touch $@
 
 
