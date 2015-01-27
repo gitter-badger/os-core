@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+function read_section(){
+#usage:
+#eval $(read_section <Path to ini> <Section>)
+
+    [ -z "$1" ] && exit 1
+
+    if [ "$1" == "-r" ];then
+	shift
+	show_only_remote=1
+    fi
+
+    local ini_file="$1"
+    local ini_section=${2:-$(default_section $1)}
+
+    if (( $show_only_remote ));then
+    sed -e 's/[[:space:]]*\=[[:space:]]*/=/g' \
+	-e 's/;.*$//' \
+	-e 's/[[:space:]]*$//' \
+	-e 's/^[[:space:]]*//' \
+	-e "s/^\(.*\)=\([^\"']*\)$/\1=\"\2\"/" \
+       < "$ini_file" \
+       | sed -n -e "/^\[$ini_section\]/,/^\s*\[/{/^[^;].*\=.*/p;}" \
+       | awk 'match($0,/remote="(.*)"/,a) {print a[1]}'
+    else
+
+    sed -e 's/[[:space:]]*\=[[:space:]]*/=/g' \
+	-e 's/;.*$//' \
+	-e 's/[[:space:]]*$//' \
+	-e 's/^[[:space:]]*//' \
+	-e "s/^\(.*\)=\([^\"']*\)$/\1=\"\2\"/" \
+       < "$ini_file" \
+       | sed -n -e "/^\[$ini_section\]/,/^\s*\[/{/^[^;].*\=.*/p;}"
+    fi
+}
+
+
+function default_section(){
+#usage:
+#section=default_section <Path to ini>
+
+#[ -f "$1" ] || exit 1
+
+   local ini_file="$1"
+
+   section_xp='^\[(.*)\]$' # matches [Sections], match[1]: Sections
+
+   while read line;do
+       if [[ $line =~ $section_xp ]];then
+           echo "${BASH_REMATCH[1]}"
+           exit 0
+       fi
+   done < $ini_file
+   exit 1
+}
+
+function sourced() {
+      local -i rc=1
+      [[ 'source' ==  ${FUNCNAME[1]} ]] && rc=0
+      return $rc
+}
+
+# __main__
+
+sourced ||  read_section $@

@@ -6,6 +6,8 @@
 #
 #
 SHELL := /bin/bash
+PATH := /tmp:/usr/bin:/usr/sbin:/bin:/sbin
+
 HOST_ARCH := $(shell file /sbin/fdisk)
 
 ifeq (80386,$(findstring 80386,$(HOST_ARCH)))
@@ -20,7 +22,7 @@ TOP_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 BASE_VERSION := 2.1
 BUSYBOX_VERSION := 1.22.1
 DEB_MIRROR := http://http.debian.net/debian
-LOCAL_TEST_PATH := $(shell /usr/share/tcos-dev/functions/ini_parser -r ~/.tcosconfig):/opt/openthinclient/server/default/data/nfs/root
+LOCAL_TEST_PATH := $(shell Scripts/TCOS.ini_parser -r ~/.tcosconfig):/opt/openthinclient/server/default/data/nfs/root
 TARGET_KERNEL_DEFAULT := 3.14-0.bpo.2-686-pae
 TARGET_KERNEL_NONPAE := 3.14-0.bpo.2-486
 
@@ -41,10 +43,12 @@ TARGET_PACKAGES_DEB_DKMS := via-chrome9-dkms_5.76.52.92-3_all.deb fglrx-modules-
 all: compressed-stamp base upload
 test: compressed-stamp upload-test
 
+.PHONY: chroot chroot-ro help filesystem busybox tcosify update kernel initrd compressed clean base upload upload-test
+
 chroot:
-	@sudo BIND_ROOT=./ Scripts/TCOS.chroot ./Filesystem /bin/bash
+	@sudo BIND_ROOT=./ Scripts/TCOS.chroot ./Filesystem $(SHELL)
 chroot-ro:
-	@sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot ./Filesystem /bin/bash
+	@sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot ./Filesystem $(SHELL)
 help:
 	@echo "[1mWELCOME TO THE TCOS BUILD SYSTEM[0m"
 	@echo ""
@@ -84,7 +88,7 @@ busybox-stamp: filesystem-stamp
 	    rm -rf busybox && \
 	    mv busybox-$(BUSYBOX_VERSION) busybox)
 	(test -r Initrd/bin/busybox && test Sources/busybox/.config -ot Initrd/bin/busybox) || \
-	    sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c \
+	    PATH=$(PATH) sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c \
 	    "DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes make gcc bzip2 libc6-dev perl; \
 	     cd /TCOS/Sources/busybox; make clean; make install\
 	    "
@@ -96,7 +100,7 @@ tcosify-stamp:filesystem-stamp busybox-stamp
 	@echo "[1m Target tcosify-stamp: Applying TCOS specific changes[0m"
 	-rm -f update-stamp kernel-stamp clean-stamp
 	Scripts/LINBO.apply-configs Sources/tcos Filesystem
-	sudo BASE_VERSION=$(BASE_VERSION) Scripts/TCOS.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-chroot
+	sudo BASE_VERSION=$(BASE_VERSION) Scripts/TCOS.chroot Filesystem $(SHELL) < Scripts/TCOS.tcosify-chroot
 	@touch $@
 
 update:
@@ -104,7 +108,7 @@ update:
 update-stamp:tcosify-stamp
 	@echo "[1m Target update-stamp: Installing packages from TARGET_PACKAGES list and updating the filesystem [0m"
 	-rm -f clean-stamp
-	sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "export DEBIAN_FRONTEND=noninteractive; \
+	PATH=$(PATH) sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c "export DEBIAN_FRONTEND=noninteractive; \
 		apt-get update; \
 		apt-get install -y --force-yes -o Dpkg::Options::=\"--force-confold\" $(TARGET_PACKAGES); \
 	        apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::=\"--force-confold\" $(TARGET_PACKAGES_BACKPORTS); \
@@ -114,11 +118,11 @@ update-stamp:tcosify-stamp
 kernel:
 	make $@-stamp
 kernel-stamp:update-stamp
-	@echo "[1m Target kernel-install-stamp: Install the kernel[0m"
+	@echo "[1m Target kernel-stamp: Install the kernel[0m"
 	-sudo mkdir -p Base/base-$(BASE_VERSION)/tftp/
 	for kernel in $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE); do \
-	    sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c \
-	    "cp /bin/true /tmp/update-initramfs;PATH=/tmp:$$PATH;apt-get update;apt-get install -y --force-yes -t wheezy-backports linux-image-$$kernel" ; \
+	    PATH=$(PATH) sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c \
+	    "cp /bin/true /tmp/update-initramfs;apt-get update;apt-get install -y --force-yes -t wheezy-backports linux-image-$$kernel" ; \
 	    sudo cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/tftp/ ; \
 	done
 	(cd Base/base-$(BASE_VERSION)/debian/base/tftp/; sudo mv vmlinuz-$(TARGET_KERNEL_DEFAULT) vmlinuz)
@@ -130,11 +134,11 @@ driver:
 driver-stamp:kernel-stamp
 	echo "[1m Target driver-stamp: Compile external modules for the kernel[0m"
 	-sudo mkdir -p Driver
-	sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "\
+	sudo PATH=$(PATH) AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c "\
 	cp /bin/true /tmp/update-initramfs;\
 	apt-get update;\
 	DEBIAN_FRONTEND=noninteractive \
-	PATH=/tmp:$$PATH apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES_BACKPORTS_DKMS) linux-headers-$(TARGET_KERNEL_DEFAULT) linux-headers-$(TARGET_KERNEL_NONPAE); \
+	apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES_BACKPORTS_DKMS) linux-headers-$(TARGET_KERNEL_DEFAULT) linux-headers-$(TARGET_KERNEL_NONPAE); \
 	for deb in $(TARGET_PACKAGES_DEB_DKMS); \
 	do \
 	   dpkg -i /TCOS/Packages/\$$deb;\
@@ -149,15 +153,16 @@ driver-stamp:kernel-stamp
 initrd:
 	make $@-stamp
 initrd-stamp:busybox-stamp driver-stamp Sources/modules.list
+	sudo Scripts/TCOS.initrd
 	for kernel in $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE); do \
 	    sudo rm -rf Initrd/lib/modules/$$kernel; \
-	    sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c \
+	    sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c \
 	    "DEST_DIR=/TCOS/Initrd \
 	    KERNELDIR=/lib/modules/$$kernel \
 	    MODULES_LIST=/TCOS/Sources/modules.list \
 	    TCOS/Scripts/TCOS.copy_modules"; \
 	done
-	sudo sh -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.img; cd ..'
+	sudo $(SHELL) -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.img; cd ..'
 	@touch $@
 
 
@@ -165,13 +170,12 @@ clean:
 	make $@-stamp
 clean-stamp: initrd-stamp
 	@echo "[1m Target clean-stamp: Clean up the filesystem[0m"
-	-sudo Scripts/TCOS.chroot Filesystem /bin/bash < Scripts/TCOS.tcosify-clean
+	-sudo Scripts/TCOS.chroot Filesystem $(SHELL) < Scripts/TCOS.tcosify-clean
 	@touch $@
 
-compressed: 
+compressed:
 	make $@-stamp
-
-compressed-stamp: clean-stamp
+compressed-stamp:
 	@echo "[1m Target compressed-stamp: Create the base.sfs container[0m"
 	-sudo mkdir -p Base/base-$(BASE_VERSION)/sfs/
 	nice -10 ionice -c 3 sudo mksquashfs Filesystem Base/base-$(BASE_VERSION)/sfs/base.sfs -noappend -always-use-fragments -comp lzo
@@ -181,7 +185,7 @@ compressed-stamp: clean-stamp
 # todo: upload needs to be more plattform agnostic
 
 base:
-	sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash -c "echo \"deb http://packages.openthinclient.org/openthinclient/v2/devel ./\" > /etc/apt/sources.list.d/tcos.list; apt-get update; \
+	PATH=$(PATH) sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c "echo \"deb http://packages.openthinclient.org/openthinclient/v2/devel ./\" > /etc/apt/sources.list.d/tcos.list; apt-get update; \
 	    DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends tcos-dev; \
 	    cd TCOS/Base/base-$(BASE_VERSION); \
 	    dch -l autobuild \"autobuild as of `date`\"; \

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+[ ! -d Initrd/dev ] && ( mkdir Initrd/dev && cd Initrd/dev \
+    mknod console c 5 1; \
+    mknod tty1 c 4 1; \
+    mknod tty2 c 4 2; \
+    mknod tty3 c 4 3; \
+    mknod tty4 c 4 4; \
+    )
