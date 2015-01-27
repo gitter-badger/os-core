@@ -1,5 +1,4 @@
 #! /bin/bash
-
 Source="usb-redirector-linux-i386"
 
 wget http://www.incentivespro.com/usb-redirector-linux-i386.tar.gz -O /tmp/${Source}.tar.gz
@@ -13,6 +12,7 @@ for kernel in $(ls -1 /lib/modules); do
     # echo "Building $Source for $kernel, press any key."
     KERNELDIR="/lib/modules/${kernel}/build" make clean
     KERNELDIR="/lib/modules/${kernel}/build" make
+
     # smuggle out the extract
     mkdir -p /TCOS/Driver/lib/modules/${kernel}/updates/
     cp tusbd.ko /TCOS/Driver/lib/modules/${kernel}/updates/
