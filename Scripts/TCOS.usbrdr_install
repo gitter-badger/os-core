@@ -1,5 +1,4 @@
 #! /bin/bash
-set -x
 
 Source="usb-redirector-linux-i386"
 
