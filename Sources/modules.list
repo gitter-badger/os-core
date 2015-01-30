@@ -11,5 +11,6 @@ xhci-hcd.ko
 usbhid.ko
 aufs.ko
 nfsv2.ko
+nfs.ko
 squashfs.ko
 loop.ko

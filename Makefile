@@ -23,19 +23,23 @@ BASE_VERSION := 2.1
 BUSYBOX_VERSION := 1.22.1
 DEB_MIRROR := http://http.debian.net/debian
 LOCAL_TEST_PATH := $(shell Scripts/TCOS.ini_parser -r ~/.tcosconfig):/opt/openthinclient/server/default/data/nfs/root
-TARGET_KERNEL_DEFAULT := 3.14-0.bpo.2-686-pae
-TARGET_KERNEL_NONPAE := 3.14-0.bpo.2-486
+TARGET_KERNEL_DEFAULT := 3.16.0-0.bpo.4-686-pae
+TARGET_KERNEL_NONPAE := 3.16.0-0.bpo.4-586
+TARGET_KERNEL_32 := 3.2.0-4-686-pae
+TARGET_KERNEL_32_NONPAE := 3.2.0-4-486
+
+TARGET_KERNEL := $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE) $(TARGET_KERNEL_32) $(TARGET_KERNEL_32_NONPAE)
 
 # run-time packages
 
 TARGET_PACKAGES := alsa-utils apt-utils aptitude arandr ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dialog dmidecode dnsutils dos2unix dosfstools e2fsprogs ethtool file firmware-linux flashplugin-nonfree fontconfig freerdp-X11 gdevilspie gvfs gvfs-backends htop hwinfo iceweasel iceweasel-l10n-de ipython ldap-utils less libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 libgl1-mesa-dri libgl1-mesa-dri libgl1-mesa-glx libgssglue1 libpam-ldap libsasl2-modules libsasl2-modules-gssapi-mit libssl1.0.0 libstdc++5 libvdpau1 libwebkitgtk-1.0-0 libx11-6 libxerces-c3.1 lightdm lightdm-gtk-greeter locales locales-all lshw ltrace mc mesa-utils nfs-common ntp numlockx openssh-client openssh-server pciutils python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync smplayer strace sudo syslog-ng ttf-dejavu udhcpc usbutils util-linux vim wget x11-xserver-utils x11vnc xdg-utils xfonts-base xinetd xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom xserver-xorg-video-ati xserver-xorg-video-fbdev xserver-xorg-video-geode xserver-xorg-video-intel xserver-xorg-video-modesetting xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-savage xserver-xorg-video-vesa xtightvncviewer zenity
 TARGET_PACKAGES_BACKPORTS := atril caja engrampa eom glx-alternative-fglrx glx-alternative-nvidia glx-alternative-mesa libfglrx libgl1-nvidia-glx libgl1-nvidia-legacy-173xx-glx mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes nvidia-alternative nvidia-alternative-legacy-173xx nvidia-driver-bin nvidia-vdpau-driver pluma xserver-xorg-video-nvidia xserver-xorg-video-nvidia-legacy-173xx xvba-va-driver
-TARGET_PACKAGES_DEB := openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb libpcsclite1_1.8.11-3~tcos20+3_i386.deb pcscd_1.8.11-3~tcos20+3_i386.deb libpcsclite-dev_1.8.11-3~tcos20+3_i386.deb xserver-xorg-video-chrome9_5.76.52.92-1_i386.deb libfglrx_14.12-1_i386.deb libgl1-fglrx-glx_14.12-1_i386.deb libgl1-fglrx-glx-i386_14.12-1_i386.deb libfglrx-amdxvba1_14.12-1_i386.deb
+TARGET_PACKAGES_DEB := openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb libpcsclite1_1.8.11-3~tcos20+3_i386.deb pcscd_1.8.11-3~tcos20+3_i386.deb libpcsclite-dev_1.8.11-3~tcos20+3_i386.deb xserver-xorg-video-chrome9_5.76.52.92-1_i386.deb libfglrx_14.12-1_i386.deb libgl1-fglrx-glx_14.12-1_i386.deb libgl1-fglrx-glx-i386_14.12-1_i386.deb libfglrx-amdxvba1_14.12-1_i386.deb fglrx-driver_14.12-1_i386.deb
 # build packages
 #
 TARGET_PACKAGES_BUSYBOXBUILD := make gcc bzip2 libc6-dev perl
 TARGET_PACKAGES_BACKPORTS_DKMS :=nvidia-kernel-common dkms gcc gcc-4.7 libitm1 make patch nvidia-kernel-dkms nvidia-legacy-173xx-kernel-dkms
-TARGET_PACKAGES_DEB_DKMS := via-chrome9-dkms_5.76.52.92-3_all.deb fglrx-modules-dkms_14.12-1_i386.deb
+TARGET_PACKAGES_DEB_DKMS := via-chrome9-dkms_20091016_all.deb fglrx-modules-dkms_14.12-1_i386.deb
 
 # meta-targets
 #
@@ -120,9 +124,9 @@ kernel:
 kernel-stamp:update-stamp
 	@echo "[1m Target kernel-stamp: Install the kernel[0m"
 	-sudo mkdir -p Base/base-$(BASE_VERSION)/tftp/
-	for kernel in $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE); do \
+	for kernel in $(TARGET_KERNEL); do \
 	    PATH=$(PATH) sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c \
-	    "cp /bin/true /tmp/update-initramfs;apt-get update;apt-get install -y --force-yes -t wheezy-backports linux-image-$$kernel" ; \
+	    "cp /bin/true /tmp/update-initramfs;apt-get install -y --force-yes -t wheezy-backports linux-image-$$kernel" ; \
 	    sudo cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/tftp/ ; \
 	done
 	(cd Base/base-$(BASE_VERSION)/debian/base/tftp/; sudo mv vmlinuz-$(TARGET_KERNEL_DEFAULT) vmlinuz)
@@ -136,13 +140,13 @@ driver-stamp:kernel-stamp
 	-sudo mkdir -p Driver
 	sudo PATH=$(PATH) AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c "\
 	cp /bin/true /tmp/update-initramfs;\
-	apt-get update;\
 	DEBIAN_FRONTEND=noninteractive \
-	apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES_BACKPORTS_DKMS) linux-headers-$(TARGET_KERNEL_DEFAULT) linux-headers-$(TARGET_KERNEL_NONPAE); \
+	apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::="--force-confold" $(TARGET_PACKAGES_BACKPORTS_DKMS) linux-headers-$(TARGET_KERNEL_DEFAULT) linux-headers-$(TARGET_KERNEL_NONPAE) linux-headers-$(TARGET_KERNEL_32); \
 	for deb in $(TARGET_PACKAGES_DEB_DKMS); \
 	do \
 	   dpkg -i /TCOS/Packages/\$$deb;\
 	done;\
+	dkms install -m via_chrome9 -v 20091016 -k $(TARGET_KERNEL_32);\
         /TCOS/Scripts/TCOS.usbrdr_install;\
 	rsync -vaR /lib/modules/*/updates /TCOS/Driver/;\
 	"
@@ -153,15 +157,8 @@ driver-stamp:kernel-stamp
 initrd:
 	make $@-stamp
 initrd-stamp:busybox-stamp driver-stamp Sources/modules.list
-	sudo Scripts/TCOS.initrd
-	for kernel in $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE); do \
-	    sudo rm -rf Initrd/lib/modules/$$kernel; \
-	    sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c \
-	    "DEST_DIR=/TCOS/Initrd \
-	    KERNELDIR=/lib/modules/$$kernel \
-	    MODULES_LIST=/TCOS/Sources/modules.list \
-	    TCOS/Scripts/TCOS.copy_modules"; \
-	done
+	sudo TARGET_KERNEL="$(TARGET_KERNEL)" SHELL=$(SHELL) BIND_ROOT=./ Scripts/TCOS.initrd
+	exit
 	sudo $(SHELL) -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.img; cd ..'
 	@touch $@
 
@@ -170,12 +167,12 @@ clean:
 	make $@-stamp
 clean-stamp: initrd-stamp
 	@echo "[1m Target clean-stamp: Clean up the filesystem[0m"
-	-sudo Scripts/TCOS.chroot Filesystem $(SHELL) < Scripts/TCOS.tcosify-clean
+	-sudo TARGET_KERNEL="$(TARGET_KERNEL)" Scripts/TCOS.chroot Filesystem $(SHELL) < Scripts/TCOS.tcosify-clean
 	@touch $@
 
 compressed:
 	make $@-stamp
-compressed-stamp:
+compressed-stamp:clean-stamp
 	@echo "[1m Target compressed-stamp: Create the base.sfs container[0m"
 	-sudo mkdir -p Base/base-$(BASE_VERSION)/sfs/
 	nice -10 ionice -c 3 sudo mksquashfs Filesystem Base/base-$(BASE_VERSION)/sfs/base.sfs -noappend -always-use-fragments -comp lzo

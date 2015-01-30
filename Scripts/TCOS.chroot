@@ -9,7 +9,7 @@
 # AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem /bin/bash
 # License: GPL V2
 #
-# set -x
+#set -x
 
 CHROOT_DIR="$1"
 
@@ -19,7 +19,7 @@ CHROOT_DIR="$1"
 
 MOUNTED_DIRS="proc sys dev/pts"
 DEV_DIRS="Packages Sources Scripts Kernel Initrd Base"
-RW_BRANCH=/tmp/.tmp-tcos-`id -u`-`date +%F-%N`
+RW_BRANCH=/tmp/.tmp-tcos-chroot-`id -u`-`date +%F-%N`
 
 shift
 
@@ -70,7 +70,6 @@ post_chroot(){
     fi
     # umount aufs-layer for non-permanent changes
     [ -n "$AUFS" ] && umount $CHROOT_DIR
-    rm -rf $RW_BRANCH
     exit 0
 }
 

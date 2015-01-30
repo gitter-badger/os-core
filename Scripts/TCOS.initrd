@@ -1,9 +1,31 @@
 #!/usr/bin/env bash
+#set -x
 
-[ ! -d Initrd/dev ] && ( mkdir Initrd/dev && cd Initrd/dev \
+[ "`id -u`" = "0" ] || { echo "Must be root to run $0." >&2; exit 1; }
+
+[ ! -d Initrd/dev ] && ( mkdir Initrd/dev && cd Initrd/dev; \
     mknod console c 5 1; \
     mknod tty1 c 4 1; \
     mknod tty2 c 4 2; \
     mknod tty3 c 4 3; \
     mknod tty4 c 4 4; \
     )
+
+# clean artifacts
+rm -rf Initrd/lib/modules/*
+
+echo $TARGET_KERNEL
+echo $BIND_DIR
+
+Scripts/TCOS.chroot Filesystem <<EOSCRIPT
+
+for k in \$TARGET_KERNEL;do
+    export DEST_DIR=/TCOS/Initrd
+    export KERNELDIR=/lib/modules/\$k
+    export MODULES_LIST=/TCOS/Sources/modules.list
+    /TCOS/Scripts/TCOS.copy_modules &
+done
+wait
+EOSCRIPT
+
+exit $?

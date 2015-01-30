@@ -5,7 +5,8 @@
 #
 set -f
 
-[ "`stat --printf '%i' /.`" -gt 2 ] || { echo "$0 must NEVER be run outside of chroot, exiting"'!' ; exit 1; }
+
+#[ "`stat --printf '%i' /.`" -gt 2 ] || { echo "$0 must NEVER be run outside of chroot, exiting"'!' ; exit 1; }
 
 umask 022
 
@@ -108,9 +109,11 @@ find /usr/X11R6/lib/modules /usr/lib/xorg/modules \( -name \*.so -o -name \*.o \
 
 # regenerate module dependencies and ld.so.cache
 echo -n "Updating modules.dep..."
-KVERS="$(ls -1d /lib/modules/* 2>/dev/null)"
-KVERS="${KVERS##*/}"
-depmod -ae -F /boot/System.map-"$KVERS" "$KVERS"
+#KVERS="$(ls -1d /lib/modules/* 2>/dev/null)"
+#KVERS="${KVERS##*/}"
+for k in $TARGET_KERNEL;do
+    depmod -ae -F /boot/System.map-$k $k
+done
 echo "	Done."
 if type -a mktexlsr >/dev/null 2>&1; then
  echo -n "Updating texhash..."
