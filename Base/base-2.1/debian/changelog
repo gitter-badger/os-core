@@ -1,0 +1,270 @@
+base (2.1-1autobuild36) UNRELEASED; urgency=medium
+
+  [ Steffen Hoenig ]
+  * new realease: base moved to wheezy and wheezy-backports
+  * autobuild as of Do 1. Jan 17:20:29 CET 2015
+  * autobuild as of Do 1. Jan 17:22:08 CET 2015
+  * autobuild as of Do 1. Jan 17:22:45 CET 2015
+
+  [ root ]
+  * autobuild
+  * autobuild
+  * autobuild as of Do 1. Jan 17:58:19 CET 2015
+  * autobuild as of Do 1. Jan 19:32:31 CET 2015
+  * autobuild as of Do 1. Jan 21:13:13 CET 2015
+  * autobuild as of Do 1. Jan 23:54:43 CET 2015
+  * autobuild as of Fr 2. Jan 01:06:40 CET 2015
+  * autobuild as of Fr 2. Jan 20:13:49 CET 2015
+  * autobuild as of Mo 5. Jan 17:00:17 CET 2015
+  * autobuild as of Mo 5. Jan 18:32:52 CET 2015
+  * autobuild as of Mo 5. Jan 23:06:33 CET 2015
+  * autobuild as of Mo 5. Jan 23:44:16 CET 2015
+  * autobuild as of Mo 5. Jan 23:46:09 CET 2015
+  * autobuild as of Di 6. Jan 00:29:46 CET 2015
+  * autobuild as of Do 8. Jan 20:59:09 CET 2015
+  * autobuild as of Di 20. Jan 12:03:36 CET 2015
+  * autobuild as of Di 20. Jan 13:09:06 CET 2015
+  * autobuild as of Di 20. Jan 19:21:40 CET 2015
+  * autobuild as of Di 20. Jan 20:40:02 CET 2015
+  * autobuild as of Mi 21. Jan 00:27:22 CET 2015
+  * autobuild as of Fr 23. Jan 02:03:56 CET 2015
+  * autobuild as of Fr 23. Jan 20:50:30 CET 2015
+  * autobuild as of Di 27. Jan 16:28:13 CET 2015
+  * autobuild as of Do 29. Jan 16:56:53 CET 2015
+  * autobuild as of Do 29. Jan 18:13:34 CET 2015
+  * autobuild as of Do 29. Jan 18:18:13 CET 2015
+  * autobuild as of Do 29. Jan 18:27:38 CET 2015
+  * autobuild as of Do 12. Feb 14:26:53 CET 2015
+  * autobuild as of Do 12. Feb 14:56:56 CET 2015
+  * autobuild as of Fr 13. Feb 19:22:39 CET 2015
+  * autobuild as of Mi 4. Mär 16:14:40 CET 2015
+  * autobuild as of Mi 4. Mär 18:06:48 CET 2015
+  * autobuild as of Mi 4. Mär 18:46:56 CET 2015
+
+ -- root <root@otc-dd-01.ag.ausstellung>  Wed, 04 Mar 2015 17:47:59 +0000
+
+base (2.0-25) unstable; urgency=low
+
+  * fixed missing package locales-all
+  * modified /etc/X11/Xsession.d/99x11-common_start to fulfill new tcos-xrandr
+      logic. The tcos-xrandr script runs now before lightdm starts.
+  * UPDATE update all debian packages
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Fri, 05 Dec 2014 15:19:03 +0100
+
+base (2.0-24) unstable; urgency=low
+
+  * Oh Murphy!
+      - init in busybox greped the wrong way for parameter vga=
+      - just one charcter prevented the splashscreen from running at all
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Fri, 28 Nov 2014 19:32:10 +0100
+
+base (2.0-23) stable; urgency=low
+
+  * NEW integrated nvidia driver 340.xx for better support of newer nvidia cards
+  * fixed uvesafb error on startup (disbled uvesafb)
+  * fixed missing package locales
+  * fixed ISSUE os-core/issues/20, downgrade pxe bootloader
+  * NEW have glamor (Xorg acceleration extension) on demand
+  * NEW kernel parameter "quiet" is now enabled by default in tftp/template.txt
+  * NEW flash plugin is now enabled by default
+  * UPDATE update all debian packages
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Wed, 26 Nov 2014 15:48:47 +0100
+
+base (2.0-22) unstable; urgency=low
+
+  * NEW integrated fglrx driver for better support of newer AMD Radeon cards
+  * NEW openthinclient OS is now able to show a splashscreen during startup
+      - read the wiki for details on how to use this new features
+
+  * NEW recompiled all kernel
+      - non-pae kernel is now plain 486 and should run on CPUs without cmov
+      - tcos kernel are no longer "dirty"
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Sun, 16 Nov 2014 08:04:16 +0100
+
+base (2.0-21) unstable; urgency=low
+
+  * UPDATE: update all debian packages
+  * FIX: have three rebuild kernel with enabled ata and reconfigured memory handling
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Sat, 21 Jun 2014 18:36:59 +0200
+
+base (2.0-20) unstable; urgency=low
+
+  * FIX: base 2.0-19 had erroneously outdated content
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Tue, 10 Jun 2014 19:10:19 +0200
+
+base (2.0-19) unstable; urgency=low
+
+  A little milestone! We added a lot of new features and fixed bugs.
+
+  * use a secondary LDAP or a AD now for your users and groups, like in version 1.x
+  * run openthinclient OS on non-pae hardware and on transmeta boxes
+  * now we have three different kernels and module trees
+  * new pxe-bootloader
+  * new busybox, fully compatible to old 32 bit hardware
+  * from SID backported: pcscd, pcscdlibs etc. (Steffen!)
+  * added some new packages to packagelist
+  * clean up /etc/apt/sources.list and  sources.list.d/wheezy.public.list
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Fri, 06 Jun 2014 19:33:38 +0200
+
+base (2.0-18) unstable; urgency=low
+
+  * UPDATE: new kernel version 3.14.2
+  * UPDATE: update all debian packages
+  * FIX: https://github.com/openthinclient/openthinclient-os-core/issues/6
+      - added group pcscd even pcscd does not need it any longer
+      - just get the startup quiet
+  * FIX: https://github.com/openthinclient/openthinclient-os-core/issues/4
+      - data inside the init.cpio (initrd) had wrong ownerchip
+  * NEW: have file /etc/security/pam_env.conf applied form Sources/tcos...
+  * NEW: have packages xcyberjack libifd-cyberjack6 in package list
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Mon, 19 May 2014 22:46:32 +0200
+
+base (2.0-17) unstable; urgency=low
+
+  * UPDATE: update all debian packages
+  * NEW: have packages pulseaudio pavucontrol (for use with FreeRPD) in packages list
+  * NEW: have package strace in packages list
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Thu, 17 Apr 2014 23:42:33 +0200
+
+base (2.0-16) unstable; urgency=low
+
+  * FIX: test for existance of .tcos_xrandrrc before sourcing it in Filesystem/etc/X11/Xsession.d/99x11-common_start
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Fri, 11 Apr 2014 12:59:49 +0200
+
+base (2.0-15) unstable; urgency=low
+
+  * UPDATE: update all debian packages, fixed openssl heartbleed (!)
+  * NEW: packages freerdp-x11, xserver-xorg* and some vdpau-stuff are now taken from debian sid
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Thu, 10 Apr 2014 12:35:28 +0200
+
+base (2.0-14) unstable; urgency=low
+
+  * UPDATE:
+      -	lightdm does no longer trigger tcos-xrandr
+      - this is now done in .xsession as user
+      - .xsession sources now .tcos_displayrc to get all display dimensons
+        in environment variables
+  * UPDATE: update all debian packages
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Mon, 31 Mar 2014 19:19:06 +0200
+
+base (2.0-13) unstable; urgency=low
+
+  * ADD packages xinetd for printserver and numlockx for desktop
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Sat, 22 Mar 2014 19:18:35 +0100
+
+base (2.0-12) unstable; urgency=low
+
+  [ Steffen Hoenig ]
+  * FIX: reset sources.list
+  * FIX: added firmware to initrd (accelerates the boot process)
+
+  [ Joern Frenzel ]
+  * UPDATE: update all debian packages
+  * ADD: package list now contains numlockx ca-certificates usbip zenity
+  * REMOVED: packages freerdp-x11 left the base, because we're expecting
+      more recent versions as packages
+
+  [ Stephan Passow ]
+  * MOVED .tcos_ICEauthority to /tmp/, modyfied /etc/security/pam_env.conf
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Thu, 13 Mar 2014 14:27:36 +0100
+
+base (2.0-11) unstable; urgency=low
+
+  * Kernel: 3.13
+  * FIX: hostnames are set correctly (DHCP->Manager->default)
+  * ADD: custom logic
+
+ -- Steffen Hoenig <s.hoenig@openthinclient.com>  Thu, 13 Feb 2014 20:12:31 +0100
+
+base (2.0-10) unstable; urgency=low
+
+  * update base system to wheezy version 7.1 (01/09/2014)
+  * add libstdc++5 and friends
+  * cleanup apt-get autoremove
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Fri, 10 Jan 2014 12:21:58 +0100
+
+base (2.0-09) unstable; urgency=low
+
+  [ Steffen Hoenig ]
+  * FIX: changed rules.file, so that Kernel and Initramfs are sourced from Image-new
+  * NEW: kernel 3.12.5
+  * UPDATE: initrd with dropbear sshd inside (yeah!)
+
+  [ Joern Frenzel ]
+  * NEW: xdg-utils, libqt4, usbutils
+  * DELETE: following packages have been deleted mate-screensaver icedove-l10n-all
+         iceweasel-l10n-all iceweasel-l10n-de jxplorer freerdp-x11 icedove
+         mate-applets mate-desktop-environment mate-dialogs-gnome gdevilspie
+         kexec-tools mate-themes sux spice-client-gtk libpam-gnome-keyring
+         dialog dkms jxplorer
+         - have smaler footprint now
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Thu, 12 Dec 2013 16:32:14 +0100
+
+base (2.0-06) unstable; urgency=low
+
+  * update to kernel 3.12
+  * update base system to wheezy version 7.1 (11/19/2013)
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Tue, 19 Nov 2013 20:28:37 +0100
+
+base (2.0-05) unstable; urgency=low
+
+  * update base system to wheezy version 7.1 (11/15/2013)
+  * add custom /etc/lightdm.conf to support managers display configuration
+  * add new dependencies to debian/control
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Mon, 18 Nov 2013 18:38:39 +0100
+
+base (2.0-04) unstable; urgency=low
+
+  * update base with todays wheezy updates
+  * update kernel, have drivers for more network cards:
+        AMD PCnet32
+        Atheros L2, L1, L1E, L1C
+        Broadcom Tigon3
+        Intel PRO/100+, PRO/1000, 82575
+        Marvell Yukon
+        NVIDIA nForce
+        Realtek 8139, 8129, 8169
+        Sis 900, 901
+        Sun GEM
+        TI ThunderLan
+        Via Rhine
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Tue, 15 Oct 2013 19:31:09 +0200
+
+base (2.0-03) unstable; urgency=low
+
+  * add alsa and alsa-utils (have sound)
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Mon, 07 Oct 2013 14:58:52 +0200
+
+base (2.0-02) unstable; urgency=low
+
+  * enable autologin for user tcos
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Fri, 04 Oct 2013 18:34:38 +0200
+
+base (2.0-01) unstable; urgency=low
+
+  * Initial release of the debian wheezy based client OS
+  * Let the party get started!
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Fri, 04 Oct 2013 14:22:22 +0200
+ 
