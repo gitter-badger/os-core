@@ -33,8 +33,6 @@ TARGET_KERNEL := $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE) $(TARGET_KERNE
 
 # run-time packages
 
-# TARGET_PACKAGES := alsa-utils apt-utils aptitude arandr ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dialog dmidecode dnsutils dos2unix dosfstools e2fsprogs ethtool file firmware-linux flashplugin-nonfree fontconfig freerdp-X11 gdevilspie gvfs gvfs-backends htop hwinfo iceweasel iceweasel-l10n-de iputils-ping ipython iproute2 ldap-utils less libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libdrm2 libgl1-mesa-dri libgl1-mesa-dri libgl1-mesa-glx libgssglue1 libmotif4 libpam-ldap libsasl2-modules libsasl2-modules-gssapi-mit libssl1.0.0 libstdc++5 libvdpau1 libwebkitgtk-1.0-0 libx11-6 libxerces-c3.1 lightdm lightdm-gtk-greeter locales locales-all lshw ltrace mc mesa-utils net-tools nfs-common ntp numlockx openssh-client openssh-server pciutils python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync smplayer strace sudo syslog-ng ttf-dejavu udhcpc usbutils util-linux vim wget x11-xserver-utils x11vnc xdg-utils xfonts-base xinetd xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom xserver-xorg-video-ati xserver-xorg-video-fbdev xserver-xorg-video-geode xserver-xorg-video-intel xserver-xorg-video-modesetting xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-savage xserver-xorg-video-vesa xtightvncviewer zenity
-
 TARGET_PACKAGES := alsa-utils aptitude apt-utils arandr ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dialog dmidecode dnsutils dos2unix dosfstools e2fsprogs eject ethtool file firmware-linux flashplugin-nonfree fontconfig freerdp-X11 fxcyberjack gdevilspie gvfs gvfs-backends hdparm htop hwinfo iceweasel iceweasel-l10n-de iproute2 iputils-ping ipython ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-glx libgssglue1 libmotif4 libpam-ldap libsasl2-modules libsasl2-modules-gssapi-mit libssl1.0.0 libstdc++5 libvdpau1 libwebkitgtk-1.0-0 libx11-6 libxerces-c3.1 lightdm lightdm-gtk-greeter locales locales-all lshw ltrace man mc mesa-utils net-tools nfs-common ntp numlockx openssh-client openssh-server pavucontrol pciutils pulseaudio python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client strace sudo syslog-ng tcpdump ttf-dejavu udhcpc usbip usbutils util-linux vim vim-tiny wget x11vnc x11-xserver-utils xdg-utils xfonts-base xinetd xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom xserver-xorg-video-ati xserver-xorg-video-fbdev xserver-xorg-video-geode xserver-xorg-video-intel xserver-xorg-video-modesetting xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-savage xserver-xorg-video-vesa xtightvncviewer zenity
 
 TARGET_PACKAGES_BACKPORTS := atril caja engrampa eom glx-alternative-fglrx glx-alternative-nvidia glx-alternative-mesa libfglrx libgl1-nvidia-glx libgl1-nvidia-legacy-173xx-glx mate-applets mate-desktop mate-media mate-screensaver mate-session-manager mate-system-monitor mate-themes nvidia-alternative nvidia-alternative-legacy-173xx nvidia-driver-bin nvidia-vdpau-driver pluma xserver-xorg-video-nvidia xserver-xorg-video-nvidia-legacy-173xx xvba-va-driver
@@ -54,9 +52,9 @@ test: compressed-stamp upload-test
 
 .PHONY: chroot chroot-ro help filesystem busybox tcosify update kernel initrd compressed clean base upload upload-test
 
-chroot:
+chroot: filesystem-stamp
 	@sudo BIND_ROOT=./ Scripts/TCOS.chroot ./Filesystem $(SHELL)
-chroot-ro:
+chroot-ro: filesystem-stamp
 	@sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot ./Filesystem $(SHELL)
 help:
 	@echo "[1mWELCOME TO THE TCOS BUILD SYSTEM[0m"
@@ -94,13 +92,12 @@ busybox-stamp: filesystem-stamp
 	    (cd Sources && \
 	    wget -O - http://busybox.net/downloads/busybox-$(BUSYBOX_VERSION).tar.bz2  | tar -xjf - && \
 	    rm -rf busybox && \
-	    mv busybox-$(BUSYBOX_VERSION) busybox \
-	    cp Sources/busybox.config	Sources/busybox/.config	\
-            ) \
-        (test -r Initrd/bin/busybox && test Sources/busybox/.config -ot Initrd/bin/busybox)  || \
+	    mv busybox-$(BUSYBOX_VERSION) busybox && \
+	    cp busybox.config busybox/.config)
+	(test -r Initrd/bin/busybox && test Sources/busybox/.config -ot Initrd/bin/busybox)  || \
 		PATH=$(PATH) sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c \
-		\"DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes make gcc bzip2 \
-		libc6-dev perl; cd /TCOS/Sources/busybox; make clean; make install \"
+		"DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes make gcc bzip2 \
+		libc6-dev perl; cd /TCOS/Sources/busybox; make clean; make install "
 	@touch $@
 
 tcosify:
@@ -122,7 +119,7 @@ update-stamp:tcosify-stamp
 		apt-get install -y --force-yes --no-install-recommends -t wheezy -o Dpkg::Options::=\"--force-confold\" $(TARGET_PACKAGES); \
 	        apt-get install -y --force-yes --no-install-recommends -t wheezy-backports -o Dpkg::Options::=\"--force-confold\" $(TARGET_PACKAGES_BACKPORTS); \
 	        for deb in $(TARGET_PACKAGES_DEB); do dpkg -i /TCOS/Packages/\$$deb; done; \
-		/usr/sbin/update-flashplugin-nonfree --install "	
+		/usr/sbin/update-flashplugin-nonfree --install"
 	@touch $@
 
 kernel:
@@ -135,7 +132,7 @@ kernel-stamp:update-stamp
 	    "cp /bin/true /tmp/update-initramfs;apt-get install -y --force-yes -t wheezy-backports linux-image-$$kernel" ; \
 	    sudo cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/tftp/ ; \
 	done
-	(cd Base/base-$(BASE_VERSION)/debian/base/tftp/; \
+	(cd Base/base-$(BASE_VERSION)/tftp/; \
 		sudo mv vmlinuz-$(TARGET_KERNEL_DEFAULT) vmlinuz; \
 		sudo mv vmlinuz-$(TARGET_KERNEL_NONPAE) vmlinuz_non-pae; \
 		sudo mv vmlinuz-$(TARGET_KERNEL_32) vmlinuz_via; \
@@ -170,7 +167,6 @@ initrd:
 	make $@-stamp
 initrd-stamp:busybox-stamp driver-stamp Sources/modules.list
 	sudo TARGET_KERNEL="$(TARGET_KERNEL)" SHELL=$(SHELL) BIND_ROOT=./ Scripts/TCOS.initrd
-        # exit
 	sudo $(SHELL) -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.img; cd ..'
 	@touch $@
 
