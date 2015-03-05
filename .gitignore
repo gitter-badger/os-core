@@ -4,6 +4,7 @@
 /Image/*
 /Initrd/
 /Sources/busybox
+/Sources/linux-firmware
 Base/**/sfs
 Base/**/tftp
 Base/**/tempcopy*
