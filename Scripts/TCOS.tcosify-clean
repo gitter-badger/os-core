@@ -422,3 +422,30 @@ chown root:root /etc/sudoers
 
 echo -n "Set mesa-glx to default glx provider"
 if dpkg -l glx-alternative-mesa &>/dev/null;then update-alternatives --set glx /usr/lib/mesa-diverted;fi
+
+# stop auto-start of services
+
+DISABLE="\
+        console-setup \
+	bootmisc.sh \
+	checkfs.sh \
+	hdparm \
+        hwclock.sh \
+        mountnfs-bootclean.sh \
+        mountnfs.sh \
+        nfs-common \
+        rsync \
+        sudo \
+        umountnfs.sh \
+        "
+DIRS="rcS.d rc0.d rc1.d rc2.d rc3.d rc4.d rc5.d rc6.d"
+
+for dir in $DIRS; do
+        cd /etc/$dir
+        for script in $DISABLE; do
+                X=`ls [KS][0-9][0-9]$script 2>/dev/null` || continue
+                mkdir -p disabled
+                echo "Disabling $dir/$X ..."
+                mv $X disabled
+        done
+done
