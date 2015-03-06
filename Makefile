@@ -181,8 +181,8 @@ compressed:
 	make $@-stamp
 compressed-stamp:clean-stamp
 	@echo "[1m Target compressed-stamp: Create the base.sfs container[0m"
-	-sudo ln -snf Base/base-$(BASE_VERSION)/debian/base/sfs Base/base-$(BASE_VERSION)/sfs
-	-sudo ln -snf Base/base-$(BASE_VERSION)/debian/base/tftp Base/base-$(BASE_VERSION)/tftp
+	-(cd Base/base-$(BASE_VERSION); mkdir -p debian/base/sfs; ln -snf debian/base/sfs sfs)
+	-(cd Base/base-$(BASE_VERSION); mkdir -p debian/base/tftp; ln -snf debian/base/tftp tftp)
 	nice -10 ionice -c 3 sudo mksquashfs Filesystem Base/base-$(BASE_VERSION)/sfs/base.sfs -noappend -always-use-fragments -comp lzo
 	@touch $@
 
