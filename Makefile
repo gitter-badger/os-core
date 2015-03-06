@@ -22,7 +22,7 @@ TOP_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 BASE_VERSION := 2.1
 BUSYBOX_VERSION := 1.22.1
 # DEB_MIRROR := http://http.debian.net/debian
-DEB_MIRROR := http://otc-dd-01/debian 
+DEB_MIRROR := http://otc-dd-01/debian
 LOCAL_TEST_PATH := $(shell Scripts/TCOS.ini_parser -r ~/.tcosconfig):/opt/openthinclient/server/default/data/nfs/root
 TARGET_KERNEL_DEFAULT := 3.16.0-0.bpo.4-686-pae
 TARGET_KERNEL_NONPAE := 3.16.0-0.bpo.4-586
@@ -126,17 +126,18 @@ kernel:
 	make $@-stamp
 kernel-stamp:update-stamp
 	@echo "[1m Target kernel-stamp: Install the kernel[0m"
-	-sudo mkdir -p Base/base-$(BASE_VERSION)/tftp/
+	-(cd Base/base-$(BASE_VERSION); mkdir -p debian/base/sfs; ln -snf debian/base/sfs sfs)
+	-(cd Base/base-$(BASE_VERSION); mkdir -p debian/base/tftp; ln -snf debian/base/tftp tftp)
 	for kernel in $(TARGET_KERNEL); do \
 	    PATH=$(PATH) sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c \
 	    "cp /bin/true /tmp/update-initramfs;apt-get install -y --force-yes -t wheezy-backports linux-image-$$kernel" ; \
-	    sudo cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/tftp/ ; \
+	    cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/tftp/ ; \
 	done
 	(cd Base/base-$(BASE_VERSION)/tftp/; \
-		sudo mv vmlinuz-$(TARGET_KERNEL_DEFAULT) vmlinuz; \
-		sudo mv vmlinuz-$(TARGET_KERNEL_NONPAE) vmlinuz_non-pae; \
-		sudo mv vmlinuz-$(TARGET_KERNEL_32) vmlinuz_via; \
-		sudo mv vmlinuz-$(TARGET_KERNEL_32_NONPAE) vmlinuz_via_non-pae; \
+		mv vmlinuz-$(TARGET_KERNEL_DEFAULT) vmlinuz; \
+		mv vmlinuz-$(TARGET_KERNEL_NONPAE) vmlinuz_non-pae; \
+		mv vmlinuz-$(TARGET_KERNEL_32) vmlinuz_via; \
+		mv vmlinuz-$(TARGET_KERNEL_32_NONPAE) vmlinuz_via_non-pae; \
 	)
 	@touch $@
 
@@ -167,7 +168,7 @@ initrd:
 	make $@-stamp
 initrd-stamp:busybox-stamp driver-stamp Sources/modules.list
 	sudo TARGET_KERNEL="$(TARGET_KERNEL)" SHELL=$(SHELL) BIND_ROOT=./ Scripts/TCOS.initrd
-	sudo $(SHELL) -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.img; cd ..'
+	$(SHELL) -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.img; cd ..'
 	@touch $@
 
 clean:
@@ -181,8 +182,6 @@ compressed:
 	make $@-stamp
 compressed-stamp:clean-stamp
 	@echo "[1m Target compressed-stamp: Create the base.sfs container[0m"
-	-(cd Base/base-$(BASE_VERSION); mkdir -p debian/base/sfs; ln -snf debian/base/sfs sfs)
-	-(cd Base/base-$(BASE_VERSION); mkdir -p debian/base/tftp; ln -snf debian/base/tftp tftp)
 	nice -10 ionice -c 3 sudo mksquashfs Filesystem Base/base-$(BASE_VERSION)/sfs/base.sfs -noappend -always-use-fragments -comp lzo
 	@touch $@
 
