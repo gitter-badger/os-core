@@ -1,4 +1,4 @@
-base (2.1-1autobuild37) UNRELEASED; urgency=medium
+base (2.1-1autobuild40) UNRELEASED; urgency=medium
 
   [ Steffen Hoenig ]
   * new realease: base moved to wheezy and wheezy-backports
@@ -41,8 +41,15 @@ base (2.1-1autobuild37) UNRELEASED; urgency=medium
   * autobuild as of Mi 4. Mär 18:06:48 CET 2015
   * autobuild as of Mi 4. Mär 18:46:56 CET 2015
   * autobuild as of Mi 4. Mär 23:59:23 CET 2015
+  * autobuild as of Do 5. Mär 18:46:44 CET 2015
 
- -- root <root@otc-dd-01.ag.ausstellung>  Wed, 04 Mar 2015 23:00:01 +0000
+  [ Steffen Hoenig ]
+  * 
+
+  [ root ]
+  * autobuild as of Fr 6. Mär 18:14:49 CET 2015
+
+ -- root <root@otc-dd-01.ag.ausstellung>  Fri, 06 Mar 2015 17:15:23 +0000
 
 base (2.0-25) unstable; urgency=low
 

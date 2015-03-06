@@ -131,14 +131,16 @@ kernel-stamp:update-stamp
 	for kernel in $(TARGET_KERNEL); do \
 	    PATH=$(PATH) sudo BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c \
 	    "cp /bin/true /tmp/update-initramfs;apt-get install -y --force-yes -t wheezy-backports linux-image-$$kernel" ; \
-	    cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/tftp/ ; \
+	    sudo cp Filesystem/boot/vmlinuz-$$kernel Base/base-$(BASE_VERSION)/tftp/ ; \
 	done
 	(cd Base/base-$(BASE_VERSION)/tftp/; \
-		mv vmlinuz-$(TARGET_KERNEL_DEFAULT) vmlinuz; \
-		mv vmlinuz-$(TARGET_KERNEL_NONPAE) vmlinuz_non-pae; \
-		mv vmlinuz-$(TARGET_KERNEL_32) vmlinuz_via; \
-		mv vmlinuz-$(TARGET_KERNEL_32_NONPAE) vmlinuz_via_non-pae; \
+		sudo mv vmlinuz-$(TARGET_KERNEL_DEFAULT) vmlinuz; \
+		sudo mv vmlinuz-$(TARGET_KERNEL_NONPAE) vmlinuz_non-pae; \
+		sudo mv vmlinuz-$(TARGET_KERNEL_32) vmlinuz_via; \
+		sudo mv vmlinuz-$(TARGET_KERNEL_32_NONPAE) vmlinuz_via_non-pae; \
 	)
+	sudo cp Sources/pxelinux.0 Base/base-$(BASE_VERSION)/tftp
+	sudo cp Sources/ldlinux.c32 Base/base-$(BASE_VERSION)/tftp
 	@touch $@
 
 driver:
@@ -168,7 +170,7 @@ initrd:
 	make $@-stamp
 initrd-stamp:busybox-stamp driver-stamp Sources/modules.list
 	sudo TARGET_KERNEL="$(TARGET_KERNEL)" SHELL=$(SHELL) BIND_ROOT=./ Scripts/TCOS.initrd
-	$(SHELL) -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.img; cd ..'
+	sudo $(SHELL) -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.img; cd ..'
 	@touch $@
 
 clean:
@@ -189,7 +191,7 @@ compressed-stamp:clean-stamp
 # todo: upload needs to be more plattform agnostic
 
 base:
-	PATH=$(PATH) sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c " \
+	USER=$(USER) PATH=$(PATH) sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c " \
 	    echo \"deb http://packages.openthinclient.org/openthinclient/v2/devel ./\" > /etc/apt/sources.list.d/tcos.list; apt-get update; \
             DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends tcos-dev; \
             cd TCOS/Base/base-$(BASE_VERSION); \
