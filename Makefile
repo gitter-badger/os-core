@@ -139,8 +139,7 @@ kernel-stamp:update-stamp
 		sudo mv vmlinuz-$(TARGET_KERNEL_32) vmlinuz_via; \
 		sudo mv vmlinuz-$(TARGET_KERNEL_32_NONPAE) vmlinuz_via_non-pae; \
 	)
-	sudo cp Sources/pxelinux.0 Base/base-$(BASE_VERSION)/tftp
-	sudo cp Sources/ldlinux.c32 Base/base-$(BASE_VERSION)/tftp
+	sudo cp Sources/pxelinux/* Base/base-$(BASE_VERSION)/tftp
 	@touch $@
 
 driver:
