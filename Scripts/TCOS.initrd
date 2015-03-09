@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#set -x
+set -x
 
 [ "`id -u`" = "0" ] || { echo "Must be root to run $0." >&2; exit 1; }
 
@@ -11,8 +11,23 @@
     mknod tty4 c 4 4; \
     )
 
-# clean artifacts
-rm -rf Initrd/lib/modules/*
+
+# firmware from Sources/linux-firmware
+
+(git submodule init && git submodule update)
+
+FIRMWARE="rtl_nic 3com tigon"
+
+# clean/create dir
+(mkdir -p Initrd/lib/firmware; rm -rf Initrd/lib/firmware/*)
+
+for f in $FIRMWARE;do
+    (cp -r Sources/linux-firmware/$f Initrd/lib/firmware)
+done
+
+
+# clean/create dir
+(mkdir -p Initrd/lib/modules; rm -rf Initrd/lib/modules/*)
 
 echo $TARGET_KERNEL
 echo $BIND_DIR
