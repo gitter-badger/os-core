@@ -49,6 +49,14 @@ TARGET_PACKAGES_DEB_DKMS := via-chrome9-dkms_20091016_all.deb fglrx-modules-dkms
 
 all: compressed-stamp base upload
 test: compressed-stamp upload-test
+clean:
+	-rm -rf Filesystem
+	-rm -rf Driver
+	-rm -rf Kernel
+	-rm -rf Base/base-$(BASE_VERSION)/sfs
+	-rm -rf Base/base-$(BASE_VERSION)/tftp
+	-rm -rf *-stamp
+
 
 .PHONY: chroot chroot-ro help filesystem busybox tcosify update kernel initrd compressed clean base upload upload-test
 
