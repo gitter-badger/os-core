@@ -49,16 +49,9 @@ TARGET_PACKAGES_DEB_DKMS := via-chrome9-dkms_20091016_all.deb fglrx-modules-dkms
 
 all: compressed-stamp base upload
 test: compressed-stamp upload-test
-clean:
-	-rm -rf Filesystem
-	-rm -rf Driver
-	-rm -rf Kernel
-	-rm -rf Base/base-$(BASE_VERSION)/sfs
-	-rm -rf Base/base-$(BASE_VERSION)/tftp
-	-rm -rf *-stamp
 
 
-.PHONY: chroot chroot-ro help filesystem busybox tcosify update kernel initrd compressed clean base upload upload-test
+.PHONY: dist-clean clean chroot chroot-ro help filesystem busybox tcosify update kernel initrd compressed  base upload upload-test
 
 chroot: filesystem-stamp
 	@sudo BIND_ROOT=./ Scripts/TCOS.chroot ./Filesystem $(SHELL)
@@ -213,3 +206,11 @@ upload-test:
 	@echo "[1m Target test: Copy base.sfs, kernel, etc. to development server for testing.[0m"
 	rsync Base/base-$(BASE_VERSION)/tftp/vmlinuz*  Base/base-$(BASE_VERSION)/tftp/initrd* $(LOCAL_TEST_PATH)/tftp/
 	rsync Base/base-$(BASE_VERSION)/sfs/*.sfs     $(LOCAL_TEST_PATH)/sfs/
+
+dist-clean:
+	-sudo rm -rf Filesystem
+	-sudo rm -rf Driver
+	-sudo rm -rf Kernel
+	-sudo rm -rf Base/base-$(BASE_VERSION)/sfs
+	-sudo rm -rf Base/base-$(BASE_VERSION)/tftp
+	-sudo rm -rf *-stamp
