@@ -12,17 +12,19 @@
 
 # Preconditions:
 # - Kernel contains all _needed_ nfs, ethernet, aufs modules
+TOP=$(pwd)
 
-. /init_functions
+. $TOP/init_functions
 
-TCOS="/tcos"
-LINK="$TCOS/link"       # nfs             OTC-Server:/openthinclient # the initial one!
-WRITE="$TCOS/write"     # for aufs to write this is just a folder inside the /
-BASE="$TCOS/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.sfs
-PACKAGE="$TCOS/package"
-SHADOW="$TCOS/shadow"
-CUSTOM="$LINK/custom"
-# SWITCH_ROOT_PACKAGE="$SHADOW/$PACKAGE"
+export TCOS="/tcos"
+export LINK="$TCOS/link"       # nfs             OTC-Server:/openthinclient # the initial one!
+export WRITE="$TCOS/write"     # for aufs to write this is just a folder inside the /
+export BASE="$TCOS/base"       # squashfs # via loopback sfs-file: /tcos/link/sfs/base.sfs
+export PACKAGE="$TCOS/package"
+export SHADOW="$TCOS/shadow"
+export CUSTOM="$LINK/custom"
+
+#export SWITCH_ROOT_PACKAGE="$SHADOW/$PACKAGE"
 
 # Some more default variables here.
 # Values can be overwritten in kernel commandline - Key=Value
@@ -32,12 +34,11 @@ nvidia=false
 figlet=true
 splashImage=openthinclient.ppm
 glamor=false
-
+via=false
 
 ## MAIN ####################################################
 
 export PATH=/bin:/usr/bin:/sbin:/usr/sbin
-
 
 echo "Loading, please wait..."
 
@@ -52,15 +53,10 @@ mkdir -p /var/lock
 mount -t sysfs -o nodev,noexec,nosuid sysfs /sys
 mount -t proc -o nodev,noexec,nosuid proc /proc
 
-# Note that this only becomes /dev on the real filesystem if udev's scripts
-# are used; which they will be, but it's worth pointing out
 tmpfs_size="10M"
-if [ -e /etc/udev/udev.conf ]; then
-        . /etc/udev/udev.conf
-fi
-if ! mount -t devtmpfs -o size=$tmpfs_size,mode=0755 udev /dev; then
+if ! mount -t devtmpfs -o size=$tmpfs_size,mode=0755 devtmpfs /dev; then
         echo "W: devtmpfs not available, falling back to tmpfs for /dev"
-        mount -t tmpfs -o size=$tmpfs_size,mode=0755 udev /dev
+        mount -t tmpfs -o size=$tmpfs_size,mode=0755 tmpfs /dev
         [ -e /dev/console ] || mknod -m 0600 /dev/console c 5 1 
         [ -e /dev/null ] || mknod /dev/null c 1 3 
 fi
@@ -68,6 +64,16 @@ mkdir /dev/pts
 mount -t devpts -o noexec,nosuid,gid=5,mode=0620 devpts /dev/pts || true
 mount -t tmpfs -o "nosuid,size=20%,mode=0755" tmpfs /run
 mkdir -m 0755 /run/initramfs
+
+# mdev or detect_nic
+depmod -a
+if [ -f /sbin/mdev ]; then
+    echo /sbin/mdev > /proc/sys/kernel/hotplug
+    mdev -s
+fi
+for m in $(detect_nic) aufs nfs squashfs loop;do
+    modprobe $m
+done
 
 # create TCOS essential folders
 # for folder in $LINK $WRITE $BASE $PACKAGE $SHADOW $SHADOW $CUSTOM $SWITCH_ROOT_PACKAGE; do mkdir -p $folder ; done
@@ -78,21 +84,15 @@ read CMDLINE < /proc/cmdline
 getbootparams
 
 # Shut up or display figlet logo if not in quiet mode.
-# Use "vga=791 console=tty2 quiet" as kernel paramter to get it absolutely quiet.
-grep -vwq quiet /proc/cmdline 
-if [ $? = 0 ]; then
-    $figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
+# 
+grep -vwq quiet /proc/cmdline && $figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
+
+
+if grep -wq debug /proc/cmdline;then
+    set -x
 fi
 
 # This is going to be part of base 2.0-24
-
-if [ -d /lib/modules/`uname -r` ];then
-    depmod -a
-    for m in $(detect_nic) aufs nfs squashfs loop;
-    do
-	 modprobe $m
-    done
-fi
 
 
 ip addr add 127.0.0.1/8 dev lo
@@ -102,16 +102,15 @@ ip link set dev lo up
 [ -z $nic ] && nic=0
 DHCP=""
 
-set -x
 for i in $nic; do
     echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
     ip link set dev eth$i up
-    udhcpc -a -q -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
+    #udhcpc -a -q -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
+    udhcpc -o -q -i eth$i &>/dev/null && DHCP="eth$i"
     [ -n "$DHCP" ] && break
     echo "${RED}No answer from network.${NORMAL}"
     debugshell
 done
-set +x
 
 # NFS (or local link #future)
 MOUNTED=""
@@ -159,11 +158,8 @@ echo "0" >/proc/sys/kernel/printk
 
 mountsfs package
 
-# debugshell
-
 # AUFS
 #
-
 AUFS=""
 mount -t tmpfs -o mode=0755 none $WRITE # links writing branch to ram!
 
@@ -176,13 +172,6 @@ mount -t tmpfs -o mode=0755 none $WRITE # links writing branch to ram!
 #mount -t aufs -o noplink,br=/tcos/write1=rw:${TREE} unionfs $SHADOW  && AUFS="true"
 mount -t aufs -o noplink,br:${WRITE}=rw:${TREE} unionfs $SHADOW  && AUFS="true"
 
-
-# LINKS
-#
-
-#PATH="$PATH:/busybox/bin:${SHADOW}/busybox/bin:${SHADOW}/bin:${SHADOW}/sbin:${SHADOW}/usr/bin"
-#export PATH
-
 # save resolv.conf
 cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
 [ -e /etc/hostname ] && cp /etc/hostname ${SHADOW}/etc/hostname
@@ -190,17 +179,16 @@ cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
 # enables additional packages (in  bz2, gz. tar, plain, format)
 mountcustom $CUSTOM
 
-# modify /etc/init.d/.depend.* with insserv
-# enables custom LSB
-#
-for service in /tcos/package/*/etc/init.d/*; do
-  servicefilename=$(basename $service);
-#  ${SHADOW}/sbin/insserv ${SHADOW}/etc/init.d/$servicefilename
-done
+mount --bind /sys ${SHADOW}/sys
+mount --bind /dev ${SHADOW}/dev
+mount --bind /dev/pts ${SHADOW}/dev/pts
+mount --bind /proc ${SHADOW}/proc
+mkdir -p ${SHADOW}/tcos/link &>/dev/null && mount --bind /tcos/link ${SHADOW}/tcos/link
 
-# debugshell
-
+###########################################################################################
 # ToDo: Source the graphics card stuff out in a separate file.
+#
+mkdir -p ${SHADOW}/etc/X11/xorg.conf.d &> /dev/null
 
 # Check if acceleration glamor should be used.
 # This does not work with proprietary drivers at the moment, but we don't check this here.
@@ -214,12 +202,15 @@ fi
 # Check if fglrx drivers for radeon cards should be used.
 # Prevent using fglrx in case of non existing AMD hardware.
 # 
-if $fglrx && $(lspci | grep -q AMD); then 
+if $fglrx && $(lspci | grep -q 1002); then
     echo "${GREEN}Switching client to use proprietary fglrx drivers.${NORMAL}"
+    chroot ${SHADOW} update-alternatives --set glx /usr/lib/fglrx
+
     mkdir -p ${SHADOW}/etc/X11/xorg.conf.d &> /dev/null
+
+    # write xorg.conf  snippet
     echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tDriver "fglrx"\nEndSection' > ${SHADOW}/etc/X11/xorg.conf.d/20-fglrx.conf
-    # Xorg will load necesarry kernel modules itself. There is no need to do this by hand.
-    update-alternatives --set glx /usr/lib/fglrx # will also do the blacklisting
+    chroot ${SHADOW} modprobe fglrx
 else
     echo "blacklist fglrx" >> ${SHADOW}/etc/modprobe.d/tcos-blacklist.conf
 fi
@@ -227,37 +218,51 @@ fi
 
 # Check if nvidia driver for nvidia cards should be used.
 # Prevent using nvidia in case of non existing Nvidia hardware.
-# 
-if $nvidia && $(lspci | grep -q NVIDIA); then 
-    echo "${GREEN}Switching client to use proprietary nvidia drivers.${NORMAL}"
-    echo "blacklist nouveau" >> ${SHADOW}/etc/modprobe.d/tcos-blacklist.conf 
-    mkdir -p ${SHADOW}/etc/X11/xorg.conf.d &> /dev/null
+#
 
+if [ -n "$nvidia" ] && $(lspci | grep -q -i 10DE); then
+    echo -n "${BLUE}Switching client to use proprietary nvidia driver version: ${NORMAL}"
     # write xorg.conf  snippet
     echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tDriver "nvidia"\nEndSection' > ${SHADOW}/etc/X11/xorg.conf.d/20-nvidia.conf
-
-    # todo: link libglx.so to the nvidia libglx.so.XXX.XX - we assume there is only one 
-    nvidia_glx_so=$(grep -l nvidia ${SHADOW}/usr/lib/xorg/modules/extensions/libglx.* | tail -n 1)
-    rm -f ${SHADOW}/usr/lib/xorg/modules/extensions/libglx.so
-    ln -s  $nvidia_glx_so ${SHADOW}/usr/lib/xorg/modules/extensions/libglx.so
-    
-    #####################################################################################
-    # Some workaround, because the nvidia module sometimes fails to initialize propperly.
-    # But if it is loaded/initialized a second time, it works. Strange, but this is a fact.
-    # Kick it!
-    # 
-    modprobe nvidia
-    X :5 -novtswitch -configdir ${SHADOW}/etc/X11/xorg.conf.d &> /dev/null &
-    sleep 10;
-    kill -9 $!
-    rmmod nvidia
-    #
-    # Xorg will load the module again itself.
-    # End of workaround.
-    #####################################################################################
-    
+    case "$nvidia" in
+	"true"|"auto") # try to autodetect for users who don't know exactly
+	    if $(lspci | grep -q -i 10de:032a); then # nvidia nvs280 found?
+		echo -n "${BLUE} 173.xx ${NORMAL}"
+		echo -e '/usr/lib/i386-linux-gnu/nvidia/legacy-173xx/\n' > ${SHADOW}/etc/ld.so.conf.d/legacy-173xx.conf
+		chroot ${SHADOW} ldconfig
+		chroot ${SHADOW} /usr/sbin/update-alternatives --set nvidia /usr/lib/nvidia/legacy-173xx
+		chroot ${SHADOW} /usr/sbin/update-alternatives --set glx /usr/lib/nvidia
+	    else
+		echo -n "${BLUE} 340.xx ${NORMAL}"
+		chroot ${SHADOW} /usr/sbin/update-alternatives --set glx /usr/lib/nvidia
+		chroot ${SHADOW} /usr/sbin/update-alternatives --set nvidia /usr/lib/nvidia/current
+	    fi
+	    ;;
+	"173")
+	    echo -n "${BLUE} 173.xx ${NORMAL}"
+	    echo -e '/usr/lib/i386-linux-gnu/nvidia/legacy-173xx/\n' > ${SHADOW}/etc/ld.so.conf.d/legacy-173xx.conf
+	    chroot ${SHADOW} ldconfig
+	    chroot ${SHADOW} /usr/sbin/update-alternatives --set nvidia /usr/lib/nvidia/legacy-173xx
+	    chroot ${SHADOW} /usr/sbin/update-alternatives --set glx /usr/lib/nvidia
+	    ;;
+	"340")
+	    echo -n "${BLUE} 340.xx ${NORMAL}"
+	    chroot ${SHADOW} /usr/sbin/update-alternatives --set glx /usr/lib/nvidia
+	    chroot ${SHADOW} /usr/sbin/update-alternatives --set nvidia /usr/lib/nvidia/current
+	    ;;
+    esac
+    chroot ${SHADOW} modprobe nvidia
 else
     echo "blacklist nvidia" >> ${SHADOW}/etc/modprobe.d/tcos-blacklist.conf
+fi
+
+# Check if VIA driver for VIA cards should be used.
+#
+if $via && $(lspci | grep -q -i 1106);then
+    "${GREEN}Switching client to use chrome9 drivers.${NORMAL}"
+    # write xorg.conf snippet
+    echo -e 'Section "Device"\n\tIdentifier "My GPU"\n\tDriver "via"\nEndSection' > ${SHADOW}/etc/X11/xorg.conf.d/20-via.conf
+    chroot ${SHADOW} modprobe via_chrome9
 fi
 
 #######################################################
@@ -280,37 +285,15 @@ fi
 
 ############################################################
 
-#mkdir -p ${SHADOW}/tcos/base
-#mkdir -p ${SHADOW}/tcos/package
-#mkdir -p ${SHADOW}/tcos/link
-#mkdir -p ${SHADOW}/tcos/write
-
-#debugshell
-
-#mount --bind /tcos/package /tcos/package
-#mount --bind /tcos/base /tcos/base
-#mount -n -o move /tcos/package ${SHADOW}/tcos/package
-#mount -n -o move /tcos/base ${SHADOW}/tcos/base
-#mount -n -o move /tcos/link ${SHADOW}/tcos/link
-#mount -n -o move /tcos/write ${SHADOW}/tcos/write
-
-#debugshell
-#mount -n -o move /sys ${SHADOW}/sys
-#mount -n -o move /dev ${SHADOW}/dev
-#mount -n -o move /proc ${SHADOW}/proc
-
-mount -o bind /sys ${SHADOW}/sys
-mount -o bind /dev ${SHADOW}/dev
-mount -o bind /proc ${SHADOW}/proc
-
+# Kepp in mind ......
 # busybox' mount can't bindmount folder which are no mountpoints
-# mount -o bind /tcos/package ${SHADOW}/tcos/package
 
-rm ${SHADOW}/lib/init/mount-functions.sh
 
-# grep -v tcos /proc/mounts >  ${SHADOW}/etc/mtab
-# echo doof >>  ${SHADOW}/etc/mtab
+# debug the initrd if needed
+grep -wq debugshell /proc/cmdline && debugshell
 
-debugshell
+# ToDo: find a way to prevent mtab looking for /dev/loop* after switchroot
+# See: /lib/init/mount-functions.sh
 
+# go ahead
 exec switch_root ${SHADOW} /sbin/init "$@" </dev/console >/dev/console 2>&1

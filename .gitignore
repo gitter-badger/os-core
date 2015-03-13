@@ -1,25 +1,32 @@
-/Base/
-/BACKUPS/
-!/Base/base-2.0/
-/Base/base-2.0/debian/*
-!/Base/build-howto/
-
+# directories
+/Filesystem/*
+/Kernel/*
+/Image/*
 /Initrd/
+/Sources/busybox
+/Sources/linux-firmware
+Base/**/sfs
+Base/**/tftp
+Base/**/tempcopy*
+# build-files
+
+Base/**/*.sfs
+Base/**/*.dsc
+Base/**/*.changes
+Base/**/*.deb
+Base/**/*.tar.gz
+
+# temp-files
+*~
+*-stamp
+*.swp
+
+# allowed
+
 !/Initrd/init
 !/Initrd/init_functions
 !/Initrd/bin/mask2cidr
 !/Initrd/etc/udhcpc/default.script
 !/Initrd/lib/consus.figlet
 
-/Bbox-build-chroot/*
 
-/Filesystem/*
-/Kernel/*
-/Image/*
-.SyncID
-.SyncIgnore
-/Sources/busybox/
-/Packages/Incoming/*
-*~
-.~*
-*-stamp

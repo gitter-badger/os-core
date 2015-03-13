@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -x
+
+[ "`id -u`" = "0" ] || { echo "Must be root to run $0." >&2; exit 1; }
+
+[ ! -d Initrd/dev ] && ( mkdir Initrd/dev && cd Initrd/dev; \
+    mknod console c 5 1; \
+    mknod tty1 c 4 1; \
+    mknod tty2 c 4 2; \
+    mknod tty3 c 4 3; \
+    mknod tty4 c 4 4; \
+    )
+
+
+# firmware from Sources/linux-firmware
+
+(git submodule init && git submodule update)
+
+FIRMWARE="rtl_nic 3com tigon"
+
+# clean/create dir
+(mkdir -p Initrd/lib/firmware; rm -rf Initrd/lib/firmware/*)
+
+for f in $FIRMWARE;do
+    (cp -r Sources/linux-firmware/$f Initrd/lib/firmware)
+done
+
+
+# clean/create dir
+(mkdir -p Initrd/lib/modules; rm -rf Initrd/lib/modules/*)
+
+echo $TARGET_KERNEL
+echo $BIND_DIR
+
+Scripts/TCOS.chroot Filesystem <<EOSCRIPT
+
+for k in \$TARGET_KERNEL;do
+    export DEST_DIR=/TCOS/Initrd
+    export KERNELDIR=/lib/modules/\$k
+    export MODULES_LIST=/TCOS/Sources/modules.list
+    /TCOS/Scripts/TCOS.copy_modules &
+done
+wait
+EOSCRIPT
+
+exit $?

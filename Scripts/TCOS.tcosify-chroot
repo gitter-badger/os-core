@@ -9,6 +9,17 @@ AutoLoginUser=tcos
 
 [ "`stat --printf '%i' /.`" -gt 2 ] || { echo "$0 must NEVER be run outside of chroot, exiting"'!' ; exit 1; }
 
+# chang the default shell
+ln -snf /bin/bash /bin/sh
+
+[ ! -f  /etc/issue.debian ] && cp /etc/issue /etc/issue.debian
+[ ! -f  /etc/motd.debian ] && cp /etc/motd /etc/motd.debian
+echo -e "openthinclient OS base $BASE_VERSION \nbuild: $(date)\nbased on and credits to Debian" > /etc/issue
+cat /etc/issue > /etc/motd
+cat /etc/issue.debian >> /etc/issue
+cat /etc/motd.debian >> /etc/motd
+
+
 umask 022
 locale-gen
 
@@ -24,6 +35,9 @@ rm -rf /home/tcos &> /dev/null || :
 echo openthinclient > /etc/hostname
 echo -e "127.0.0.1\topenthinclient localhost/" > /etc/hosts
 
+# adding tcos-single and tcos-multi services to the default boot-up
+insserv /etc/init.d/tcos-single
+insserv /etc/init.d/tcos-multi
 
 # recreate the user 
 grep -q ^$AutoLoginUser: /etc/passwd || useradd -m -u 1000 -d /home/$AutoLoginUser -s /bin/bash $AutoLoginUser

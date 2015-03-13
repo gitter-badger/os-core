@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Thu, 22 Jan 2015 23:20:38 +0100
+Source: via-chrome9-dkms
+Binary: via-chrome9-dkms
+Architecture: source all
+Version: 5.76.52.92-3
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: Dynamic Kernel Modules Support Team <pkg-dkms-maint@lists.alioth.debian.org>
+Changed-By: Steffen Hoenig <s.hoenig@openthinclient.com>
+Description: 
+ via-chrome9-dkms - via-chrome9 driver in DKMS format.
+Changes: 
+ via-chrome9-dkms (5.76.52.92-3) UNRELEASED; urgency=low
+ .
+   * very strange build-error
+Checksums-Sha1: 
+ 52c6c625d8e6ef93a0b7724ec268079c64ed5d41 623 via-chrome9-dkms_5.76.52.92-3.dsc
+ 776ad8336b66b7bb2138fbb9e8b331055dd6a469 643161 via-chrome9-dkms_5.76.52.92-3.tar.gz
+ 3ca0536d66ca7d99ac21c56735495fea9c7bbd5d 639286 via-chrome9-dkms_5.76.52.92-3_all.deb
+Checksums-Sha256: 
+ 25a6ae0b9fe023576051cea151817f11f18c9ce2aca9c24ce42e51a09bd38576 623 via-chrome9-dkms_5.76.52.92-3.dsc
+ 2a88cab9c90f29d613a1376da681790c6fe8772a9d5fb96cd11f8dac4d53681b 643161 via-chrome9-dkms_5.76.52.92-3.tar.gz
+ fe474ba5b77a2dd06b9c40487358ddd31abc26918d895be7d45b3d980d2c3176 639286 via-chrome9-dkms_5.76.52.92-3_all.deb
+Files: 
+ 3aea106f0eeceb7b5cbed7884d4214d9 623 misc optional via-chrome9-dkms_5.76.52.92-3.dsc
+ 53f54b0124aacfc3947b09b61b70874d 643161 misc optional via-chrome9-dkms_5.76.52.92-3.tar.gz
+ 54a4763bf1963216015948e912dd10a2 639286 misc optional via-chrome9-dkms_5.76.52.92-3_all.deb
