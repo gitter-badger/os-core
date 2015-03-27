@@ -14,3 +14,9 @@ nfsv2.ko
 nfs.ko
 squashfs.ko
 loop.ko
+kernel/drivers/ata/
+ext4.ko
+fscache.ko
+scsi_mod.ko
+sd_mod.ko
+sg.ko
