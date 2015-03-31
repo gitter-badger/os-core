@@ -35,6 +35,9 @@ figlet=true
 splashImage=openthinclient.ppm
 glamor=false
 via=false
+localboot=false
+
+verbose=false
 
 ## MAIN ####################################################
 
@@ -51,7 +54,11 @@ echo "Loading, please wait..."
 
 mkdir -p /var/lock
 mount -t sysfs -o nodev,noexec,nosuid sysfs /sys
-mount -t proc -o nodev,noexec,nosuid proc /proc
+mount -t proc  -o nodev,noexec,nosuid proc  /proc
+
+# set debug and/or -x
+grep -wq verbose /proc/cmdline && verbose=true
+grep -wq set_x /proc/cmdline && set -x
 
 tmpfs_size="10M"
 if ! mount -t devtmpfs -o size=$tmpfs_size,mode=0755 devtmpfs /dev; then
@@ -66,17 +73,21 @@ mount -t tmpfs -o "nosuid,size=20%,mode=0755" tmpfs /run
 mkdir -m 0755 /run/initramfs
 
 # mdev or detect_nic
+#
+#if [ -f /sbin/mdev ]; then
+#    echo /sbin/mdev > /proc/sys/kernel/hotplug
+#    mdev -s
+#fi
+
+# have modules.dep dynamically, it just takes a microsecond to create
 depmod -a
-if [ -f /sbin/mdev ]; then
-    echo /sbin/mdev > /proc/sys/kernel/hotplug
-    mdev -s
-fi
+
 for m in $(detect_nic) aufs nfs squashfs loop;do
+    $verbose && echo "... loading module $m"
     modprobe $m
 done
 
 # create TCOS essential folders
-# for folder in $LINK $WRITE $BASE $PACKAGE $SHADOW $SHADOW $CUSTOM $SWITCH_ROOT_PACKAGE; do mkdir -p $folder ; done
 for folder in $LINK $WRITE $BASE $PACKAGE $SHADOW $SHADOW $CUSTOM ; do mkdir -p $folder ; done
 
 # Get Key=Value pairs from kernel commandline and overwrite defaults.
@@ -87,14 +98,6 @@ getbootparams
 # 
 grep -vwq quiet /proc/cmdline && $figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
 
-
-if grep -wq debug /proc/cmdline;then
-    set -x
-fi
-
-# This is going to be part of base 2.0-24
-
-
 ip addr add 127.0.0.1/8 dev lo
 ip link set dev lo up
 
@@ -103,7 +106,7 @@ ip link set dev lo up
 DHCP=""
 
 for i in $nic; do
-    echo "${CRE}${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
+    echo "${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
     ip link set dev eth$i up
     #udhcpc -a -q -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
     udhcpc -o -q -i eth$i &>/dev/null && DHCP="eth$i"
@@ -112,19 +115,34 @@ for i in $nic; do
     debugshell
 done
 
-# NFS (or local link #future)
-MOUNTED=""
+########################################################
+# NFS or local boot?
+#    - variable nfsroot is taken from cmdline and is always given
+#    - variable localboot is also taken from cmdline, but is only set on localboot
 
-[ -n $nfsroot ] && NFSD=$nfsroot
-
-touch /etc/fstab
-mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$NFSD" $LINK
+if $localboot; then
+    echo "${BLUE}Switching client to localboot ... ${NORMAL}"
+    # enable mdev
+    echo /sbin/mdev > /proc/sys/kernel/hotplug
+    for mod in ahci ext4 scsi_mod sd_mod sg fscache ata_generic ata_piix; do
+	$verbose && echo "... loading module $mod"
+	modprobe $mod;
+    done
+    # disable mdev
+    > /proc/sys/kernel/hotplug
+    LINK_RESOURCE=/dev/sda2
+    mount -o,ro -t ext4 "$LINK_RESOURCE" $LINK
+    # stop here
+    debugshell 
+elif [ -n "$nfsroot" ]; then
+    LINK_RESOURCE=$nfsroot
+    mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$LINK_RESOURCE" $LINK
+fi
 
 if [ $? -eq 0 ]; then
-  MOUNTED="true"
-  echo "$NFSD mounted ${GREEN} successfully...${NORMAL}"
+  echo "${GREEN}$LINK_RESOURCE mounted successfully on $LINK...${NORMAL}"
 else
-  echo "${RED} could not mount $NFSD - exiting. ${NORMAL}"
+  echo "${RED}Could not mount $LINK_RESOURCE on $LINK - exiting. ${NORMAL}"
   debugshell
 fi
 
@@ -136,9 +154,11 @@ fi
 echo 0 > /sys/class/graphics/fbcon/cursor_blink        # prevent cursor blinking
 grep -q "vga=" /proc/cmdline && fbsplash -silent -s /tcos/link/custom/splashscreens/${splashImage} 
 
-# SFS
+# Mount SFS files
 # base.sfs
 #
+
+debugshell
 
 TREE=""
 
@@ -165,11 +185,7 @@ mount -t tmpfs -o mode=0755 none $WRITE # links writing branch to ram!
 
 # TREE has a leading colon ":" ! (DEPRECATED)
 # :DEBUG:
-#mkdir /tcos/write1
-#mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 10.224.129.30:/home/root /tcos/write1
-#ls -la /tcos/write1/
 
-#mount -t aufs -o noplink,br=/tcos/write1=rw:${TREE} unionfs $SHADOW  && AUFS="true"
 mount -t aufs -o noplink,br:${WRITE}=rw:${TREE} unionfs $SHADOW  && AUFS="true"
 
 # save resolv.conf
@@ -267,13 +283,8 @@ fi
 
 #######################################################
 # Try to automatically use swap devices.
-
-# mdev does not know about blockdevices, 
-# this should become a device
-
-# activate swap
 # lsblk reads old MBR and new GPT tables
-#
+
 #if $autoswap ; then
 #    lsblk -P -o NAME,FSTYPE 2> /dev/null | grep swap | while read line; do 
 #	eval "$line" 
@@ -285,15 +296,8 @@ fi
 
 ############################################################
 
-# Kepp in mind ......
-# busybox' mount can't bindmount folder which are no mountpoints
-
-
 # debug the initrd if needed
 grep -wq debugshell /proc/cmdline && debugshell
-
-# ToDo: find a way to prevent mtab looking for /dev/loop* after switchroot
-# See: /lib/init/mount-functions.sh
 
 # go ahead
 exec switch_root ${SHADOW} /sbin/init "$@" </dev/console >/dev/console 2>&1

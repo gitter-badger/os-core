@@ -171,7 +171,7 @@ driver-stamp:kernel-stamp $(TARGET_PACKAGES_DEB_DKMS_AS_DEP)
 initrd:
 	make $@-stamp
 initrd-stamp:busybox-stamp driver-stamp Sources/modules.list
-	sudo TARGET_KERNEL="$(TARGET_KERNEL)" SHELL=$(SHELL) BIND_ROOT=./ Scripts/TCOS.initrd
+#	sudo TARGET_KERNEL="$(TARGET_KERNEL)" SHELL=$(SHELL) BIND_ROOT=./ Scripts/TCOS.initrd
 	sudo $(SHELL) -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.img; cd ..'
 	@touch $@
 
