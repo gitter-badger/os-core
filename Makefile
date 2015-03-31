@@ -34,9 +34,9 @@ TARGET_KERNEL := $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE) $(TARGET_KERNE
 
 # run-time packages
 
-TARGET_PACKAGES := alsa-utils aptitude apt-utils arandr ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dialog dmidecode dnsutils dos2unix dosfstools e2fsprogs eject ethtool file firmware-linux flashplugin-nonfree fontconfig freerdp-X11 fxcyberjack gdevilspie gvfs gvfs-backends hdparm htop hwinfo iceweasel iceweasel-l10n-de iproute2 iputils-ping ipython ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-glx libgssglue1 libmotif4 libpam-ldap libsasl2-modules libsasl2-modules-gssapi-mit libssl1.0.0 libstdc++5 libvdpau1 libwebkitgtk-1.0-0 libx11-6 libxerces-c3.1 lightdm lightdm-gtk-greeter locales locales-all lshw ltrace man mc mesa-utils net-tools nfs-common ntp numlockx openssh-client openssh-server pavucontrol pciutils pulseaudio pulseaudio-utils python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client strace sudo syslog-ng tcpdump ttf-dejavu udhcpc usbip usbutils util-linux vim vim-tiny wget x11vnc x11-xserver-utils xdg-utils xfonts-base xinetd xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom xserver-xorg-video-ati xserver-xorg-video-fbdev xserver-xorg-video-geode xserver-xorg-video-intel xserver-xorg-video-modesetting xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-savage xserver-xorg-video-vesa xtightvncviewer zenity
+TARGET_PACKAGES := alsa-utils aptitude apt-utils arandr ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dialog dmidecode dnsutils dos2unix dosfstools e2fsprogs eject ethtool file firmware-linux flashplugin-nonfree fontconfig fxcyberjack gdevilspie gvfs gvfs-backends hdparm htop hwinfo iceweasel iceweasel-l10n-de iproute2 iputils-ping ipython ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-glx libgssglue1 libmotif4 libpam-ldap libsasl2-modules libsasl2-modules-gssapi-mit libssl1.0.0 libstdc++5 libvdpau1 libwebkitgtk-1.0-0 libx11-6 libxerces-c3.1 lightdm lightdm-gtk-greeter locales locales-all lshw ltrace man mc mesa-utils net-tools nfs-common ntp numlockx openssh-client openssh-server pavucontrol pciutils pulseaudio pulseaudio-utils python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client strace sudo syslog-ng tcpdump ttf-dejavu udhcpc usbip usbutils util-linux vim vim-tiny wget x11vnc x11-xserver-utils xdg-utils xfonts-base xinetd xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom xserver-xorg-video-ati xserver-xorg-video-fbdev xserver-xorg-video-geode xserver-xorg-video-intel xserver-xorg-video-modesetting xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-savage xserver-xorg-video-vesa xtightvncviewer zenity
 
-TARGET_PACKAGES_BACKPORTS := atril caja engrampa eom glx-alternative-fglrx glx-alternative-nvidia glx-alternative-mesa libfglrx libgl1-nvidia-glx libgl1-nvidia-legacy-173xx-glx mate-applets mate-desktop mate-media mate-media-pulse mate-screensaver mate-session-manager mate-system-monitor mate-themes nvidia-alternative nvidia-alternative-legacy-173xx nvidia-driver-bin nvidia-vdpau-driver pluma xserver-xorg-video-nvidia xserver-xorg-video-nvidia-legacy-173xx xvba-va-driver
+TARGET_PACKAGES_BACKPORTS := atril caja engrampa eom glx-alternative-fglrx glx-alternative-nvidia glx-alternative-mesa libfglrx libgl1-nvidia-glx libgl1-nvidia-legacy-173xx-glx mate-applets mate-desktop mate-media mate-media-pulse mate-screensaver mate-session-manager mate-system-monitor mate-themes nvidia-alternative nvidia-alternative-legacy-173xx nvidia-driver-bin nvidia-vdpau-driver pluma  server-xorg-video-nvidia xserver-xorg-video-nvidia-legacy-173xx xvba-va-driver
 
 TARGET_PACKAGES_DEB := openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb libpcsclite1_1.8.11-3~tcos20+3_i386.deb pcscd_1.8.11-3~tcos20+3_i386.deb libpcsclite-dev_1.8.11-3~tcos20+3_i386.deb xserver-xorg-video-chrome9_5.76.52.92-1_i386.deb libfglrx_14.12-1_i386.deb libgl1-fglrx-glx_14.12-1_i386.deb libgl1-fglrx-glx-i386_14.12-1_i386.deb libfglrx-amdxvba1_14.12-1_i386.deb fglrx-driver_14.12-1_i386.deb
 TARGET_PACKAGES_DEB_AS_DEP := $(addprefix ./Packages/, $(TARGET_PACKAGES_DEB))
@@ -198,6 +198,15 @@ base:
             DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends tcos-dev; \
             cd TCOS/Base/base-$(BASE_VERSION); \
             dch -l autobuild \"autobuild as of `date`\"; \
+	    touch debian/files \
+            tcos build ."
+	touch $@-stamp
+base-release:
+	USER=$(USER) PATH=$(PATH) sudo AUFS=1 BIND_ROOT=./ Scripts/TCOS.chroot Filesystem $(SHELL) -c " \
+	    echo \"deb http://packages.openthinclient.org/openthinclient/v2/devel ./\" > /etc/apt/sources.list.d/tcos.list; apt-get update; \
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends tcos-dev; \
+            cd TCOS/Base/base-$(BASE_VERSION); \
+	    touch debian/files \
             tcos build ."
 	touch $@-stamp
 
@@ -206,8 +215,8 @@ upload:
 
 upload-test:
 	@echo "[1m Target test: Copy base.sfs, kernel, etc. to development server for testing.[0m"
-	rsync Base/base-$(BASE_VERSION)/tftp/vmlinuz*  Base/base-$(BASE_VERSION)/tftp/initrd* $(LOCAL_TEST_PATH)/tftp/
-	rsync Base/base-$(BASE_VERSION)/sfs/*.sfs     $(LOCAL_TEST_PATH)/sfs/
+	-rsync Base/base-$(BASE_VERSION)/tftp/vmlinuz*  Base/base-$(BASE_VERSION)/tftp/initrd* $(LOCAL_TEST_PATH)/tftp/
+	-rsync Base/base-$(BASE_VERSION)/sfs/*.sfs     $(LOCAL_TEST_PATH)/sfs/
 
 dist-clean:
 	-sudo rm -rf Filesystem

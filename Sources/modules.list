@@ -14,3 +14,4 @@ nfsv2.ko
 nfs.ko
 squashfs.ko
 loop.ko
+usb-storage.ko
