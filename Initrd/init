@@ -24,7 +24,7 @@ export PACKAGE="$TCOS/package"
 export SHADOW="$TCOS/shadow"
 export CUSTOM="$LINK/custom"
 
-#export SWITCH_ROOT_PACKAGE="$SHADOW/$PACKAGE"
+# export SWITCH_ROOT_PACKAGE="$SHADOW/$PACKAGE"
 
 # Some more default variables here.
 # Values can be overwritten in kernel commandline - Key=Value
@@ -36,7 +36,6 @@ splashImage=openthinclient.ppm
 glamor=false
 via=false
 localboot=false
-
 verbose=false
 
 ## MAIN ####################################################
@@ -132,8 +131,7 @@ if $localboot; then
     > /proc/sys/kernel/hotplug
     LINK_RESOURCE=/dev/sda2
     mount -o,ro -t ext4 "$LINK_RESOURCE" $LINK
-    # stop here
-    debugshell 
+    # debugshell 
 elif [ -n "$nfsroot" ]; then
     LINK_RESOURCE=$nfsroot
     mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$LINK_RESOURCE" $LINK
@@ -146,6 +144,7 @@ else
   debugshell
 fi
 
+
 ###############################################################
 # get the splashscreen running if some framebuffer is enabled
 # 
@@ -154,11 +153,40 @@ fi
 echo 0 > /sys/class/graphics/fbcon/cursor_blink        # prevent cursor blinking
 grep -q "vga=" /proc/cmdline && fbsplash -silent -s /tcos/link/custom/splashscreens/${splashImage} 
 
+
+###############################################################
+# apply updates for localboot here
+# 
+# Keep in mind: The kernels and intrd (folder tftp) are updated 
+#   within the the update script after the client has
+#   successfully booted.
+#   The sfs and custom folders will be applied here now.
+
+#
+# mount -o remount,rw $LINK; touch $LINK/lb_updates/.apply_updates
+
+if [ $localboot -a -r $LINK/lb_updates/.apply_updates ]; then
+    #set -x 
+    mount -o remount,rw $LINK                         # mount rw
+    for folder in sfs custom; do
+        echo -e "${GREEN}\t.. applying updates for $folder${NORMAL}"
+	rm -rf $LINK/$folder                          # remove old one
+	mv $LINK/lb_updates/$folder $LINK/            # have new one in place
+	cp -al $LINK/$folder $LINK/lb_updates/        # have a hardlink copy of the new one (for the next compare with rsync)
+    done
+    rm -f $LINK/lb_updates/.apply_updates             # reset update state
+    mount -o remount,ro $LINK                         # mount read only again
+    # debugshell
+    # set +x
+fi
+
+
+########################################################
 # Mount SFS files
 # base.sfs
 #
 
-debugshell
+# debugshell
 
 TREE=""
 
