@@ -1,5 +1,6 @@
 kernel/drivers/net/ethernet/via/
 kernel/drivers/net/ethernet/realtek/
+forcedeth.ko
 pcnet32.ko
 e1000e.ko
 e100.ko
@@ -14,13 +15,11 @@ nfsv2.ko
 nfs.ko
 squashfs.ko
 loop.ko
-<<<<<<< HEAD
 usb-storage.ko
-=======
 kernel/drivers/ata/
 ext4.ko
 fscache.ko
 scsi_mod.ko
 sd_mod.ko
 sg.ko
->>>>>>> 02714ae23b32c57f3b6d56347e8828c6463df831
+
