@@ -6,4 +6,4 @@
 sudo rm -rf ./Filesystem/*
 
 # We use "stable" for our base system
-sudo debootstrap --arch=$TARGET_ARCH --variant=minbase --include=locales,locales-all stable ./Filesystem  $1
+sudo debootstrap --arch=$TARGET_ARCH --variant=minbase --include=locales,locales-all wheezy ./Filesystem  $1
