@@ -108,7 +108,7 @@ for i in $nic; do
     echo "${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
     ip link set dev eth$i up
     #udhcpc -a -q -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
-    udhcpc -o -q -i eth$i &>/dev/null && DHCP="eth$i"
+    udhcpc -q -i eth$i &>/dev/null && DHCP="eth$i"
     [ -n "$DHCP" ] && break
     echo "${RED}No answer from network.${NORMAL}"
     debugshell
@@ -131,8 +131,8 @@ if $localboot; then
     > /proc/sys/kernel/hotplug
     LINK_RESOURCE=/dev/sda2
     mount -o,ro -t ext4 "$LINK_RESOURCE" $LINK
-    # debugshell 
-elif [ -n "$nfsroot" ]; then
+    # debugshell
+else
     LINK_RESOURCE=$nfsroot
     mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$LINK_RESOURCE" $LINK
 fi
