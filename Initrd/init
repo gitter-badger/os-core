@@ -110,7 +110,7 @@ for i in $nic; do
     echo "${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
     ip link set dev eth$i up
     #udhcpc -a -q -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
-    udhcpc -o -q -i eth$i &>/dev/null && DHCP="eth$i"
+    udhcpc -q -i eth$i &>/dev/null && DHCP="eth$i"
     [ -n "$DHCP" ] && break
     echo "${RED}No answer from network.${NORMAL}"
     debugshell

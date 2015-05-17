@@ -22,7 +22,7 @@ TOP_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 BASE_VERSION := 2.1
 BUSYBOX_VERSION := 1.22.1
 # DEB_MIRROR := http://http.debian.net/debian
-DEB_MIRROR := http://otc-dd-01/debian
+DEB_MIRROR := http://http.debian.net/debian
 LOCAL_TEST_PATH := $(shell Scripts/TCOS.ini_parser -r ~/.tcosconfig):/opt/openthinclient/server/default/data/nfs/root
 
 TARGET_KERNEL_DEFAULT := 3.16.0-0.bpo.4-686-pae
@@ -34,9 +34,9 @@ TARGET_KERNEL := $(TARGET_KERNEL_DEFAULT) $(TARGET_KERNEL_NONPAE) $(TARGET_KERNE
 
 # run-time packages
 
-TARGET_PACKAGES := alsa-utils aptitude apt-utils arandr ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dialog dmidecode dnsutils dos2unix dosfstools e2fsprogs eject ethtool file firmware-linux flashplugin-nonfree fontconfig fxcyberjack gdevilspie gvfs gvfs-backends hdparm htop hwinfo iceweasel iceweasel-l10n-de iproute2 iputils-ping ipython ldap-utils less libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-glx libgssglue1 libmotif4 libpam-ldap libsasl2-modules libsasl2-modules-gssapi-mit libssl1.0.0 libstdc++5 libvdpau1 libwebkitgtk-1.0-0 libx11-6 libxerces-c3.1 lightdm lightdm-gtk-greeter locales locales-all lshw ltrace man mc mesa-utils net-tools nfs-common ntp numlockx openssh-client openssh-server pavucontrol pciutils pulseaudio pulseaudio-utils python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client strace sudo syslog-ng tcpdump ttf-dejavu udhcpc usbip usbutils util-linux vim vim-tiny wget x11vnc x11-xserver-utils xdg-utils xfonts-base xinetd xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom xserver-xorg-video-ati xserver-xorg-video-fbdev xserver-xorg-video-geode xserver-xorg-video-intel xserver-xorg-video-modesetting xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-savage xserver-xorg-video-vesa xtightvncviewer zenity
+TARGET_PACKAGES := alsa-utils aptitude apt-utils arandr ca-certificates cifs-utils console-data console-tools coreutils dbus dbus-x11 dconf-tools devilspie devilspie2 dialog dmidecode dnsutils dos2unix dosfstools e2fsprogs eject ethtool file firmware-linux flashplugin-nonfree fontconfig freerdp-x11 fxcyberjack gdevilspie gvfs gvfs-backends hdparm htop hwinfo iceweasel iceweasel-l10n-de iproute2 iputils-ping ipython ldap-utils less libcurl3 libdrm2 libdrm-intel1 libdrm-nouveau1a libdrm-radeon1 libgl1-mesa-dri libgl1-mesa-glx libgssglue1 libmotif4 libpam-ldap libsasl2-modules libsasl2-modules-gssapi-mit libssl1.0.0 libstdc++5 libvdpau1 libwebkitgtk-1.0-0 libx11-6 libxerces-c3.1 lightdm lightdm-gtk-greeter locales locales-all lshw ltrace man-db mc mesa-utils net-tools nfs-common ntp numlockx openssh-client openssh-server pavucontrol pciutils pulseaudio pulseaudio-utils pulseaudio-module-x11 python-gconf python-gtk2 python-ldap python-xdg rdesktop rsync screen smplayer spice-client strace sudo syslog-ng tcpdump ttf-dejavu udhcpc usbip usbutils util-linux vim vim-tiny wget x11vnc x11-xserver-utils xdg-utils xfonts-base xinetd xorg xserver-xorg xserver-xorg-core xserver-xorg-input-evdev xserver-xorg-input-multitouch xserver-xorg-input-mutouch xserver-xorg-input-wacom xserver-xorg-video-ati xserver-xorg-video-fbdev xserver-xorg-video-geode xserver-xorg-video-intel xserver-xorg-video-modesetting xserver-xorg-video-nouveau xserver-xorg-video-openchrome xserver-xorg-video-radeon xserver-xorg-video-savage xserver-xorg-video-vesa xtightvncviewer zenity
 
-TARGET_PACKAGES_BACKPORTS := atril caja engrampa eom glx-alternative-fglrx glx-alternative-nvidia glx-alternative-mesa libfglrx libgl1-nvidia-glx libgl1-nvidia-legacy-173xx-glx mate-applets mate-desktop mate-media mate-media-pulse mate-screensaver mate-session-manager mate-system-monitor mate-themes nvidia-alternative nvidia-alternative-legacy-173xx nvidia-driver-bin nvidia-vdpau-driver pluma  server-xorg-video-nvidia xserver-xorg-video-nvidia-legacy-173xx xvba-va-driver
+TARGET_PACKAGES_BACKPORTS := atril caja engrampa eom glx-alternative-fglrx glx-alternative-nvidia glx-alternative-mesa libfglrx libgl1-nvidia-glx libgl1-nvidia-legacy-173xx-glx mate-applets mate-desktop mate-media mate-media-pulse mate-screensaver mate-session-manager mate-system-monitor mate-themes nvidia-alternative nvidia-alternative-legacy-173xx nvidia-driver-bin nvidia-vdpau-driver pluma xserver-xorg-video-nvidia xserver-xorg-video-nvidia-legacy-173xx xvba-va-driver
 
 TARGET_PACKAGES_DEB := openthinclient-icon-theme_1-1_all.deb libssl0.9.8_0.9.8o-4squeeze14_i386.deb libccid_1.4.7-1~tcos20+1_i386.deb libpcsclite1_1.8.11-3~tcos20+3_i386.deb pcscd_1.8.11-3~tcos20+3_i386.deb libpcsclite-dev_1.8.11-3~tcos20+3_i386.deb xserver-xorg-video-chrome9_5.76.52.92-1_i386.deb libfglrx_14.12-1_i386.deb libgl1-fglrx-glx_14.12-1_i386.deb libgl1-fglrx-glx-i386_14.12-1_i386.deb libfglrx-amdxvba1_14.12-1_i386.deb fglrx-driver_14.12-1_i386.deb
 TARGET_PACKAGES_DEB_AS_DEP := $(addprefix ./Packages/, $(TARGET_PACKAGES_DEB))
@@ -171,7 +171,7 @@ driver-stamp:kernel-stamp $(TARGET_PACKAGES_DEB_DKMS_AS_DEP)
 initrd:
 	make $@-stamp
 initrd-stamp:busybox-stamp driver-stamp Sources/modules.list
-#	sudo TARGET_KERNEL="$(TARGET_KERNEL)" SHELL=$(SHELL) BIND_ROOT=./ Scripts/TCOS.initrd
+	sudo TARGET_KERNEL="$(TARGET_KERNEL)" SHELL=$(SHELL) BIND_ROOT=./ Scripts/TCOS.initrd
 	sudo $(SHELL) -c  'cd Initrd && find . | fakeroot cpio -H newc -ov | xz -9 --format=lzma > $$OLDPWD/Base/base-$(BASE_VERSION)/debian/base/tftp/initrd.img; cd ..'
 	@touch $@
 
@@ -207,7 +207,7 @@ base-release:
             DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends tcos-dev; \
             cd TCOS/Base/base-$(BASE_VERSION); \
 	    touch debian/files \
-            tcos build ."
+	    tcos build .;bash"
 	touch $@-stamp
 
 upload:
