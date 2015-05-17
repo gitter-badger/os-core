@@ -37,6 +37,7 @@ glamor=false
 via=false
 localboot=false
 verbose=false
+debug=false
 
 ## MAIN ####################################################
 
@@ -57,6 +58,7 @@ mount -t proc  -o nodev,noexec,nosuid proc  /proc
 
 # set debug and/or -x
 grep -wq verbose /proc/cmdline && verbose=true
+grep -wq debug /proc/cmdline && debug=true
 grep -wq set_x /proc/cmdline && set -x
 
 tmpfs_size="10M"
@@ -114,6 +116,8 @@ for i in $nic; do
     debugshell
 done
 
+$debug && debugshell 
+
 ########################################################
 # NFS or local boot?
 #    - variable nfsroot is taken from cmdline and is always given
@@ -131,7 +135,7 @@ if $localboot; then
     > /proc/sys/kernel/hotplug
     LINK_RESOURCE=/dev/sda2
     mount -o,ro -t ext4 "$LINK_RESOURCE" $LINK
-    # debugshell 
+    $debug && debugshell 
 elif [ -n "$nfsroot" ]; then
     LINK_RESOURCE=$nfsroot
     mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$LINK_RESOURCE" $LINK
@@ -176,7 +180,7 @@ if [ $localboot -a -r $LINK/lb_updates/.apply_updates ]; then
     done
     rm -f $LINK/lb_updates/.apply_updates             # reset update state
     mount -o remount,ro $LINK                         # mount read only again
-    # debugshell
+    $debug && debugshell 
     # set +x
 fi
 
@@ -325,7 +329,8 @@ fi
 ############################################################
 
 # debug the initrd if needed
-grep -wq debugshell /proc/cmdline && debugshell
+# grep -wq debugshell /proc/cmdline && debugshell
+$debug && debugshell
 
 # go ahead
 exec switch_root ${SHADOW} /sbin/init "$@" </dev/console >/dev/console 2>&1
