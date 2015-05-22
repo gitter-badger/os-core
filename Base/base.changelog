@@ -1,14 +1,11 @@
-base (2.1-5autobuild3) UNRELEASED; urgency=medium
+base (2.1-5) UNRELEASED; urgency=medium
 
   [ Steffen Hoenig ]
   * locaboot fixes (dhcp-option related) 
+  * added forcedeth.ko module
+  * rebuilt after wheezy getting old-stable
 
-  [ root ]
-  * autobuild as of Mi 13. Mai 15:21:25 CEST 2015
-  * autobuild as of Mi 13. Mai 15:25:55 CEST 2015
-  * autobuild as of Mi 13. Mai 13:30:30 UTC 2015
-
- -- root <root@otc-dd-01.dd.otc>  Wed, 13 May 2015 13:30:30 +0000
+ -- Steffen Hoenig <s.hoenig@openthinclient.com>  Fri, 15 May 2015 14:35:16 +0200
 
 base (2.1-4) unstable; urgency=medium
 

@@ -1,5 +1,5 @@
 Package: base
-Version: 2.1-5autobuild3
+Version: 2.1-5
 Architecture: i386
 Essential: yes
 Maintainer: Steffen Hoenig <s.hoenig@openthinclient.com>
