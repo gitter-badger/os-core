@@ -1,5 +1,8 @@
-#!/bin/sh
-RESOLV_CONF="/etc/resolv.conf"
+#!/bin/bash
+
+RESOLV_CONF=/etc/resolv.conf
+
+#set -x
 
 case $1 in
     bound|renew)
@@ -36,6 +39,17 @@ case $1 in
 	else
 	    echo -n "$R" > "$RESOLV_CONF"
 	fi
+
+	echo "########################################################################" >> /tmp/udhcpc_vars
+	echo "The following key-value pairs have been created within Initrd/init ." >> /tmp/udhcpc_vars
+	for option in timezone router timesvr dns hostname domain mtu ntpsrv wins lease serverid tftp bootfile; do
+	    # This will not work in ash und thus it does not work in busybox
+	    	    # echo "udhcpc_$option=${!option}" >> /tmp/udhcpc_vars 
+	    eval value=\$$option
+	    [ -n "$value" ] && echo "udhcpc_$option=$value" >> /tmp/udhcpc_vars
+	done
+	echo "########################################################################" >> /tmp/udhcpc_vars
+
 	;;
 
     deconfig)

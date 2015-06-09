@@ -24,8 +24,6 @@ export PACKAGE="$TCOS/package"
 export SHADOW="$TCOS/shadow"
 export CUSTOM="$LINK/custom"
 
-# export SWITCH_ROOT_PACKAGE="$SHADOW/$PACKAGE"
-
 # Some more default variables here.
 # Values can be overwritten in kernel commandline - Key=Value
 #
@@ -45,14 +43,9 @@ export PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
 echo "Loading, please wait..."
 
-[ -d /dev ] || mkdir -m 0755 /dev
-[ -d /root ] || mkdir -m 0700 /root
-[ -d /sys ] || mkdir /sys
-[ -d /proc ] || mkdir /proc
-[ -d /tmp ] || mkdir /tmp
-[ -d /run ] || mkdir /run
+mkdir -p /var/lock /dev /root /sys /proc /tmp /run
+#chmod 0755 /dev; chmod 0700 /root
 
-mkdir -p /var/lock
 mount -t sysfs -o nodev,noexec,nosuid sysfs /sys
 mount -t proc  -o nodev,noexec,nosuid proc  /proc
 
@@ -95,26 +88,34 @@ for folder in $LINK $WRITE $BASE $PACKAGE $SHADOW $SHADOW $CUSTOM ; do mkdir -p 
 read CMDLINE < /proc/cmdline
 getbootparams
 
+# let the kernel shut up if not in debug mode
+$debug || echo "0" > /proc/sys/kernel/printk
+
 # Shut up or display figlet logo if not in quiet mode.
 # 
-grep -vwq quiet /proc/cmdline && $figlet && (echo ${BLUE}; cat /lib/consus.figlet; echo ${NORMAL}; sleep 1)
+grep -vwq quiet /proc/cmdline && $figlet && (echo ${BLUE}; cat /lib/pales.figlet; echo ${NORMAL}; sleep 1)
 
 ip addr add 127.0.0.1/8 dev lo
 ip link set dev lo up
 
-# support multiple networkcards
-[ -z $nic ] && nic=0
 DHCP=""
+$debug && debugshell 
 
-for i in $nic; do
-    echo "${BLUE}DHCP Broadcasting for IP address (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
-    ip link set dev eth$i up
-    #udhcpc -a -q -i eth$i -s /etc/udhcpc/default.script && DHCP="eth$i"
-    udhcpc -q -i eth$i &>/dev/null && DHCP="eth$i"
+# We support up to four networkcards now.
+#
+for i in 0 1 2 3; do
+    echo "${BLUE}DHCP Broadcasting for IP address on (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
+    ip link show dev eth$i &> /dev/null || (echo "Device eth$i not found." && continue)
+    ip link show dev eth$i | grep -q NO-CARRIER && (echo "Device eth$i has no link." && continue)
+    if $debug; then
+	udhcpc -q -n -i eth$i && DHCP="eth$i"
+    else
+	udhcpc -q -n -i eth$i &> /dev/null && DHCP="eth$i"
+    fi
     [ -n "$DHCP" ] && break
-    echo "${RED}No answer from network.${NORMAL}"
-    debugshell
 done
+
+[ -z "$DHCP" ] && echo "${RED}Received no DHCP-lease from network. STOPP ${NORMAL}" && debugshell
 
 $debug && debugshell 
 
@@ -206,8 +207,6 @@ fi
 # other SFS
 # mount module sfs and packages sfs
 
-echo "0" >/proc/sys/kernel/printk
-
 mountsfs package
 
 # AUFS
@@ -220,10 +219,6 @@ mount -t tmpfs -o mode=0755 none $WRITE # links writing branch to ram!
 
 mount -t aufs -o noplink,br:${WRITE}=rw:${TREE} unionfs $SHADOW  && AUFS="true"
 
-# save resolv.conf
-cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
-[ -e /etc/hostname ] && cp /etc/hostname ${SHADOW}/etc/hostname
-
 # enables additional packages (in  bz2, gz. tar, plain, format)
 mountcustom $CUSTOM
 
@@ -231,7 +226,11 @@ mount --bind /sys ${SHADOW}/sys
 mount --bind /dev ${SHADOW}/dev
 mount --bind /dev/pts ${SHADOW}/dev/pts
 mount --bind /proc ${SHADOW}/proc
-mkdir -p ${SHADOW}/tcos/link &>/dev/null && mount --bind /tcos/link ${SHADOW}/tcos/link
+
+mkdir -p ${SHADOW}/$LINK &>/dev/null && mount --bind $LINK ${SHADOW}/$LINK
+mkdir -p ${SHADOW}/$PACKAGE &>/dev/null && mount --bind $PACKAGE ${SHADOW}/$PACKAGE
+mkdir -p ${SHADOW}/$BASE &>/dev/null && mount --bind $BASE ${SHADOW}/$BASE
+
 
 ###########################################################################################
 # ToDo: Source the graphics card stuff out in a separate file.
@@ -327,9 +326,15 @@ fi
 
 
 ############################################################
+#
+# convey important information to wheezy
 
+[ -e /tmp/udhcpc_vars ] && cat /tmp/udhcpc_vars >> ${SHADOW}/environment
+[ -e /etc/resolv.conf ] && cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
+[ -e /etc/hostname ] && cp /etc/hostname ${SHADOW}/etc/hostname
+
+######
 # debug the initrd if needed
-# grep -wq debugshell /proc/cmdline && debugshell
 $debug && debugshell
 
 # go ahead
