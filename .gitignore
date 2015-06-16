@@ -5,16 +5,15 @@
 /Initrd/
 /Sources/busybox
 /Sources/linux-firmware
-Base/**/sfs
-Base/**/tftp
-Base/**/tempcopy*
+
 # build-files
 
-Base/**/*.sfs
-Base/**/*.dsc
-Base/**/*.changes
-Base/**/*.deb
-Base/**/*.tar.gz
+Base/*
+#Base/**/*.sfs
+#Base/**/*.dsc
+#Base/**/*.changes
+#Base/**/*.deb
+#Base/**/*.tar.gz
 
 # temp-files
 *~
@@ -28,5 +27,6 @@ Base/**/*.tar.gz
 !/Initrd/bin/mask2cidr
 !/Initrd/etc/udhcpc/default.script
 !/Initrd/lib/consus.figlet
+!/Initrd/lib/pales.figlet
 
 

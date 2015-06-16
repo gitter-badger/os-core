@@ -1,7 +1,8 @@
 Source: base
 Section: base
 Priority: required
-Maintainer: Steffen Hoenig <s.hoenig@openthinclient.com>
+Maintainer: Steffen Hoenig <s.hoenig@openthinclient.com>,
+ Joern Frenzel <j.frenzel@openthinclient.com>
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.3
 

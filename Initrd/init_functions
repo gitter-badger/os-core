@@ -60,6 +60,8 @@ bailout(){
 }
 
 debugshell(){
+ # enable mdev to have keyboard support
+ echo /sbin/mdev > /proc/sys/kernel/hotplug
  modprobe ehci-hcd &>/dev/null
  modprobe ohci-hcd &>/dev/null
  modprobe uhci-hcd &>/dev/null
@@ -69,12 +71,14 @@ debugshell(){
  # source this file again via .bashrc to have access to functions
  # (i.e. runbasecmd), once we have been called from outside
  #
-echo ". /init_functions" >> /root/.bashrc
+ echo ". /init_functions" >> /root/.bashrc
  [ -n "$1" ] && echo "$1"
- # dropbear is still not working
- # [ -x /usr/bin/dropbear ] && echo "${BLUE}Starting sshd.${NORMAL}" && ../../usr/bin/dropbear -E
+
+ # start dropbear if it exists
+ # [ -x /usr/bin/dropbear ] && echo "${BLUE}Starting sshd.${NORMAL}" && /usr/bin/dropbear -E
+
  echo "${RED}A debugshell will be called now ... ${NORMAL}"
- ENV=/root/.bashrc /bin/bash
+ ENV=/root/.bashrc /bin/bash 
  return 0
 }
 

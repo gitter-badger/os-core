@@ -23,14 +23,15 @@ export BASE="$TCOS/base"       # squashfs # via loopback sfs-file: /tcos/link/sf
 export PACKAGE="$TCOS/package"
 export SHADOW="$TCOS/shadow"
 export CUSTOM="$LINK/custom"
+export TCOS_NIC=""
 
 # Some more default variables here.
-# Values can be overwritten in kernel commandline - Key=Value
+# Values can be overwritten in kernel commandline: Key=Value
 #
 fglrx=false
 nvidia=false
 figlet=true
-splashImage=openthinclient.ppm
+splashImage=pales-splash-1013x760.ppm
 glamor=false
 via=false
 localboot=false
@@ -43,8 +44,8 @@ export PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
 echo "Loading, please wait..."
 
-mkdir -p /var/lock /dev /root /sys /proc /tmp /run
-#chmod 0755 /dev; chmod 0700 /root
+mkdir -p /var/lock /sys /proc /tmp /run
+mkdir -p -m 0755 /dev; mkdir -p -m 0700 /root
 
 mount -t sysfs -o nodev,noexec,nosuid sysfs /sys
 mount -t proc  -o nodev,noexec,nosuid proc  /proc
@@ -92,14 +93,12 @@ getbootparams
 $debug || echo "0" > /proc/sys/kernel/printk
 
 # Shut up or display figlet logo if not in quiet mode.
-# 
+#
+
 grep -vwq quiet /proc/cmdline && $figlet && (echo ${BLUE}; cat /lib/pales.figlet; echo ${NORMAL}; sleep 1)
 
 ip addr add 127.0.0.1/8 dev lo
 ip link set dev lo up
-
-DHCP=""
-$debug && debugshell 
 
 # We support up to four networkcards now.
 #
@@ -107,15 +106,16 @@ for i in 0 1 2 3; do
     echo "${BLUE}DHCP Broadcasting for IP address on (${MAGENTA}eth$i${BLUE})... ${NORMAL}"
     ip link show dev eth$i &> /dev/null || (echo "Device eth$i not found." && continue)
     ip link show dev eth$i | grep -q NO-CARRIER && (echo "Device eth$i has no link." && continue)
+    ip link set dev eth$i up &> /dev/null || (echo "Could not bring up device eth$i." && continue)
     if $debug; then
-	udhcpc -q -n -i eth$i && DHCP="eth$i"
+	udhcpc -q -n -i eth$i && TCOS_NIC="eth$i"
     else
-	udhcpc -q -n -i eth$i &> /dev/null && DHCP="eth$i"
+	udhcpc -q -n -i eth$i &> /dev/null && TCOS_NIC="eth$i"
     fi
-    [ -n "$DHCP" ] && break
+    [ -n "$TCOS_NIC" ] && break
 done
 
-[ -z "$DHCP" ] && echo "${RED}Received no DHCP-lease from network. STOPP ${NORMAL}" && debugshell
+[ -z "$TCOS_NIC" ] && echo "${RED}Received no DHCP-lease from network. STOPP ${NORMAL}" && debugshell
 
 $debug && debugshell 
 
@@ -126,17 +126,14 @@ $debug && debugshell
 
 if $localboot; then
     echo "${BLUE}Switching client to localboot ... ${NORMAL}"
-    # enable mdev
-    echo /sbin/mdev > /proc/sys/kernel/hotplug
-    for mod in ahci ext4 scsi_mod sd_mod sg fscache ata_generic ata_piix; do
+    echo /sbin/mdev > /proc/sys/kernel/hotplug     # enable mdev
+    for mod in ahci ext4 scsi_mod sd_mod sg fscache ata_generic ata_piix sata_via pata_via libata; do 
 	$verbose && echo "... loading module $mod"
 	modprobe $mod;
     done
-    # disable mdev
-    > /proc/sys/kernel/hotplug
+    > /proc/sys/kernel/hotplug                     # disable mdev
     LINK_RESOURCE=/dev/sda2
     mount -o,ro -t ext4 "$LINK_RESOURCE" $LINK
-    $debug && debugshell 
 elif [ -n "$nfsroot" ]; then
     LINK_RESOURCE=$nfsroot
     mount -t nfs -o nolock -o ro -o retrans=10 -o vers=2 "$LINK_RESOURCE" $LINK
@@ -149,6 +146,9 @@ else
   debugshell
 fi
 
+# what's up?
+#
+$debug && debugshell 
 
 ###############################################################
 # get the splashscreen running if some framebuffer is enabled
@@ -157,7 +157,6 @@ fi
 [ -c /dev/fb0 ] || mknod /dev/fb0 c 29 0               # ensure framebuffer device exists
 echo 0 > /sys/class/graphics/fbcon/cursor_blink        # prevent cursor blinking
 grep -q "vga=" /proc/cmdline && fbsplash -silent -s /tcos/link/custom/splashscreens/${splashImage} 
-
 
 ###############################################################
 # apply updates for localboot here
@@ -190,8 +189,6 @@ fi
 # Mount SFS files
 # base.sfs
 #
-
-# debugshell
 
 TREE=""
 
@@ -227,9 +224,12 @@ mount --bind /dev ${SHADOW}/dev
 mount --bind /dev/pts ${SHADOW}/dev/pts
 mount --bind /proc ${SHADOW}/proc
 
+# have this folders also inside the running system, just to see them for debugging.
+#
 mkdir -p ${SHADOW}/$LINK &>/dev/null && mount --bind $LINK ${SHADOW}/$LINK
 mkdir -p ${SHADOW}/$PACKAGE &>/dev/null && mount --bind $PACKAGE ${SHADOW}/$PACKAGE
 mkdir -p ${SHADOW}/$BASE &>/dev/null && mount --bind $BASE ${SHADOW}/$BASE
+mkdir -p ${SHADOW}/$WRITE &>/dev/null && mount --bind $WRITE ${SHADOW}/$WRITE
 
 
 ###########################################################################################
@@ -329,9 +329,12 @@ fi
 #
 # convey important information to wheezy
 
-[ -e /tmp/udhcpc_vars ] && cat /tmp/udhcpc_vars >> ${SHADOW}/environment
+[ -e /tmp/udhcpc_vars ] && cat /tmp/udhcpc_vars >> ${SHADOW}/etc/environment
 [ -e /etc/resolv.conf ] && cp /etc/resolv.conf ${SHADOW}/etc/resolv.conf
 [ -e /etc/hostname ] && cp /etc/hostname ${SHADOW}/etc/hostname
+
+# export vars created by udhcp
+. /tmp/udhcpc_vars_exporter 
 
 ######
 # debug the initrd if needed
@@ -339,3 +342,4 @@ $debug && debugshell
 
 # go ahead
 exec switch_root ${SHADOW} /sbin/init "$@" </dev/console >/dev/console 2>&1
+

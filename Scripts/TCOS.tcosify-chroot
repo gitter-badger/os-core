@@ -14,7 +14,7 @@ ln -snf /bin/bash /bin/sh
 
 [ ! -f  /etc/issue.debian ] && cp /etc/issue /etc/issue.debian
 [ ! -f  /etc/motd.debian ] && cp /etc/motd /etc/motd.debian
-echo -e "openthinclient OS base $BASE_VERSION \nbuild: $(date)\nbased on and credits to Debian" > /etc/issue
+echo -e "openthinclient OS base ${BASE_VERSION}${BASE_VERSION_MINOR} \nbuild: $(date)\nbased on and credits to Debian" > /etc/issue
 cat /etc/issue > /etc/motd
 cat /etc/issue.debian >> /etc/issue
 cat /etc/motd.debian >> /etc/motd

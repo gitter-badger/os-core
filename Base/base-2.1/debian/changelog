@@ -1,4 +1,21 @@
-base (2.1-5) UNRELEASED; urgency=medium
+base (2.1-6) unstable; urgency=medium
+
+  [ Joern Frenzel ] 
+  * initrd is now able to boot from eth0 up to eth3
+  * initrd uses xz compression again
+  * initrd changed handling of udhcpc answers, pass them to debian
+  * initrd have localboot update functionality in initrd
+  * ignore /boot/* inside base.sfs (excluded in mksquashfs)
+  * kernel 3.2.0-4-486 is no longer supported
+  * initrd uses new busybox version 1.23.1
+  * base has some kerberos packages inside
+  * base kicked out package freerdp
+  * base has new splashscreen images inside
+  * base has exact version in /etc/issue again
+
+ -- Joern Frenzel <j.frenzel@openthinclient.com>  Tue, 16 Jun 2015 21:09:56 +0000
+
+base (2.1-5) unstable; urgency=medium
 
   [ Steffen Hoenig ]
   * locaboot fixes (dhcp-option related) 
